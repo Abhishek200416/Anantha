@@ -129,9 +129,9 @@ def main():
     print(f"    - Token length: {len(auth_token) if auth_token else 0}")
     print(f"    - Token starts with expected format: {auth_token.startswith('eyJ') if auth_token else False}")
     
-    # ============= STEP 2: GET PRODUCTS FOR ORDER CREATION =============
+    # ============= STEP 2: TEST PUBLIC STATES API =============
     print("\n" + "="*80)
-    print("📦 STEP 2: GET PRODUCTS FOR ORDER CREATION")
+    print("🏛️ STEP 2: TEST PUBLIC STATES API (GET /api/states)")
     print("="*80)
     
     success, all_products = test_api_endpoint(
