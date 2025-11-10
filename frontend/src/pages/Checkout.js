@@ -717,7 +717,7 @@ const Checkout = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8">
           {/* Checkout Form - Keeping the same as before */}
           <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Delivery Details</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">Delivery Details</h2>
             
             {/* Previous Details Search */}
             <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
