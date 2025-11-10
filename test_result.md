@@ -1130,3 +1130,54 @@ agent_communication:
     - Changes apply immediately to customer orders
     
     ✅ Issue resolved! All cities are now available in the dropdown."
+  - agent: "main"
+    message: "✅ FIXED STATE MANAGEMENT - REMOVED ADD STATE BUTTON & PRE-POPULATED CORRECT STATES:
+    
+    USER ISSUE: In Admin panel Cities & States tab, user was able to add any state (Karnataka, Tamil Nadu, Maharashtra, etc.) but the food delivery service only operates in Andhra Pradesh and Telangana.
+    
+    ROOT CAUSE: 
+    1. 'Add State' button allowed users to manually type and add any state name
+    2. No restrictions on which states could be added
+    3. Database had no pre-populated states
+    
+    SOLUTION IMPLEMENTED:
+    ✅ Created seed_states.py script
+    ✅ Pre-populated database with only Andhra Pradesh and Telangana
+    ✅ Removed 'Add State' button from admin interface
+    ✅ Removed delete button from state cards (states are now permanent)
+    ✅ Added auto-fetch of states when delivery tab is opened
+    ✅ Enhanced UI with note: 'Only Andhra Pradesh & Telangana are supported'
+    
+    CHANGES IN ADMIN PANEL:
+    Before:
+    - 'Add State' button allowed adding any state
+    - States could be deleted
+    - No default states in database
+    
+    After:
+    - No 'Add State' button (states are fixed)
+    - Cannot delete Andhra Pradesh or Telangana
+    - Two states pre-populated and always available
+    - Only toggle delivery availability on/off
+    - Visual note indicating only these 2 states are supported
+    
+    HOW IT WORKS NOW:
+    1. Admin opens 'Cities & States' tab
+    2. Sees 'Available States' section showing:
+       - Andhra Pradesh (with toggle for delivery availability)
+       - Telangana (with toggle for delivery availability)
+    3. Can enable/disable delivery for each state using toggle
+    4. Cannot add or remove states
+    5. When adding cities, dropdown only shows Andhra Pradesh and Telangana
+    
+    BENEFITS:
+    ✅ Prevents accidental addition of unsupported states
+    ✅ Maintains data integrity
+    ✅ Simplifies admin interface
+    ✅ Ensures all cities belong to correct states
+    ✅ Matches business requirements (only 2 states supported)
+    
+    Database now has:
+    - 419 cities (205 in Andhra Pradesh, 214 in Telangana)
+    - 2 states (Andhra Pradesh, Telangana)
+    - Both states enabled by default"
