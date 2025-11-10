@@ -1256,8 +1256,9 @@ const Admin = () => {
                     className="w-full md:w-64 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">All States</option>
-                    <option value="Andhra Pradesh">Andhra Pradesh</option>
-                    <option value="Telangana">Telangana</option>
+                    {states && states.length > 0 && states.map(state => (
+                      <option key={state.name} value={state.name}>{state.name}</option>
+                    ))}
                   </select>
                 </div>
 
