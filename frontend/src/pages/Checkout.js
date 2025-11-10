@@ -1071,8 +1071,8 @@ const Checkout = () => {
 
           {/* Order Summary with Edit Features */}
           <div>
-            <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6">Order Summary</h2>
+            <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 mb-4 sm:mb-6">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">Order Summary</h2>
               
               {/* Cart Items with Edit Options */}
               <div className="space-y-4 mb-6">
