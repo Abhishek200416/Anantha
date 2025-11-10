@@ -671,7 +671,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "City-Based Product Availability Feature Testing - COMPLETED"
+    - "State Management APIs Testing - COMPLETED"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
