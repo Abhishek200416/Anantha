@@ -49,9 +49,10 @@ const Admin = () => {
   const [newState, setNewState] = useState({ name: '', enabled: true });
   const [deleteLocationDialog, setDeleteLocationDialog] = useState({ isOpen: false, cityName: '' });
   const [deleteStateDialog, setDeleteStateDialog] = useState({ isOpen: false, stateName: '' });
-  const [freeDeliveryEnabled, setFreeDeliveryEnabled] = useState(false);
-  const [freeDeliveryThreshold, setFreeDeliveryThreshold] = useState(1000);
-  const [citySpecificFreeDeliveryEnabled, setCitySpecificFreeDeliveryEnabled] = useState(true);
+  // REMOVED: Settings tab state variables - functionality moved to Cities & States tab
+  // const [freeDeliveryEnabled, setFreeDeliveryEnabled] = useState(false);
+  // const [freeDeliveryThreshold, setFreeDeliveryThreshold] = useState(1000);
+  // const [citySpecificFreeDeliveryEnabled, setCitySpecificFreeDeliveryEnabled] = useState(true);
   
   const [newProduct, setNewProduct] = useState({
     name: '',
