@@ -478,10 +478,13 @@ const Checkout = () => {
           }
         } catch (error) {
           console.error('❌ Location API error:', error);
+          console.error('Error details:', error.message);
+          
           toast({
             title: "Address Lookup Failed",
-            description: "Location detected but couldn't fetch address details. Please enter manually.",
-            variant: "destructive"
+            description: `📍 Coordinates: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}\n\nCouldn't fetch address details. Please enter manually.\n\nError: ${error.message || 'Unknown error'}`,
+            variant: "destructive",
+            duration: 7000
           });
         } finally {
           setDetectingLocation(false);
