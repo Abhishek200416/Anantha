@@ -966,7 +966,7 @@ const Checkout = () => {
 
               {/* Payment Method */}
               <div className="pt-4 border-t">
-                <h3 className="text-lg font-bold text-gray-800 mb-4">Payment Method</h3>
+                <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3 sm:mb-4">Payment Method</h3>
                 
                 {/* Online Payment */}
                 <div className="mb-4">
