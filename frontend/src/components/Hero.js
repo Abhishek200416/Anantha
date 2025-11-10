@@ -21,7 +21,7 @@ const Hero = () => {
           {/* Main Title */}
           <h1 className="text-4xl md:text-7xl font-bold mb-3 md:mb-4">
             <span className="bg-gradient-to-r from-orange-600 via-red-600 to-orange-700 bg-clip-text text-transparent">
-              Anantha Lakshmi
+              Anantha Home Foods
             </span>
           </h1>
 
