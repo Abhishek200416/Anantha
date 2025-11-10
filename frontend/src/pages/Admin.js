@@ -697,16 +697,6 @@ const Admin = () => {
             >
               Cities & States
             </button>
-            <button
-              onClick={() => setActiveTab('settings')}
-              className={`flex-1 py-4 px-2 font-semibold transition-colors whitespace-nowrap ${
-                activeTab === 'settings'
-                  ? 'border-b-2 border-orange-500 text-orange-600'
-                  : 'text-gray-600 hover:text-gray-800'
-              }`}
-            >
-              Settings
-            </button>
           </div>
 
           {/* Products Tab */}
