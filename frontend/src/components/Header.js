@@ -55,8 +55,8 @@ const Header = () => {
                 className="h-12 w-12 rounded-full object-cover"
               />
               <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
-                  Anantha Lakshmi
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent" style={{ fontFamily: "'Poppins', sans-serif" }}>
+                  Anantha Home Foods
                 </h1>
                 <p className="text-xs text-gray-600">Traditional Homemade Foods</p>
               </div>
