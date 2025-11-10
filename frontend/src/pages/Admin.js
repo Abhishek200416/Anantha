@@ -537,58 +537,9 @@ const Admin = () => {
     setSelectedBestSellers(bestSellerIds);
   }, [products]);
 
-  // Fetch free delivery settings on mount
-  React.useEffect(() => {
-    fetchFreeDeliverySettings();
-  }, []);
-
-  const fetchFreeDeliverySettings = async () => {
-    try {
-      const response = await axios.get(`${BACKEND_URL}/api/settings/free-delivery`);
-      setFreeDeliveryEnabled(response.data.enabled);
-      setFreeDeliveryThreshold(response.data.threshold);
-    } catch (error) {
-      console.error('Failed to fetch free delivery settings:', error);
-    }
-  };
-
-  const handleSaveFreeDeliverySettings = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        toast({
-          title: "Authentication Error",
-          description: "Please login again",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      await axios.post(
-        `${BACKEND_URL}/api/admin/settings/free-delivery`,
-        {
-          enabled: freeDeliveryEnabled,
-          threshold: parseFloat(freeDeliveryThreshold)
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
-      
-      toast({
-        title: "Settings Saved!",
-        description: `Free delivery ${freeDeliveryEnabled ? `enabled for orders above ₹${freeDeliveryThreshold}` : 'disabled'}`
-      });
-    } catch (error) {
-      console.error('Failed to save free delivery settings:', error);
-      const errorMsg = error.response?.data?.detail || "Failed to save settings. Please try again.";
-      toast({
-        title: "Error",
-        description: errorMsg,
-        variant: "destructive"
-      });
-    }
-  };
+  // REMOVED: Free delivery settings functions - functionality moved to Cities & States tab
+  // const fetchFreeDeliverySettings = async () => { ... }
+  // const handleSaveFreeDeliverySettings = async () => { ... }
 
   if (!isAuthenticated) {
     return (
