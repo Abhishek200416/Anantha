@@ -100,8 +100,8 @@ def admin_login():
     return None
 
 def main():
-    """Main testing function - FOCUSED ON ADMIN AUTH AND ORDERS FLOW"""
-    print("🚀 Starting FOCUSED Backend API Tests - Admin Authentication and Orders Flow")
+    """Main testing function - FOCUSED ON STATE MANAGEMENT APIS"""
+    print("🚀 Starting FOCUSED Backend API Tests - State Management APIs")
     print(f"Backend URL: {BACKEND_URL}")
     print(f"Test Time: {datetime.now()}")
     
