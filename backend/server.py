@@ -96,6 +96,7 @@ class Product(BaseModel):
     discount_expiry_date: Optional[str] = None
     inventory_count: Optional[int] = None
     out_of_stock: bool = False
+    available_cities: Optional[List[str]] = None  # Cities where product can be delivered
 
 class DiscountUpdate(BaseModel):
     discount_percentage: float
