@@ -649,6 +649,25 @@ async def toggle_stock_status(product_id: str, data: dict, current_user: dict = 
     
     return {"message": "Stock status updated successfully"}
 
+@api_router.put("/admin/products/{product_id}/available-cities")
+async def update_available_cities(product_id: str, data: dict, current_user: dict = Depends(get_current_user)):
+    """Update product available cities (Admin only)"""
+    available_cities = data.get("available_cities", [])
+    
+    # Validate available_cities is a list
+    if not isinstance(available_cities, list):
+        raise HTTPException(status_code=400, detail="available_cities must be an array")
+    
+    result = await db.products.update_one(
+        {"id": product_id},
+        {"$set": {"available_cities": available_cities if available_cities else None}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    return {"message": "Available cities updated successfully"}
+
 # ============= BEST SELLER APIS =============
 
 @api_router.post("/admin/best-sellers")
