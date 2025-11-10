@@ -216,25 +216,46 @@ const Home = () => {
           <p className="text-gray-600 text-sm md:text-base">Browse our delicious collection of traditional foods</p>
         </div>
         
-        {/* City Filter with Auto-detect indication */}
-        <div className="mb-6 bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-          <div className="flex flex-col md:flex-row md:items-center gap-3">
-            <div className="flex items-center space-x-2 text-gray-700 min-w-fit">
-              <MapPin className="h-5 w-5 text-orange-600" />
-              <span className="font-semibold">Filter by City:</span>
+        {/* City Filter with Auto-detect button */}
+        <div className="mb-6 bg-gradient-to-r from-orange-50 to-red-50 rounded-xl shadow-md border-2 border-orange-200 p-4">
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              <div className="flex items-center space-x-2 text-gray-700 min-w-fit">
+                <MapPin className="h-5 w-5 text-orange-600" />
+                <span className="font-semibold">Delivery Location:</span>
+              </div>
+              <select
+                value={selectedCity}
+                onChange={(e) => setSelectedCity(e.target.value)}
+                className="flex-1 px-4 py-2.5 border-2 border-orange-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white font-medium"
+              >
+                <option value="">All Cities (Show All Products)</option>
+                {deliveryLocations && deliveryLocations.map((location) => (
+                  <option key={location.name} value={location.name}>
+                    {location.name}, {location.state}
+                  </option>
+                ))}
+              </select>
+              <button
+                onClick={detectLocation}
+                disabled={detectingLocation}
+                className="px-6 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-semibold shadow-md flex items-center justify-center space-x-2 whitespace-nowrap"
+              >
+                <MapPin className="h-4 w-4" />
+                <span>{detectingLocation ? 'Detecting...' : 'Detect My Location'}</span>
+              </button>
             </div>
-            <select
-              value={selectedCity}
-              onChange={(e) => setSelectedCity(e.target.value)}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white"
-            >
-              <option value="">All Cities (Show All Products)</option>
-              {deliveryLocations && deliveryLocations.map((location) => (
-                <option key={location.name} value={location.name}>
-                  {location.name}, {location.state}
-                </option>
-              ))}
-            </select>
+            {autoDetectedCity && (
+              <div className="flex items-center space-x-2 text-sm text-green-700 bg-green-100 px-3 py-2 rounded-lg border border-green-300">
+                <span className="font-semibold">✓ Auto-detected:</span>
+                <span>{autoDetectedCity}</span>
+              </div>
+            )}
+            {selectedCity && (
+              <div className="text-sm text-orange-700 bg-orange-100 px-3 py-2 rounded-lg border border-orange-300">
+                <span className="font-semibold">📍 Showing products available in: {selectedCity}</span>
+              </div>
+            )}
           </div>
           {autoDetectedCity && (
             <p className="mt-2 text-sm text-green-600 flex items-center space-x-1">
