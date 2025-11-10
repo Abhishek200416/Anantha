@@ -454,6 +454,27 @@ const Checkout = () => {
       return;
     }
 
+    // Check if all products are available for delivery to the selected city
+    const unavailableProducts = [];
+    for (const item of cart) {
+      const available_cities = item.available_cities;
+      if (available_cities && Array.isArray(available_cities) && available_cities.length > 0) {
+        // If product has city restrictions, check if the selected city is in the list
+        if (!available_cities.includes(formData.city)) {
+          unavailableProducts.push(item.name);
+        }
+      }
+    }
+
+    if (unavailableProducts.length > 0) {
+      toast({
+        title: "Delivery Not Available",
+        description: `The following products are not available for delivery to ${formData.city}: ${unavailableProducts.join(', ')}. Please remove them from cart or choose a different city.`,
+        variant: "destructive"
+      });
+      return;
+    }
+
     const fullAddress = `${formData.doorNo}, ${formData.building}, ${formData.street}, ${formData.city}, ${formData.state} - ${formData.pincode}`;
     const finalDeliveryCharge = calculateDeliveryCharge();
 
