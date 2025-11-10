@@ -2025,13 +2025,33 @@ const Admin = () => {
               <div className="border-t border-b py-4 space-y-3">
                 <h4 className="font-semibold text-gray-800 flex items-center space-x-2">
                   <MapPin className="h-5 w-5 text-blue-600" />
-                  <span>City Availability</span>
+                  <span>City Availability ({deliveryLocations.length} cities available)</span>
                 </h4>
                 <p className="text-sm text-gray-600">
                   Select cities where this product can be delivered. Leave empty to make available everywhere.
                 </p>
-                <div className="max-h-48 overflow-y-auto border rounded-lg p-3 bg-gray-50">
-                  <label className="flex items-center space-x-2 cursor-pointer mb-2 p-2 hover:bg-white rounded">
+                
+                {/* Search Input */}
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="🔍 Search cities... (e.g., Guntur, Hyderabad)"
+                    value={citySearchEdit}
+                    onChange={(e) => setCitySearchEdit(e.target.value)}
+                    className="w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  {citySearchEdit && (
+                    <button
+                      onClick={() => setCitySearchEdit('')}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+                
+                <div className="max-h-64 overflow-y-auto border rounded-lg p-3 bg-gray-50">
+                  <label className="flex items-center space-x-2 cursor-pointer mb-2 p-2 hover:bg-white rounded sticky top-0 bg-green-50 border-b">
                     <input
                       type="checkbox"
                       checked={!editingProduct.available_cities || editingProduct.available_cities.length === 0}
@@ -2044,7 +2064,13 @@ const Admin = () => {
                     />
                     <span className="text-sm font-semibold text-green-600">All Cities (No Restriction)</span>
                   </label>
-                  {Array.isArray(deliveryLocations) && deliveryLocations.slice(0, 50).map((location) => (
+                  {Array.isArray(deliveryLocations) && deliveryLocations
+                    .filter(location => 
+                      !citySearchEdit || 
+                      location.name.toLowerCase().includes(citySearchEdit.toLowerCase()) ||
+                      location.state.toLowerCase().includes(citySearchEdit.toLowerCase())
+                    )
+                    .map((location) => (
                     <label key={location.name} className="flex items-center space-x-2 cursor-pointer mb-1 p-2 hover:bg-white rounded">
                       <input
                         type="checkbox"
@@ -2068,9 +2094,15 @@ const Admin = () => {
                       <span className="text-sm">{location.name}, {location.state}</span>
                     </label>
                   ))}
+                  {citySearchEdit && deliveryLocations.filter(location => 
+                    location.name.toLowerCase().includes(citySearchEdit.toLowerCase()) ||
+                    location.state.toLowerCase().includes(citySearchEdit.toLowerCase())
+                  ).length === 0 && (
+                    <p className="text-center text-gray-500 py-4">No cities found matching "{citySearchEdit}"</p>
+                  )}
                 </div>
                 {editingProduct.available_cities && editingProduct.available_cities.length > 0 && (
-                  <p className="text-sm text-blue-600">
+                  <p className="text-sm text-blue-600 font-semibold">
                     ✓ Available in {editingProduct.available_cities.length} selected cities
                   </p>
                 )}
