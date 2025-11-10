@@ -798,7 +798,7 @@ const Checkout = () => {
 
               {/* Address Section */}
               <div className="pt-4 border-t">
-                <div className="flex justify-between items-center mb-4">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
                   <h3 className="text-lg font-bold text-gray-800 flex items-center space-x-2">
                     <Home className="h-5 w-5" />
                     <span>Delivery Address</span>
@@ -807,7 +807,7 @@ const Checkout = () => {
                     type="button"
                     onClick={detectCurrentLocation}
                     disabled={detectingLocation}
-                    className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all disabled:opacity-50 text-sm"
+                    className="flex items-center justify-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all disabled:opacity-50 text-sm w-full sm:w-auto"
                   >
                     <Navigation className="h-4 w-4" />
                     <span>{detectingLocation ? 'Detecting...' : 'Detect Location'}</span>
