@@ -722,7 +722,7 @@ const Checkout = () => {
             {/* Previous Details Search */}
             <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
               <h3 className="text-sm font-semibold text-gray-700 mb-2">Have you ordered before?</h3>
-              <div className="flex space-x-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <input
                   type="text"
                   value={searchIdentifier}
@@ -733,7 +733,7 @@ const Checkout = () => {
                 <button
                   onClick={handleSearchUserDetails}
                   disabled={searching}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400"
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 w-full sm:w-auto"
                 >
                   {searching ? 'Searching...' : 'Search'}
                 </button>
