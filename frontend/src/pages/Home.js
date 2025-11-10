@@ -18,6 +18,26 @@ const Home = () => {
   const [allProducts, setAllProducts] = useState([]);
   const { products: contextProducts, festivalProduct, deliveryLocations } = useAdmin();
 
+  // Fetch products based on selected city
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const url = selectedCity 
+          ? `${API}/products?city=${encodeURIComponent(selectedCity)}`
+          : `${API}/products`;
+        const response = await axios.get(url);
+        setAllProducts(response.data || []);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        setAllProducts(contextProducts);
+      }
+    };
+    fetchProducts();
+  }, [selectedCity, contextProducts]);
+
+  // Use allProducts instead of contextProducts
+  const products = allProducts.length > 0 ? allProducts : contextProducts;
+
   // Show festival popup on load if set
   useEffect(() => {
     if (festivalProduct && !sessionStorage.getItem('festivalPopupShown')) {
