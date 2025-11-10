@@ -1061,9 +1061,9 @@ const Checkout = () => {
 
               <button
                 type="submit"
-                className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-4 rounded-xl font-semibold hover:from-green-700 hover:to-green-800 transition-all transform hover:scale-105 shadow-lg flex items-center justify-center space-x-2"
+                className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-3 sm:py-4 rounded-xl font-semibold hover:from-green-700 hover:to-green-800 transition-all transform hover:scale-105 shadow-lg flex items-center justify-center space-x-2 text-sm sm:text-base"
               >
-                <Truck className="h-5 w-5" />
+                <Truck className="h-4 w-4 sm:h-5 sm:w-5" />
                 <span>Place Order</span>
               </button>
             </form>
