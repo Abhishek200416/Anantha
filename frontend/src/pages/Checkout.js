@@ -443,29 +443,45 @@ const Checkout = () => {
             });
             
             // Auto-select delivery location and update delivery charge
-            if (detectedAddress.city) {
-              console.log('🔍 Looking for delivery location:', detectedAddress.city);
-              console.log('📍 Available locations:', deliveryLocations.map(l => l.name));
+            if (detectedAddress.city && detectedAddress.state) {
+              console.log('🔍 Looking for delivery location:', detectedAddress.city, detectedAddress.state);
               
               const selectedLocation = deliveryLocations.find(loc => 
-                loc.name.toLowerCase().includes(detectedAddress.city.toLowerCase()) ||
-                detectedAddress.city.toLowerCase().includes(loc.name.toLowerCase())
+                loc.name.toLowerCase() === detectedAddress.city.toLowerCase() && 
+                loc.state === detectedAddress.state
               );
               
               if (selectedLocation) {
                 console.log('✅ Found matching location:', selectedLocation);
                 setDeliveryCharge(selectedLocation.charge);
                 
-                // Force update location dropdown
-                setTimeout(() => {
-                  const locationSelect = document.querySelector('select[name="location"]');
-                  if (locationSelect) {
-                    locationSelect.value = selectedLocation.name;
-                    locationSelect.dispatchEvent(new Event('change', { bubbles: true }));
-                  }
-                }, 100);
+                // Update form with matched city and state
+                setFormData(prev => ({
+                  ...prev,
+                  city: selectedLocation.name,
+                  state: selectedLocation.state,
+                  location: selectedLocation.name
+                }));
               } else {
-                console.log('⚠️ No matching delivery location found for:', detectedAddress.city);
+                console.log('⚠️ No exact match found, searching for partial match...');
+                // Try partial match
+                const partialMatch = deliveryLocations.find(loc => 
+                  loc.name.toLowerCase().includes(detectedAddress.city.toLowerCase()) ||
+                  detectedAddress.city.toLowerCase().includes(loc.name.toLowerCase())
+                );
+                
+                if (partialMatch) {
+                  console.log('✅ Found partial match:', partialMatch);
+                  setDeliveryCharge(partialMatch.charge);
+                  setFormData(prev => ({
+                    ...prev,
+                    city: partialMatch.name,
+                    state: partialMatch.state,
+                    location: partialMatch.name
+                  }));
+                } else {
+                  console.log('⚠️ No delivery location found for:', detectedAddress.city);
+                }
               }
             }
             
