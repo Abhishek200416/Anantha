@@ -1128,20 +1128,20 @@ const Checkout = () => {
                         )}
                         
                         {/* Quantity Controls & Delete Button */}
-                        <div className="flex items-center justify-between mt-2 flex-wrap gap-2">
-                          <div className="flex items-center space-x-2 sm:space-x-3">
+                        <div className="flex items-center justify-between mt-2 gap-2">
+                          <div className="flex items-center space-x-2">
                             <button
                               onClick={() => handleQuantityChange(index, -1)}
-                              className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-gray-200 rounded-full hover:bg-gray-300 transition-colors"
+                              className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center bg-gray-200 rounded-full hover:bg-gray-300 transition-colors flex-shrink-0"
                             >
-                              <Minus className="h-3 w-3 sm:h-4 sm:w-4" />
+                              <Minus className="h-3 w-3" />
                             </button>
-                            <span className="font-semibold text-gray-700 text-sm sm:text-base">{item.quantity}</span>
+                            <span className="font-semibold text-gray-700 text-sm min-w-[20px] text-center">{item.quantity}</span>
                             <button
                               onClick={() => handleQuantityChange(index, 1)}
-                              className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-orange-500 text-white rounded-full hover:bg-orange-600 transition-colors"
+                              className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center bg-orange-500 text-white rounded-full hover:bg-orange-600 transition-colors flex-shrink-0"
                             >
-                              <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
+                              <Plus className="h-3 w-3" />
                             </button>
                           </div>
                           <button
@@ -1154,15 +1154,15 @@ const Checkout = () => {
                                 });
                               }
                             }}
-                            className="flex items-center space-x-1 px-2 sm:px-3 py-1 sm:py-1.5 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors text-xs sm:text-sm"
+                            className="flex items-center space-x-1 px-2 py-1 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors text-xs flex-shrink-0"
                             title="Remove item"
                           >
-                            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
-                            <span className="hidden xs:inline sm:inline">Delete</span>
+                            <Trash2 className="h-3 w-3" />
+                            <span className="hidden sm:inline">Delete</span>
                           </button>
                         </div>
                       </div>
-                      <p className="font-bold text-orange-600 text-sm sm:text-base flex-shrink-0">₹{(item.price || item.selectedPrice || 0) * (item.quantity || 1)}</p>
+                      <p className="font-bold text-orange-600 text-xs sm:text-sm flex-shrink-0 whitespace-nowrap">₹{(item.price || item.selectedPrice || 0) * (item.quantity || 1)}</p>
                     </div>
                   </div>
                 ))}
