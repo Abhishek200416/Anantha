@@ -985,9 +985,9 @@ const Checkout = () => {
                     </div>
                   </label>
                   {formData.paymentMethod === 'online' && (
-                    <div className="mt-3 ml-8 p-4 bg-white border border-gray-200 rounded-lg">
+                    <div className="mt-3 ml-0 sm:ml-8 p-4 bg-white border border-gray-200 rounded-lg">
                       <p className="text-sm text-gray-600 mb-3 font-medium">Select UPI Payment Option:</p>
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {['Paytm', 'PhonePe', 'Google Pay', 'BHIM UPI'].map((app) => (
                           <label 
                             key={app}
