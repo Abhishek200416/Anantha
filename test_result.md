@@ -656,9 +656,8 @@ metadata:
 
 test_plan:
   current_focus:
-    - "City-Specific Free Delivery Feature Testing"
-  stuck_tasks:
-    - "Backend Order Creation - Free Delivery Logic Bug"
+    - "City-Based Product Availability Feature Testing - COMPLETED"
+  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
