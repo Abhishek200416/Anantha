@@ -407,13 +407,49 @@ const Checkout = () => {
               addr.office
             ].filter(Boolean);
             
-            // Enhanced street detection - avoid using locality/neighbourhood as they're too specific
-            const betterStreet = addr.road || addr.street || addr.residential || addr.commercial || '';
+            // DETAILED STREET ADDRESS - Use multiple components for complete address
+            let detectedStreet = '';
+            
+            // Build detailed street address from available components
+            const streetComponents = [];
+            
+            // Add road/street name if available
+            if (addr.road || addr.street) {
+              streetComponents.push(addr.road || addr.street);
+            }
+            
+            // Add neighbourhood/suburb/locality for more detail
+            if (addr.neighbourhood) {
+              streetComponents.push(addr.neighbourhood);
+            } else if (addr.suburb) {
+              streetComponents.push(addr.suburb);
+            } else if (addr.locality) {
+              streetComponents.push(addr.locality);
+            }
+            
+            // Add hamlet/village_quarter for very specific location
+            if (addr.hamlet) {
+              streetComponents.push(addr.hamlet);
+            } else if (addr.quarter) {
+              streetComponents.push(addr.quarter);
+            }
+            
+            // Join all components with comma
+            detectedStreet = streetComponents.join(', ');
+            
+            // Fallback if no street found - use any available location detail
+            if (!detectedStreet) {
+              detectedStreet = addr.residential || addr.commercial || addr.industrial || 
+                             addr.pedestrian || addr.place || '';
+            }
+            
+            console.log('🛣️ Detected street components:', streetComponents);
+            console.log('📍 Final street address:', detectedStreet);
             
             const detectedAddress = {
               doorNo: addr.house_number || addr.housenumber || addr.building_number || addr.unit || '',
-              building: buildingOptions[0] || addr.neighbourhood || addr.suburb || '',
-              street: betterStreet,
+              building: buildingOptions[0] || '',
+              street: detectedStreet,
               city: detectedCity,
               state: addr.state || addr.state_district || addr.region || addr.province || '',
               pincode: addr.postcode || addr.postal_code || addr.zip || ''
