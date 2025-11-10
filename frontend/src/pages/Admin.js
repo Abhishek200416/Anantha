@@ -1245,8 +1245,25 @@ const Admin = () => {
                     <span>Add City</span>
                   </button>
                 </div>
+                
+                {/* State Filter */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Filter by State</label>
+                  <select
+                    value={newLocation.state}
+                    onChange={(e) => setNewLocation({...newLocation, state: e.target.value})}
+                    className="w-full md:w-64 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">All States</option>
+                    <option value="Andhra Pradesh">Andhra Pradesh</option>
+                    <option value="Telangana">Telangana</option>
+                  </select>
+                </div>
+
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {Array.isArray(deliveryLocations) && deliveryLocations.map((location, index) => (
+                  {Array.isArray(deliveryLocations) && deliveryLocations
+                    .filter(location => !newLocation.state || location.state === newLocation.state)
+                    .map((location, index) => (
                     <div key={`${location.state || 'unknown'}-${location.name}-${index}`} className="bg-gray-50 rounded-lg p-4 flex items-center justify-between">
                       <div className="flex items-center space-x-3 flex-1">
                         <MapPin className="h-5 w-5 text-orange-600" />
