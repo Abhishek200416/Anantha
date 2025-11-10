@@ -1301,18 +1301,10 @@ async def get_admin_states(current_user: dict = Depends(get_current_user)):
     states = await db.states.find({}, {"_id": 0}).to_list(1000)
     
     if not states:
-        # Return default states
+        # Return only AP and Telangana as default
         default_states = [
             {"name": "Andhra Pradesh", "enabled": True},
-            {"name": "Telangana", "enabled": True},
-            {"name": "Karnataka", "enabled": False},
-            {"name": "Tamil Nadu", "enabled": False},
-            {"name": "Maharashtra", "enabled": False},
-            {"name": "Kerala", "enabled": False},
-            {"name": "Odisha", "enabled": False},
-            {"name": "West Bengal", "enabled": False},
-            {"name": "Gujarat", "enabled": False},
-            {"name": "Rajasthan", "enabled": False}
+            {"name": "Telangana", "enabled": True}
         ]
         return default_states
     
