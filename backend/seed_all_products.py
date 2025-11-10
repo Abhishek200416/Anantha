@@ -4,9 +4,9 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from datetime import datetime
 
 # MongoDB connection
-MONGO_URL = os.environ.get('MONGO_URL', 'mongodb://localhost:27017/food_delivery')
+MONGO_URL = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
 client = AsyncIOMotorClient(MONGO_URL)
-db = client['food_delivery']
+db = client['anantha_lakshmi_db']
 
 async def seed_products():
     """Seed database with all 56 products with proper images"""
