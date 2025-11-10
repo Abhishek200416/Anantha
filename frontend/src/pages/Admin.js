@@ -63,7 +63,8 @@ const Admin = () => {
     isBestSeller: false,
     isNew: false,
     tag: 'Traditional',
-    discount: 0
+    discount: 0,
+    available_cities: []
   });
 
   const addPriceOption = (productData, setProductData) => {
