@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Backend API Testing Script for Anantha Lakshmi Food Delivery App
-FOCUSED TEST: Admin Authentication and Orders Flow
-Tests: Admin Login, Order Creation (Guest), Admin Orders Retrieval, Analytics
+FOCUSED TEST: State Management APIs
+Tests: GET /api/states, GET /api/admin/states (with admin auth), Database verification
 """
 
 import requests
