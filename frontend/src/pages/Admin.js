@@ -1375,8 +1375,8 @@ const Admin = () => {
             </div>
           )}
 
-          {/* Settings Tab - Free Delivery & City Management */}
-          {activeTab === 'settings' && (
+          {/* Settings Tab - REMOVED: Functionality moved to Cities & States tab */}
+          {false && activeTab === 'settings' && (
             <div className="p-6">
               <div className="mb-8">
                 <h2 className="text-2xl font-bold text-gray-800 mb-2">Delivery Settings</h2>
