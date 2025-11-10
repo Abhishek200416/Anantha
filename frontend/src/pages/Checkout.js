@@ -390,23 +390,51 @@ const Checkout = () => {
             
             console.log('🔍 Extracted address:', detectedAddress);
             
-            setFormData(prev => ({
-              ...prev,
-              doorNo: detectedAddress.doorNo || prev.doorNo,
-              building: detectedAddress.building || prev.building,
-              street: detectedAddress.street || prev.street,
-              city: detectedAddress.city || prev.city,
-              state: detectedAddress.state || prev.state,
-              pincode: detectedAddress.pincode || prev.pincode
-            }));
+            // Update form data - ALWAYS update even if empty to trigger re-render
+            setFormData(prev => {
+              const newData = {
+                ...prev,
+                doorNo: detectedAddress.doorNo || prev.doorNo,
+                building: detectedAddress.building || prev.building,
+                street: detectedAddress.street || prev.street,
+                city: detectedAddress.city || prev.city,
+                state: detectedAddress.state || prev.state,
+                pincode: detectedAddress.pincode || prev.pincode
+              };
+              
+              // Also update location field if city is detected
+              if (detectedAddress.city) {
+                newData.location = detectedAddress.city;
+              }
+              
+              console.log('📝 Updated form data:', newData);
+              return newData;
+            });
             
-            // Auto-select delivery location if city is detected
+            // Auto-select delivery location and update delivery charge
             if (detectedAddress.city) {
+              console.log('🔍 Looking for delivery location:', detectedAddress.city);
+              console.log('📍 Available locations:', deliveryLocations.map(l => l.name));
+              
               const selectedLocation = deliveryLocations.find(loc => 
-                loc.name.toLowerCase() === detectedAddress.city.toLowerCase()
+                loc.name.toLowerCase().includes(detectedAddress.city.toLowerCase()) ||
+                detectedAddress.city.toLowerCase().includes(loc.name.toLowerCase())
               );
+              
               if (selectedLocation) {
+                console.log('✅ Found matching location:', selectedLocation);
                 setDeliveryCharge(selectedLocation.charge);
+                
+                // Force update location dropdown
+                setTimeout(() => {
+                  const locationSelect = document.querySelector('select[name="location"]');
+                  if (locationSelect) {
+                    locationSelect.value = selectedLocation.name;
+                    locationSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                  }
+                }, 100);
+              } else {
+                console.log('⚠️ No matching delivery location found for:', detectedAddress.city);
               }
             }
             
