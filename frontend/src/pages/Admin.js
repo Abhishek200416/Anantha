@@ -1274,32 +1274,18 @@ const Admin = () => {
               <div className="border-t pt-8">
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="text-2xl font-bold text-gray-800">Available States</h2>
-                  <button
-                    onClick={() => {
-                      fetchStates();
-                      setShowAddState(true);
-                    }}
-                    className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all"
-                  >
-                    <PlusCircle className="h-5 w-5" />
-                    <span>Add State</span>
-                  </button>
+                  <div className="text-sm text-gray-600">
+                    <span className="font-semibold">Only Andhra Pradesh & Telangana are supported</span>
+                  </div>
                 </div>
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {Array.isArray(states) && states.length > 0 ? states.map(state => (
-                    <div key={state.name} className="bg-gray-50 rounded-lg p-4">
+                    <div key={state.name} className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg p-4">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center space-x-3 flex-1">
                           <MapPin className="h-5 w-5 text-blue-600" />
-                          <span className="font-semibold text-gray-800">{state.name}</span>
+                          <span className="font-bold text-gray-800">{state.name}</span>
                         </div>
-                        <button
-                          onClick={() => handleDeleteState(state.name)}
-                          className="p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
-                          title="Delete state"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-gray-600">Delivery Available:</span>
@@ -1319,7 +1305,7 @@ const Admin = () => {
                     </div>
                   )) : (
                     <div className="col-span-full text-center py-8 text-gray-500">
-                      <p>No states added yet. Click "Add State" to begin.</p>
+                      <p>States are being loaded...</p>
                     </div>
                   )}
                 </div>
