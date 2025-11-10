@@ -2508,16 +2508,14 @@ const Admin = () => {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">State Name</label>
-                <select
+                <input
+                  type="text"
                   value={newState.name}
                   onChange={(e) => setNewState({...newState, name: e.target.value})}
                   className="w-full px-4 py-2 border rounded-lg"
-                >
-                  <option value="">Select state</option>
-                  <option value="Andhra Pradesh">Andhra Pradesh</option>
-                  <option value="Telangana">Telangana</option>
-                </select>
-                <p className="text-xs text-gray-500 mt-1">Only Andhra Pradesh and Telangana are available</p>
+                  placeholder="Enter state name"
+                />
+                <p className="text-xs text-gray-500 mt-1">Enter the state name (e.g., Andhra Pradesh, Telangana, etc.)</p>
               </div>
               <button
                 onClick={handleAddState}
