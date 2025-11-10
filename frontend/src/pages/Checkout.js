@@ -536,15 +536,20 @@ const Checkout = () => {
             
             // Show detailed feedback about what was detected
             if (filledFields > 0) {
-              // Show the full location name in notification
-              const locationName = data.display_name || '';
-              const shortLocation = locationName.split(',').slice(0, 3).join(', ');
+              // Build detailed description of what was filled
+              let detailsList = '';
+              if (detectedAddress.street) detailsList += `\n📍 Street: ${detectedAddress.street}`;
+              if (detectedAddress.building) detailsList += `\n🏢 Building: ${detectedAddress.building}`;
+              if (detectedAddress.doorNo) detailsList += `\n🚪 Door No: ${detectedAddress.doorNo}`;
+              if (detectedAddress.city) detailsList += `\n🏙️ City: ${detectedAddress.city}`;
+              if (detectedAddress.state) detailsList += `\n🗺️ State: ${detectedAddress.state}`;
+              if (detectedAddress.pincode) detailsList += `\n📮 Pincode: ${detectedAddress.pincode}`;
               
               toast({
-                title: "✓ Location Detected Successfully!",
-                description: `📍 ${shortLocation}\n\n${filledFields} field(s) auto-filled: ${detectedFieldNames.join(', ')}.\n\nPlease verify and complete any missing fields.`,
+                title: "✅ Location Detected Successfully!",
+                description: `${filledFields} field(s) auto-filled:${detailsList}\n\nPlease verify the details and complete any missing fields.`,
                 variant: "default",
-                duration: 6000
+                duration: 8000
               });
             } else {
               // Show location name even if fields couldn't be extracted
