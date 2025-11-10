@@ -9,7 +9,7 @@ const Footer = () => {
         <div className="grid md:grid-cols-4 gap-8 mb-8">
           {/* About - First Column */}
           <div className="order-1">
-            <h3 className="text-xl font-bold mb-4 text-orange-400">Anantha Lakshmi</h3>
+            <h3 className="text-xl font-bold mb-4 text-orange-400" style={{ fontFamily: "'Poppins', sans-serif" }}>Anantha Home Foods</h3>
             <p className="text-gray-300 text-sm mb-4">
               Traditional homemade foods crafted with love and authentic recipes since 2000.
             </p>
