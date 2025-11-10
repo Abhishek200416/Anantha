@@ -92,6 +92,34 @@ const Home = () => {
           <p className="text-gray-600 text-sm md:text-base">Browse our delicious collection of traditional foods</p>
         </div>
         
+        {/* City Filter */}
+        <div className="mb-6 bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+          <div className="flex flex-col md:flex-row md:items-center gap-3">
+            <div className="flex items-center space-x-2 text-gray-700 min-w-fit">
+              <MapPin className="h-5 w-5 text-orange-600" />
+              <span className="font-semibold">Filter by City:</span>
+            </div>
+            <select
+              value={selectedCity}
+              onChange={(e) => setSelectedCity(e.target.value)}
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white"
+            >
+              <option value="">All Cities (Show All Products)</option>
+              {deliveryLocations && deliveryLocations.map((location) => (
+                <option key={location.name} value={location.name}>
+                  {location.name}, {location.state}
+                </option>
+              ))}
+            </select>
+          </div>
+          {selectedCity && (
+            <p className="mt-2 text-sm text-gray-600 flex items-center space-x-1">
+              <span>Showing products available for delivery to</span>
+              <span className="font-semibold text-orange-600">{selectedCity}</span>
+            </p>
+          )}
+        </div>
+        
         <CategoryFilter selectedCategory={selectedCategory} onSelectCategory={setSelectedCategory} />
         
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6 mt-6 md:mt-8">
