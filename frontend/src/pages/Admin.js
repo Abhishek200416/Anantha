@@ -1281,9 +1281,13 @@ const Admin = () => {
               <div className="border-t pt-8">
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="text-2xl font-bold text-gray-800">Available States</h2>
-                  <div className="text-sm text-gray-600">
-                    <span className="font-semibold">Only Andhra Pradesh & Telangana are supported</span>
-                  </div>
+                  <button
+                    onClick={() => setShowAddState(true)}
+                    className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all"
+                  >
+                    <PlusCircle className="h-5 w-5" />
+                    <span>Add State</span>
+                  </button>
                 </div>
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {Array.isArray(states) && states.length > 0 ? states.map(state => (
@@ -1293,6 +1297,13 @@ const Admin = () => {
                           <MapPin className="h-5 w-5 text-blue-600" />
                           <span className="font-bold text-gray-800">{state.name}</span>
                         </div>
+                        <button
+                          onClick={() => handleDeleteState(state.name)}
+                          className="p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                          title="Delete state"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-gray-600">Delivery Available:</span>
@@ -1309,10 +1320,15 @@ const Admin = () => {
                           />
                         </button>
                       </div>
+                      <p className="text-xs text-gray-500 mt-2">
+                        {state.enabled ? 'Currently accepting orders from this state' : 'Delivery not available in this state'}
+                      </p>
                     </div>
                   )) : (
                     <div className="col-span-full text-center py-8 text-gray-500">
-                      <p>States are being loaded...</p>
+                      <MapPin className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                      <p className="font-semibold">No states available yet</p>
+                      <p className="text-sm mt-2">Click "Add State" to add a new state for delivery</p>
                     </div>
                   )}
                 </div>
