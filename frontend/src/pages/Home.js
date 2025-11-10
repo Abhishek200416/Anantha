@@ -12,11 +12,65 @@ const API = `${BACKEND_URL}/api`;
 const Home = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedCity, setSelectedCity] = useState('');
+  const [autoDetectedCity, setAutoDetectedCity] = useState('');
   const [showFestivalPopup, setShowFestivalPopup] = useState(false);
   const [showBestSellerPopup, setShowBestSellerPopup] = useState(false);
   const [selectedPopupProduct, setSelectedPopupProduct] = useState(null);
   const [allProducts, setAllProducts] = useState([]);
   const { products: contextProducts, festivalProduct, deliveryLocations } = useAdmin();
+
+  // Auto-detect location on page load
+  useEffect(() => {
+    const detectLocation = () => {
+      if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            try {
+              const { latitude, longitude } = position.coords;
+              // Use OpenStreetMap Nominatim for reverse geocoding
+              const response = await fetch(
+                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+              );
+              const data = await response.json();
+              
+              // Extract city from response
+              const detectedCity = 
+                data.address?.city || 
+                data.address?.town || 
+                data.address?.village || 
+                data.address?.suburb || 
+                '';
+              
+              if (detectedCity) {
+                // Check if detected city exists in our delivery locations
+                const cityExists = deliveryLocations.some(
+                  loc => loc.name.toLowerCase() === detectedCity.toLowerCase()
+                );
+                
+                if (cityExists) {
+                  setAutoDetectedCity(detectedCity);
+                  setSelectedCity(detectedCity);
+                  console.log('✅ Auto-detected city:', detectedCity);
+                }
+              }
+            } catch (error) {
+              console.log('Location detection error:', error);
+            }
+          },
+          (error) => {
+            console.log('Geolocation not available or denied');
+          },
+          { timeout: 10000, maximumAge: 0 }
+        );
+      }
+    };
+
+    // Auto-detect on first load
+    if (!sessionStorage.getItem('locationDetected')) {
+      detectLocation();
+      sessionStorage.setItem('locationDetected', 'true');
+    }
+  }, [deliveryLocations]);
 
   // Fetch products based on selected city
   useEffect(() => {
@@ -78,8 +132,8 @@ const Home = () => {
       {/* Hero Section */}
       <section className="relative py-20 px-4 overflow-hidden">
         <div className="container mx-auto text-center">
-          <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent mb-6">
-            Welcome to Anantha Lakshmi
+          <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent mb-6" style={{ fontFamily: "'Poppins', sans-serif" }}>
+            Welcome to Anantha Home Foods
           </h1>
           <p className="text-xl text-gray-600 mb-8">Discover premium quality products delivered to your doorstep</p>
         </div>
@@ -92,7 +146,7 @@ const Home = () => {
           <p className="text-gray-600 text-sm md:text-base">Browse our delicious collection of traditional foods</p>
         </div>
         
-        {/* City Filter */}
+        {/* City Filter with Auto-detect indication */}
         <div className="mb-6 bg-white rounded-xl shadow-sm border border-gray-200 p-4">
           <div className="flex flex-col md:flex-row md:items-center gap-3">
             <div className="flex items-center space-x-2 text-gray-700 min-w-fit">
@@ -112,6 +166,12 @@ const Home = () => {
               ))}
             </select>
           </div>
+          {autoDetectedCity && (
+            <p className="mt-2 text-sm text-green-600 flex items-center space-x-1">
+              <span>📍 Auto-detected your location:</span>
+              <span className="font-semibold">{autoDetectedCity}</span>
+            </p>
+          )}
           {selectedCity && (
             <p className="mt-2 text-sm text-gray-600 flex items-center space-x-1">
               <span>Showing products available for delivery to</span>
@@ -198,34 +258,37 @@ const Home = () => {
             </div>
             
             <div className="grid grid-cols-3 gap-2 md:gap-4 mb-4 md:mb-6">
-              {bestSellers.map((product) => (
-                <div key={product.id} className="text-center cursor-pointer hover:scale-105 transition-transform" onClick={() => handleViewProduct(product)}>
-                  <img 
-                    src={product.image} 
-                    alt={product.name}
-                    className="w-full h-20 md:h-32 object-cover rounded-lg mb-1 md:mb-2 shadow-md"
-                  />
-                  <h4 className="font-semibold text-xs md:text-sm text-gray-800 line-clamp-2">{product.name}</h4>
-                  <p className="text-orange-600 font-bold text-xs md:text-base">₹{product.prices[0].price}</p>
+              {bestSellers.map(product => (
+                <div key={product.id} className="group cursor-pointer" onClick={() => handleViewProduct(product)}>
+                  <div className="relative overflow-hidden rounded-lg md:rounded-xl shadow-md group-hover:shadow-xl transition-shadow">
+                    <img 
+                      src={product.image} 
+                      alt={product.name}
+                      className="w-full h-24 md:h-32 object-cover group-hover:scale-110 transition-transform duration-300"
+                    />
+                  </div>
+                  <h3 className="text-xs md:text-sm font-semibold text-gray-800 mt-2 text-center line-clamp-2">{product.name}</h3>
+                  <p className="text-orange-600 font-bold text-sm md:text-base text-center">₹{product.prices[0]?.price}</p>
                 </div>
               ))}
             </div>
             
             <button
               onClick={() => setShowBestSellerPopup(false)}
-              className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white py-2.5 md:py-3 rounded-xl font-semibold hover:from-orange-600 hover:to-red-600 transition-all text-sm md:text-base"
+              className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white py-2.5 md:py-3 rounded-xl font-semibold hover:from-orange-600 hover:to-red-600 transition-all flex items-center justify-center space-x-2 text-sm md:text-base"
             >
-              Start Shopping
+              <span>Start Shopping</span>
+              <ArrowRight className="h-4 w-4 md:h-5 md:w-5" />
             </button>
           </div>
         </div>
       )}
 
-      {/* Product Detail Modal from Popup */}
+      {/* Product Detail Modal */}
       {selectedPopupProduct && (
         <ProductDetailModal 
           product={selectedPopupProduct} 
-          isOpen={true}
+          isOpen={!!selectedPopupProduct}
           onClose={() => setSelectedPopupProduct(null)}
         />
       )}
