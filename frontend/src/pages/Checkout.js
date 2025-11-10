@@ -334,11 +334,26 @@ const Checkout = () => {
           
           const data = await response.json();
           
-          console.log('🗺️ Location API Full Response:', data);
+          console.log('🗺️ Location API Full Response:', JSON.stringify(data, null, 2));
           
           if (data && data.address) {
             const addr = data.address;
-            console.log('📍 Address fields received:', addr);
+            console.log('📍 Address fields received:', JSON.stringify(addr, null, 2));
+            console.log('🔍 Individual address components:');
+            console.log('   - road:', addr.road);
+            console.log('   - street:', addr.street);
+            console.log('   - neighbourhood:', addr.neighbourhood);
+            console.log('   - suburb:', addr.suburb);
+            console.log('   - locality:', addr.locality);
+            console.log('   - hamlet:', addr.hamlet);
+            console.log('   - quarter:', addr.quarter);
+            console.log('   - residential:', addr.residential);
+            console.log('   - commercial:', addr.commercial);
+            console.log('   - village:', addr.village);
+            console.log('   - town:', addr.town);
+            console.log('   - city:', addr.city);
+            console.log('   - district:', addr.district);
+            console.log('   - county:', addr.county);
             
             // Enhanced address extraction with comprehensive fallbacks
             const streetOptions = [
@@ -356,8 +371,11 @@ const Checkout = () => {
               addr.commercial,
               addr.industrial,
               addr.place,
-              addr.hamlet
+              addr.hamlet,
+              addr.village
             ].filter(Boolean);
+            
+            console.log('🛣️ ALL street options found:', streetOptions);
             
             // Improved city detection - prioritize larger administrative divisions
             let detectedCity = '';
