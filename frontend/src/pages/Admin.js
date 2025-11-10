@@ -2007,6 +2007,61 @@ const Admin = () => {
                 ))}
               </div>
 
+              {/* City Availability Section */}
+              <div className="border-t border-b py-4 space-y-3">
+                <h4 className="font-semibold text-gray-800 flex items-center space-x-2">
+                  <MapPin className="h-5 w-5 text-blue-600" />
+                  <span>City Availability</span>
+                </h4>
+                <p className="text-sm text-gray-600">
+                  Select cities where this product can be delivered. Leave empty to make available everywhere.
+                </p>
+                <div className="max-h-48 overflow-y-auto border rounded-lg p-3 bg-gray-50">
+                  <label className="flex items-center space-x-2 cursor-pointer mb-2 p-2 hover:bg-white rounded">
+                    <input
+                      type="checkbox"
+                      checked={!editingProduct.available_cities || editingProduct.available_cities.length === 0}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setEditingProduct({...editingProduct, available_cities: []});
+                        }
+                      }}
+                      className="rounded w-4 h-4 text-green-500"
+                    />
+                    <span className="text-sm font-semibold text-green-600">All Cities (No Restriction)</span>
+                  </label>
+                  {Array.isArray(deliveryLocations) && deliveryLocations.slice(0, 50).map((location) => (
+                    <label key={location.name} className="flex items-center space-x-2 cursor-pointer mb-1 p-2 hover:bg-white rounded">
+                      <input
+                        type="checkbox"
+                        checked={editingProduct.available_cities && editingProduct.available_cities.includes(location.name)}
+                        onChange={(e) => {
+                          const currentCities = editingProduct.available_cities || [];
+                          if (e.target.checked) {
+                            setEditingProduct({
+                              ...editingProduct,
+                              available_cities: [...currentCities, location.name]
+                            });
+                          } else {
+                            setEditingProduct({
+                              ...editingProduct,
+                              available_cities: currentCities.filter(c => c !== location.name)
+                            });
+                          }
+                        }}
+                        className="rounded w-4 h-4 text-blue-500"
+                      />
+                      <span className="text-sm">{location.name}, {location.state}</span>
+                    </label>
+                  ))}
+                </div>
+                {editingProduct.available_cities && editingProduct.available_cities.length > 0 && (
+                  <p className="text-sm text-blue-600">
+                    ✓ Available in {editingProduct.available_cities.length} selected cities
+                  </p>
+                )}
+              </div>
+
               {/* Best Seller & New Product Toggles */}
               <div className="flex space-x-4">
                 <label className="flex items-center space-x-2 cursor-pointer">
