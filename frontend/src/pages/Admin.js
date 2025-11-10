@@ -2328,6 +2328,27 @@ const Admin = () => {
                   )}
                 </div>
                 
+                {/* Quick Actions */}
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const allCities = deliveryLocations.map(loc => loc.name);
+                      setNewProduct({...newProduct, available_cities: allCities});
+                    }}
+                    className="flex-1 px-3 py-1.5 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 font-medium"
+                  >
+                    ✓ Select All
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNewProduct({...newProduct, available_cities: []})}
+                    className="flex-1 px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium"
+                  >
+                    ✗ Clear All
+                  </button>
+                </div>
+                
                 <div className="max-h-64 overflow-y-auto border rounded-lg p-3 bg-gray-50">
                   <label className="flex items-center space-x-2 cursor-pointer mb-2 p-2 hover:bg-white rounded sticky top-0 bg-green-50 border-b">
                     <input
