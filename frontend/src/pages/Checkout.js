@@ -285,34 +285,62 @@ const Checkout = () => {
   };
 
   const detectCurrentLocation = () => {
+    // Check if geolocation is available
     if (!navigator.geolocation) {
       toast({
-        title: "Error",
-        description: "Geolocation is not supported by your browser",
+        title: "Not Supported",
+        description: "Geolocation is not supported by your browser. Please enter address manually.",
         variant: "destructive"
       });
       return;
     }
 
     setDetectingLocation(true);
+    
+    // Show initial notification
+    toast({
+      title: "Requesting Location",
+      description: "Please allow location access in your browser to detect your address..."
+    });
+
+    // Geolocation options for better cross-browser compatibility
+    const geoOptions = {
+      enableHighAccuracy: true,
+      timeout: 15000, // 15 seconds timeout
+      maximumAge: 0 // Don't use cached position
+    };
+
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
         
+        console.log('📍 Location acquired:', { latitude, longitude });
+        
         try {
+          // Add User-Agent to prevent being blocked
           const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`,
+            {
+              headers: {
+                'Accept': 'application/json',
+                'User-Agent': 'AnanthaLakshmiApp/1.0'
+              }
+            }
           );
+          
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          
           const data = await response.json();
           
-          console.log('🗺️ Location API Full Response:', data); // Debug log
+          console.log('🗺️ Location API Full Response:', data);
           
           if (data && data.address) {
             const addr = data.address;
-            console.log('📍 Address fields received:', addr); // Debug log
+            console.log('📍 Address fields received:', addr);
             
             // Enhanced address extraction with comprehensive fallbacks
-            // For street/area - try multiple fields in priority order
             const streetOptions = [
               addr.road,
               addr.street, 
@@ -329,9 +357,8 @@ const Checkout = () => {
               addr.industrial,
               addr.place,
               addr.hamlet
-            ].filter(Boolean); // Remove null/undefined values
+            ].filter(Boolean);
             
-            // For city - comprehensive fallbacks
             const cityOptions = [
               addr.city,
               addr.town,
@@ -343,7 +370,6 @@ const Checkout = () => {
               addr.city_district
             ].filter(Boolean);
             
-            // For building - try multiple fields
             const buildingOptions = [
               addr.building,
               addr.house,
@@ -362,7 +388,7 @@ const Checkout = () => {
               pincode: addr.postcode || addr.postal_code || addr.zip || ''
             };
             
-            console.log('🔍 Extracted address:', detectedAddress); // Debug log
+            console.log('🔍 Extracted address:', detectedAddress);
             
             setFormData(prev => ({
               ...prev,
@@ -393,28 +419,31 @@ const Checkout = () => {
             if (detectedAddress.state) detectedFieldNames.push('State');
             if (detectedAddress.pincode) detectedFieldNames.push('Pincode');
             
-            console.log('✅ Detected fields:', detectedFieldNames); // Debug log
+            console.log('✅ Detected fields:', detectedFieldNames);
             
             const filledFields = detectedFieldNames.length;
             
             if (filledFields > 0) {
               toast({
-                title: "Location Detected!",
-                description: `${filledFields} field(s) detected: ${detectedFieldNames.join(', ')}. Please verify and complete any missing fields.`
+                title: "Location Detected! ✓",
+                description: `${filledFields} field(s) auto-filled: ${detectedFieldNames.join(', ')}. Please verify and complete any missing fields.`,
+                variant: "default"
               });
             } else {
               toast({
                 title: "Partial Detection",
-                description: "Could not detect all address fields. Please fill in the details manually.",
+                description: "Location detected but couldn't extract address details. Please fill in manually.",
                 variant: "destructive"
               });
             }
+          } else {
+            throw new Error('No address data in response');
           }
         } catch (error) {
-          console.error('Location detection error:', error);
+          console.error('❌ Location API error:', error);
           toast({
-            title: "Error",
-            description: "Unable to fetch address details. Please enter manually.",
+            title: "Address Lookup Failed",
+            description: "Location detected but couldn't fetch address details. Please enter manually.",
             variant: "destructive"
           });
         } finally {
@@ -422,14 +451,33 @@ const Checkout = () => {
         }
       },
       (error) => {
-        console.error('Geolocation error:', error);
+        console.error('❌ Geolocation error:', error);
         setDetectingLocation(false);
+        
+        // Provide specific error messages based on error code
+        let errorMessage = "Unable to detect location. ";
+        
+        switch(error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage += "Location access was denied. Please allow location access in your browser settings and try again.";
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage += "Location information is unavailable. Please check your device settings and try again.";
+            break;
+          case error.TIMEOUT:
+            errorMessage += "Location request timed out. Please try again or enter address manually.";
+            break;
+          default:
+            errorMessage += "An unknown error occurred. Please enter address manually.";
+        }
+        
         toast({
-          title: "Error",
-          description: "Unable to detect location. Please allow location access and try again.",
+          title: "Location Error",
+          description: errorMessage,
           variant: "destructive"
         });
-      }
+      },
+      geoOptions
     );
   };
 
