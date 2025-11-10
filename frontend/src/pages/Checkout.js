@@ -359,16 +359,44 @@ const Checkout = () => {
               addr.hamlet
             ].filter(Boolean);
             
-            const cityOptions = [
+            // Improved city detection - prioritize larger administrative divisions
+            let detectedCity = '';
+            
+            // First try to find matching city from our delivery locations
+            const possibleCities = [
               addr.city,
               addr.town,
-              addr.village,
               addr.municipality,
               addr.county,
               addr.district,
-              addr.subdistrict,
-              addr.city_district
+              addr.city_district,
+              addr.village,
+              addr.subdistrict
             ].filter(Boolean);
+            
+            console.log('🏙️ Possible cities from API:', possibleCities);
+            console.log('📍 Our delivery cities:', deliveryLocations.map(l => l.name));
+            
+            // Try to match with our delivery locations database
+            for (const possibleCity of possibleCities) {
+              const matchedLocation = deliveryLocations.find(loc => 
+                loc.name.toLowerCase() === possibleCity.toLowerCase() ||
+                possibleCity.toLowerCase().includes(loc.name.toLowerCase()) ||
+                loc.name.toLowerCase().includes(possibleCity.toLowerCase())
+              );
+              
+              if (matchedLocation) {
+                detectedCity = matchedLocation.name;
+                console.log('✅ Matched city from database:', detectedCity);
+                break;
+              }
+            }
+            
+            // If no match found, use the first major city option
+            if (!detectedCity) {
+              detectedCity = addr.city || addr.town || addr.municipality || addr.county || addr.district || '';
+              console.log('⚠️ Using fallback city:', detectedCity);
+            }
             
             const buildingOptions = [
               addr.building,
@@ -379,11 +407,14 @@ const Checkout = () => {
               addr.office
             ].filter(Boolean);
             
+            // Enhanced street detection - avoid using locality/neighbourhood as they're too specific
+            const betterStreet = addr.road || addr.street || addr.residential || addr.commercial || '';
+            
             const detectedAddress = {
               doorNo: addr.house_number || addr.housenumber || addr.building_number || addr.unit || '',
-              building: buildingOptions[0] || '',
-              street: streetOptions[0] || '',
-              city: cityOptions[0] || '',
+              building: buildingOptions[0] || addr.neighbourhood || addr.suburb || '',
+              street: betterStreet,
+              city: detectedCity,
               state: addr.state || addr.state_district || addr.region || addr.province || '',
               pincode: addr.postcode || addr.postal_code || addr.zip || ''
             };
