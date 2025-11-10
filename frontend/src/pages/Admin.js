@@ -237,6 +237,17 @@ const Admin = () => {
         console.error('Stock status update error:', stockError);
       }
       
+      // Update available cities
+      try {
+        await axios.put(
+          `${BACKEND_URL}/api/admin/products/${id}/available-cities`,
+          { available_cities: editingProduct.available_cities || [] },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      } catch (citiesError) {
+        console.error('Available cities update error:', citiesError);
+      }
+      
       toast({
         title: "Success",
         description: "Product updated successfully with discount and inventory settings",
