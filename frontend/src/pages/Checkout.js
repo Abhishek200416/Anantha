@@ -708,8 +708,8 @@ const Checkout = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-red-50 py-4 sm:py-8">
-      <div className="container mx-auto px-3 sm:px-4 max-w-7xl">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-red-50 py-4 sm:py-8 overflow-x-hidden">
+      <div className="container mx-auto px-3 sm:px-4 max-w-7xl overflow-x-hidden">
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-6 sm:mb-8 bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
           Checkout
         </h1>
