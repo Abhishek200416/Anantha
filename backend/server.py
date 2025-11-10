@@ -801,16 +801,34 @@ async def create_order(order_data: OrderCreate, current_user: dict = Depends(get
     try:
         print(f"DEBUG: Received order data: {order_data.model_dump()}")
         print(f"DEBUG: Current user: {current_user}")
-        # Check inventory for all items
+        
+        # Check city availability and inventory for all items
+        unavailable_products = []
         for item in order_data.items:
             product = await db.products.find_one({"id": item.product_id})
             if product:
+                # Check if product is available for delivery to the customer's city
+                available_cities = product.get("available_cities")
+                if available_cities and len(available_cities) > 0:
+                    # If available_cities is set and not empty, check if the city is in the list
+                    if order_data.city not in available_cities:
+                        unavailable_products.append(item.name)
+                        continue
+                
                 if product.get("out_of_stock", False):
                     raise HTTPException(status_code=400, detail=f"Product {item.name} is out of stock")
                 
                 inventory_count = product.get("inventory_count")
                 if inventory_count is not None and inventory_count < item.quantity:
                     raise HTTPException(status_code=400, detail=f"Insufficient inventory for {item.name}")
+        
+        # If any products are not available for delivery to this city, return error
+        if unavailable_products:
+            products_list = ", ".join(unavailable_products)
+            raise HTTPException(
+                status_code=400, 
+                detail=f"The following products are not available for delivery to {order_data.city}: {products_list}"
+            )
         
         # Generate order ID and tracking code
         order_id = generate_order_id()
