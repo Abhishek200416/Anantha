@@ -3,14 +3,20 @@ import CategoryFilter from '../components/CategoryFilter';
 import ProductCard from '../components/ProductCard';
 import ProductDetailModal from '../components/ProductDetailModal';
 import { useAdmin } from '../contexts/AdminContext';
-import { Sparkles, X, ArrowRight } from 'lucide-react';
+import { Sparkles, X, ArrowRight, MapPin } from 'lucide-react';
+import axios from 'axios';
+
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const API = `${BACKEND_URL}/api`;
 
 const Home = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedCity, setSelectedCity] = useState('');
   const [showFestivalPopup, setShowFestivalPopup] = useState(false);
   const [showBestSellerPopup, setShowBestSellerPopup] = useState(false);
   const [selectedPopupProduct, setSelectedPopupProduct] = useState(null);
-  const { products, festivalProduct } = useAdmin();
+  const [allProducts, setAllProducts] = useState([]);
+  const { products: contextProducts, festivalProduct, deliveryLocations } = useAdmin();
 
   // Show festival popup on load if set
   useEffect(() => {
