@@ -269,11 +269,14 @@ frontend:
     file: "/app/frontend/src/pages/Home.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Complete home page with hero section, category filters, product grid. Includes festival popup and best seller popup."
+      - working: "NA"
+        agent: "main"
+        comment: "✅ ENHANCED LOCATION DETECTION ON HOME PAGE: User requested location detection on home page to automatically detect and filter products by city. FEATURES IMPLEMENTED: 1) DETECT MY LOCATION BUTTON: Added prominent blue button next to city dropdown on home page, triggers browser geolocation API to get coordinates, uses OpenStreetMap reverse geocoding to convert coordinates to address, 2) SMART CITY MATCHING: Improved algorithm that prioritizes exact city matches from delivery locations database, falls back to partial matching if exact match not found, avoids showing incorrect localities (like 'Aditya Kilpati') by matching against known delivery cities, shows alert with detected city name and confirmation, 3) VISUAL FEEDBACK: Shows 'Auto-detected: [City Name]' badge when location is detected, Shows 'Showing products available in: [City]' when city is selected, Beautiful gradient design with orange theme matching the app, Disabled state with loading indicator while detecting, 4) ERROR HANDLING: Clear error messages for permission denied, location unavailable, or timeout, Fallback to manual selection if detection fails. Users can now click 'Detect My Location' button on home page to automatically set their city and see products available in their area."
   
   - task: "Authentication Pages (Login/Register)"
     implemented: true
