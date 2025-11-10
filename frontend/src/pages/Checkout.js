@@ -457,24 +457,24 @@ const Checkout = () => {
             
             console.log('🔍 Extracted address:', detectedAddress);
             
-            // Update form data - ALWAYS update even if empty to trigger re-render
+            // Update form data - OVERWRITE with detected data (don't preserve old values)
             setFormData(prev => {
               const newData = {
                 ...prev,
-                doorNo: detectedAddress.doorNo || prev.doorNo,
-                building: detectedAddress.building || prev.building,
-                street: detectedAddress.street || prev.street,
-                city: detectedAddress.city || prev.city,
-                state: detectedAddress.state || prev.state,
-                pincode: detectedAddress.pincode || prev.pincode
+                // ALWAYS use detected data if available, otherwise keep previous
+                doorNo: detectedAddress.doorNo ? detectedAddress.doorNo : prev.doorNo,
+                building: detectedAddress.building ? detectedAddress.building : prev.building,
+                street: detectedAddress.street ? detectedAddress.street : prev.street,
+                city: detectedAddress.city ? detectedAddress.city : prev.city,
+                state: detectedAddress.state ? detectedAddress.state : prev.state,
+                pincode: detectedAddress.pincode ? detectedAddress.pincode : prev.pincode,
+                location: detectedAddress.city ? detectedAddress.city : prev.location
               };
               
-              // Also update location field if city is detected
-              if (detectedAddress.city) {
-                newData.location = detectedAddress.city;
-              }
-              
               console.log('📝 Updated form data:', newData);
+              console.log('🆕 New street value:', newData.street);
+              console.log('🆕 New building value:', newData.building);
+              console.log('🆕 New door value:', newData.doorNo);
               return newData;
             });
             
