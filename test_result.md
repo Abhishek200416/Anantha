@@ -1090,3 +1090,43 @@ agent_communication:
     The Settings tab was redundant because its main functionality (city delivery charges and free delivery thresholds) is already fully available in the 'Cities & States' tab. Removing it simplifies the admin interface and eliminates confusion.
     
     Application is now running with all changes applied. Products are visible on home page and in admin panel."
+  - agent: "main"
+    message: "✅ FIXED CITY DROPDOWN ISSUE - ALL 419 CITIES NOW AVAILABLE:
+    
+    USER ISSUE: City dropdown in checkout only showing 'Guntur' instead of all cities. User couldn't see remaining cities because only Guntur was added to database.
+    
+    ROOT CAUSE: Database had only 1 city (Guntur) instead of all 419 cities that should be available.
+    
+    SOLUTION IMPLEMENTED:
+    ✅ Created seed_cities.py script to populate all cities
+    ✅ Cleared existing city data
+    ✅ Added all 419 cities from cities_data.py to database
+    
+    CITIES ADDED:
+    - Andhra Pradesh: 205 cities
+      • Major: Visakhapatnam (₹149), Vijayawada (₹79), Guntur (₹49), Nellore (₹99), Tirupati (₹129), etc.
+      • All district headquarters and towns
+    - Telangana: 214 cities
+      • Major: Hyderabad (₹129), Warangal (₹129), Karimnagar (₹149), Nizamabad (₹149), etc.
+      • All district headquarters and towns
+    
+    DELIVERY CHARGES:
+    - Each city has appropriate delivery charge based on distance
+    - Major cities: ₹49 to ₹149
+    - Other cities: ₹99 (default)
+    - All cities can have free delivery threshold set individually in admin panel
+    
+    HOW IT WORKS NOW (CHECKOUT PAGE):
+    1. User selects State (Andhra Pradesh or Telangana)
+    2. City dropdown automatically shows all cities from that state
+    3. Example: Select 'Andhra Pradesh' → See 205 cities including Guntur, Vijayawada, Visakhapatnam, etc.
+    4. Example: Select 'Telangana' → See 214 cities including Hyderabad, Warangal, Karimnagar, etc.
+    5. Each city shows delivery charge: 'City Name - ₹XX'
+    
+    ADMIN PANEL (Cities & States Tab):
+    - Now shows all 419 cities grouped by state
+    - Admin can edit delivery charges for any city
+    - Admin can set free delivery threshold for any city
+    - Changes apply immediately to customer orders
+    
+    ✅ Issue resolved! All cities are now available in the dropdown."
