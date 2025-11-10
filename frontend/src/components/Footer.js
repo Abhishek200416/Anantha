@@ -86,7 +86,7 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="border-t border-gray-700 pt-6 text-center">
           <p className="text-sm text-gray-400">
-            © {new Date().getFullYear()} Anantha Lakshmi Traditional Foods. Made by <Heart className="inline h-4 w-4 text-red-500" /> in India.
+            © {new Date().getFullYear()} Anantha Home Foods. Made by <Heart className="inline h-4 w-4 text-red-500" /> in India.
           </p>
           <p className="text-xs text-gray-500 mt-2">
             Made by{' '}
