@@ -1810,8 +1810,16 @@ const Admin = () => {
                   onChange={(e) => setNewLocation({...newLocation, state: e.target.value})}
                   className="w-full px-4 py-2 border rounded-lg"
                 >
-                  <option value="Andhra Pradesh">Andhra Pradesh</option>
-                  <option value="Telangana">Telangana</option>
+                  {states && states.length > 0 ? (
+                    states.map(state => (
+                      <option key={state.name} value={state.name}>{state.name}</option>
+                    ))
+                  ) : (
+                    <>
+                      <option value="Andhra Pradesh">Andhra Pradesh</option>
+                      <option value="Telangana">Telangana</option>
+                    </>
+                  )}
                 </select>
               </div>
               <div>
