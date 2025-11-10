@@ -1030,9 +1030,9 @@ const Checkout = () => {
                     </div>
                   </label>
                   {formData.paymentMethod === 'card' && (
-                    <div className="mt-3 ml-8 p-4 bg-white border border-gray-200 rounded-lg">
+                    <div className="mt-3 ml-0 sm:ml-8 p-4 bg-white border border-gray-200 rounded-lg">
                       <p className="text-sm text-gray-600 mb-3 font-medium">Select Card Type:</p>
-                      <div className="flex space-x-4">
+                      <div className="flex flex-col sm:flex-row gap-3 sm:space-x-4">
                         {['Debit Card', 'Credit Card'].map((cardType) => (
                           <label 
                             key={cardType}
