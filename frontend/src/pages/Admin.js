@@ -538,6 +538,13 @@ const Admin = () => {
     setSelectedBestSellers(bestSellerIds);
   }, [products]);
 
+  // Fetch states when delivery tab is accessed
+  React.useEffect(() => {
+    if (activeTab === 'delivery' && isAuthenticated) {
+      fetchStates();
+    }
+  }, [activeTab, isAuthenticated]);
+
   // REMOVED: Free delivery settings functions - functionality moved to Cities & States tab
   // const fetchFreeDeliverySettings = async () => { ... }
   // const handleSaveFreeDeliverySettings = async () => { ... }
