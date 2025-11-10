@@ -451,17 +451,26 @@ const Checkout = () => {
             
             const filledFields = detectedFieldNames.length;
             
+            // Show detailed feedback about what was detected
             if (filledFields > 0) {
+              // Show the full location name in notification
+              const locationName = data.display_name || '';
+              const shortLocation = locationName.split(',').slice(0, 3).join(', ');
+              
               toast({
-                title: "Location Detected! ✓",
-                description: `${filledFields} field(s) auto-filled: ${detectedFieldNames.join(', ')}. Please verify and complete any missing fields.`,
-                variant: "default"
+                title: "✓ Location Detected Successfully!",
+                description: `📍 ${shortLocation}\n\n${filledFields} field(s) auto-filled: ${detectedFieldNames.join(', ')}.\n\nPlease verify and complete any missing fields.`,
+                variant: "default",
+                duration: 6000
               });
             } else {
+              // Show location name even if fields couldn't be extracted
+              const locationName = data.display_name || 'Unknown location';
               toast({
-                title: "Partial Detection",
-                description: "Location detected but couldn't extract address details. Please fill in manually.",
-                variant: "destructive"
+                title: "Location Found",
+                description: `📍 ${locationName}\n\nCouldn't auto-fill address fields. Please enter manually.`,
+                variant: "destructive",
+                duration: 5000
               });
             }
           } else {
