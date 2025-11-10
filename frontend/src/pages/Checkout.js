@@ -1250,32 +1250,32 @@ const Checkout = () => {
 
             {/* Recommendations */}
             {recommendations.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-lg p-6">
-                <div className="flex items-center space-x-2 mb-4">
-                  <Sparkles className="h-5 w-5 text-orange-500" />
-                  <h3 className="text-lg font-bold text-gray-800">You May Also Like</h3>
+              <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6">
+                <div className="flex items-center space-x-2 mb-3 sm:mb-4">
+                  <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-orange-500" />
+                  <h3 className="text-base sm:text-lg font-bold text-gray-800">You May Also Like</h3>
                 </div>
                 <div className="space-y-3">
                   {recommendations.map((product) => (
                     <div 
                       key={product.id}
-                      className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:border-orange-400 transition-all group"
+                      className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 border border-gray-200 rounded-lg hover:border-orange-400 transition-all group"
                     >
                       <img 
                         src={product.image} 
                         alt={product.name} 
-                        className="w-16 h-16 object-cover rounded-lg cursor-pointer" 
+                        className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded-lg cursor-pointer flex-shrink-0" 
                         onClick={() => scrollToProduct(product.id)}
                       />
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0 overflow-hidden">
                         <h4 
-                          className="font-semibold text-gray-800 text-sm group-hover:text-orange-600 cursor-pointer"
+                          className="font-semibold text-gray-800 text-xs sm:text-sm group-hover:text-orange-600 cursor-pointer truncate"
                           onClick={() => scrollToProduct(product.id)}
                         >
                           {product.name}
                         </h4>
-                        <p className="text-xs text-gray-600">{product.category}</p>
-                        <p className="text-sm font-bold text-orange-600 mt-1">
+                        <p className="text-xs text-gray-600 truncate">{product.category}</p>
+                        <p className="text-xs sm:text-sm font-bold text-orange-600 mt-1">
                           From ₹{product.prices[0]?.price}
                         </p>
                       </div>
@@ -1284,9 +1284,10 @@ const Checkout = () => {
                           e.stopPropagation();
                           handleAddRecommendation(product);
                         }}
-                        className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium text-sm whitespace-nowrap"
+                        className="px-2 sm:px-4 py-1.5 sm:py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium text-xs sm:text-sm whitespace-nowrap flex-shrink-0"
                       >
-                        Add to Cart
+                        <span className="hidden sm:inline">Add to Cart</span>
+                        <span className="sm:hidden">Add</span>
                       </button>
                     </div>
                   ))}
