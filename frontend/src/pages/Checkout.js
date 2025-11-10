@@ -1075,15 +1075,15 @@ const Checkout = () => {
               <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">Order Summary</h2>
               
               {/* Cart Items with Edit Options */}
-              <div className="space-y-4 mb-6">
+              <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
                 {cart.map((item, index) => (
-                  <div key={index} className="border-b pb-4">
-                    <div className="flex items-start space-x-3">
-                      <img src={item.image} alt={item.name} className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-gray-800 text-sm sm:text-base truncate">{item.name}</h3>
+                  <div key={index} className="border-b pb-3 sm:pb-4">
+                    <div className="flex items-start gap-2 sm:gap-3">
+                      <img src={item.image} alt={item.name} className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 object-cover rounded-lg flex-shrink-0" />
+                      <div className="flex-1 min-w-0 overflow-hidden">
+                        <h3 className="font-semibold text-gray-800 text-xs sm:text-sm md:text-base truncate">{item.name}</h3>
                         <div className="flex items-center space-x-2 mt-1">
-                          <p className="text-xs sm:text-sm text-gray-600">{item.weight || item.selectedWeight}</p>
+                          <p className="text-xs text-gray-600">{item.weight || item.selectedWeight}</p>
                           {allProducts.find(p => p.id === item.id)?.prices?.length > 1 && (
                             <button
                               onClick={() => handleWeightEdit(index)}
