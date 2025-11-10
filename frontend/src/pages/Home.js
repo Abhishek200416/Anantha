@@ -19,55 +19,125 @@ const Home = () => {
   const [allProducts, setAllProducts] = useState([]);
   const { products: contextProducts, festivalProduct, deliveryLocations } = useAdmin();
 
-  // Auto-detect location on page load
-  useEffect(() => {
-    const detectLocation = () => {
-      if ('geolocation' in navigator) {
-        navigator.geolocation.getCurrentPosition(
-          async (position) => {
-            try {
-              const { latitude, longitude } = position.coords;
-              // Use OpenStreetMap Nominatim for reverse geocoding
-              const response = await fetch(
-                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
-              );
-              const data = await response.json();
-              
-              // Extract city from response
-              const detectedCity = 
-                data.address?.city || 
-                data.address?.town || 
-                data.address?.village || 
-                data.address?.suburb || 
-                '';
-              
-              if (detectedCity) {
-                // Check if detected city exists in our delivery locations
-                const cityExists = deliveryLocations.some(
-                  loc => loc.name.toLowerCase() === detectedCity.toLowerCase()
-                );
-                
-                if (cityExists) {
-                  setAutoDetectedCity(detectedCity);
-                  setSelectedCity(detectedCity);
-                  console.log('✅ Auto-detected city:', detectedCity);
-                }
-              }
-            } catch (error) {
-              console.log('Location detection error:', error);
-            }
-          },
-          (error) => {
-            console.log('Geolocation not available or denied');
-          },
-          { timeout: 10000, maximumAge: 0 }
-        );
-      }
-    };
+  const [detectingLocation, setDetectingLocation] = useState(false);
 
-    // Auto-detect on first load
-    if (!sessionStorage.getItem('locationDetected')) {
-      detectLocation();
+  // Improved location detection function
+  const detectLocation = async () => {
+    if (!('geolocation' in navigator)) {
+      alert('Geolocation is not supported by your browser');
+      return;
+    }
+
+    setDetectingLocation(true);
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          console.log('📍 Coordinates:', latitude, longitude);
+          
+          // Use OpenStreetMap Nominatim for reverse geocoding
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10&addressdetails=1`,
+            {
+              headers: {
+                'Accept-Language': 'en'
+              }
+            }
+          );
+          const data = await response.json();
+          console.log('🗺️ Location data:', data);
+          
+          const addr = data.address;
+          
+          // Try to match with our delivery locations - prioritize exact matches
+          const possibleCities = [
+            addr.city,
+            addr.town,
+            addr.municipality,
+            addr.county,
+            addr.district,
+            addr.city_district,
+            addr.village
+          ].filter(Boolean);
+          
+          console.log('🏙️ Possible cities:', possibleCities);
+          console.log('📍 Our delivery cities:', deliveryLocations.map(l => l.name));
+          
+          let matchedCity = '';
+          
+          // First try exact match
+          for (const possibleCity of possibleCities) {
+            const exactMatch = deliveryLocations.find(
+              loc => loc.name.toLowerCase() === possibleCity.toLowerCase()
+            );
+            
+            if (exactMatch) {
+              matchedCity = exactMatch.name;
+              console.log('✅ Exact match found:', matchedCity);
+              break;
+            }
+          }
+          
+          // If no exact match, try partial match
+          if (!matchedCity) {
+            for (const possibleCity of possibleCities) {
+              const partialMatch = deliveryLocations.find(
+                loc => 
+                  loc.name.toLowerCase().includes(possibleCity.toLowerCase()) ||
+                  possibleCity.toLowerCase().includes(loc.name.toLowerCase())
+              );
+              
+              if (partialMatch) {
+                matchedCity = partialMatch.name;
+                console.log('✅ Partial match found:', matchedCity);
+                break;
+              }
+            }
+          }
+          
+          if (matchedCity) {
+            setAutoDetectedCity(matchedCity);
+            setSelectedCity(matchedCity);
+            alert(`📍 Location detected: ${matchedCity}!\n\nNow showing products available in ${matchedCity}.`);
+          } else {
+            const nearestCity = possibleCities[0] || 'your area';
+            alert(`⚠️ Location detected: ${nearestCity}\n\nHowever, we don't deliver to this area yet. Showing all products.`);
+          }
+        } catch (error) {
+          console.error('Location detection error:', error);
+          alert('Failed to detect location. Please select your city manually.');
+        } finally {
+          setDetectingLocation(false);
+        }
+      },
+      (error) => {
+        console.error('Geolocation error:', error);
+        setDetectingLocation(false);
+        
+        let errorMessage = 'Unable to detect your location. ';
+        if (error.code === error.PERMISSION_DENIED) {
+          errorMessage += 'Please allow location access in your browser settings.';
+        } else if (error.code === error.POSITION_UNAVAILABLE) {
+          errorMessage += 'Location information is unavailable.';
+        } else if (error.code === error.TIMEOUT) {
+          errorMessage += 'Location request timed out.';
+        }
+        alert(errorMessage);
+      },
+      { 
+        timeout: 15000, 
+        maximumAge: 0,
+        enableHighAccuracy: true 
+      }
+    );
+  };
+
+  // Auto-detect location on page load (only once)
+  useEffect(() => {
+    if (!sessionStorage.getItem('locationDetected') && deliveryLocations.length > 0) {
+      // Don't auto-detect on page load, let user trigger it
+      // detectLocation();
       sessionStorage.setItem('locationDetected', 'true');
     }
   }, [deliveryLocations]);
