@@ -288,9 +288,165 @@ def test_report_ordering(reports):
         print(f"❌ FAILED: Exception parsing timestamps: {str(e)}")
         return False
 
+def test_admin_password_change_otp():
+    """Test admin password change OTP flow to identify 500 error"""
+    print("\n" + "="*80)
+    print("🔐 ADMIN PASSWORD CHANGE OTP TESTING")
+    print("="*80)
+    
+    # Step 1: Admin login
+    print("\n--- Step 1: Admin Login ---")
+    admin_token = admin_login()
+    
+    if not admin_token:
+        print("❌ CRITICAL: Cannot proceed without admin authentication")
+        return False
+    
+    auth_headers = {
+        "Authorization": f"Bearer {admin_token}",
+        "Content-Type": "application/json"
+    }
+    
+    # Step 2: Test OTP send endpoint
+    print("\n--- Step 2: Testing OTP Send Endpoint ---")
+    admin_email = "contact.ananthahomefoods@gmail.com"  # From .env file
+    
+    otp_send_data = {
+        "email": admin_email
+    }
+    
+    print(f"Testing POST /api/admin/profile/send-otp")
+    success, otp_response = test_api_endpoint(
+        "POST",
+        "/admin/profile/send-otp",
+        headers=auth_headers,
+        data=otp_send_data,
+        description=f"Send OTP to admin email: {admin_email}"
+    )
+    
+    if not success:
+        print("❌ FAILED: OTP send endpoint failed")
+        return False
+    
+    print("✅ SUCCESS: OTP send endpoint working")
+    
+    # Step 3: Test OTP verification endpoint with invalid OTP (to see the error)
+    print("\n--- Step 3: Testing OTP Verification Endpoint ---")
+    
+    # Test with invalid OTP first to see validation
+    invalid_otp_data = {
+        "email": admin_email,
+        "otp": "123456",  # Invalid OTP
+        "new_password": "newadmin123"
+    }
+    
+    print(f"Testing POST /api/admin/profile/verify-otp-change-password with invalid OTP")
+    success, verify_response = test_api_endpoint(
+        "POST",
+        "/admin/profile/verify-otp-change-password",
+        headers=auth_headers,
+        data=invalid_otp_data,
+        description="Verify OTP with invalid OTP (should return 400)",
+        expected_status=400
+    )
+    
+    if success:
+        print("✅ SUCCESS: OTP verification correctly rejects invalid OTP")
+    else:
+        print("❌ ISSUE: OTP verification endpoint behavior unexpected")
+        
+        # Check if it's a 500 error
+        if verify_response is not None:
+            print("🔍 INVESTIGATING 500 ERROR...")
+            
+            # Check backend logs for more details
+            print("\n--- Checking Backend Logs ---")
+            try:
+                import subprocess
+                result = subprocess.run(
+                    ["tail", "-n", "50", "/var/log/supervisor/backend.err.log"],
+                    capture_output=True,
+                    text=True,
+                    timeout=10
+                )
+                
+                if result.stdout:
+                    print("Backend Error Logs:")
+                    print(result.stdout)
+                else:
+                    print("No recent error logs found")
+                    
+            except Exception as e:
+                print(f"Could not read backend logs: {e}")
+        
+        return False
+    
+    # Step 4: Test with missing fields to trigger validation errors
+    print("\n--- Step 4: Testing Validation Errors ---")
+    
+    test_cases = [
+        {
+            "name": "Missing email",
+            "data": {"otp": "123456", "new_password": "newpass"},
+            "expected_status": 422
+        },
+        {
+            "name": "Missing OTP", 
+            "data": {"email": admin_email, "new_password": "newpass"},
+            "expected_status": 422
+        },
+        {
+            "name": "Missing new_password",
+            "data": {"email": admin_email, "otp": "123456"},
+            "expected_status": 422
+        },
+        {
+            "name": "Empty request body",
+            "data": {},
+            "expected_status": 422
+        }
+    ]
+    
+    for test_case in test_cases:
+        print(f"\n  Testing: {test_case['name']}")
+        success, response = test_api_endpoint(
+            "POST",
+            "/admin/profile/verify-otp-change-password",
+            headers=auth_headers,
+            data=test_case["data"],
+            description=test_case["name"],
+            expected_status=test_case["expected_status"]
+        )
+        
+        if not success:
+            print(f"❌ VALIDATION ERROR: {test_case['name']} - Expected {test_case['expected_status']} but got different response")
+            
+            # If we get 500 error, investigate
+            if response is not None:
+                print("🔍 INVESTIGATING 500 ERROR FOR VALIDATION...")
+                try:
+                    import subprocess
+                    result = subprocess.run(
+                        ["tail", "-n", "20", "/var/log/supervisor/backend.err.log"],
+                        capture_output=True,
+                        text=True,
+                        timeout=10
+                    )
+                    
+                    if result.stdout:
+                        print("Recent Backend Error Logs:")
+                        print(result.stdout)
+                        
+                except Exception as e:
+                    print(f"Could not read backend logs: {e}")
+        else:
+            print(f"✅ SUCCESS: {test_case['name']} handled correctly")
+    
+    return True
+
 def main():
-    """Main testing function - COMPREHENSIVE BUG REPORTING FLOW TEST"""
-    print("🚀 Starting Comprehensive Bug Reporting Flow Test")
+    """Main testing function - ADMIN PASSWORD CHANGE OTP TESTING"""
+    print("🚀 Starting Admin Password Change OTP Testing")
     print(f"Backend URL: {BACKEND_URL}")
     print(f"Test Time: {datetime.now()}")
     print("="*80)
