@@ -178,38 +178,17 @@ def create_test_image():
         return None
 
 def main():
-    """Main testing function - FOCUSED ON BUG REPORTING AND ADMIN PROFILE FEATURES"""
-    print("🚀 Starting Backend API Tests - Bug Reporting and Admin Profile Features")
+    """Main testing function - FOCUSED ON BUG REPORTING AND CITY SUGGESTION ENDPOINTS"""
+    print("🚀 Starting Backend API Tests - Bug Reporting and City Suggestion Endpoints")
     print(f"Backend URL: {BACKEND_URL}")
     print(f"Test Time: {datetime.now()}")
     
     # Test results tracking
     test_results = {}
     
-    # ============= STEP 1: ADMIN LOGIN AUTHENTICATION =============
+    # ============= STEP 1: BUG REPORT ENDPOINT TEST =============
     print("\n" + "="*80)
-    print("🔐 STEP 1: ADMIN LOGIN AUTHENTICATION TEST")
-    print("="*80)
-    
-    # Test 1.1: Admin login with correct password
-    auth_token = admin_login()
-    if not auth_token:
-        print("\n❌ CRITICAL: Admin login failed - cannot proceed with admin-only tests")
-        test_results['admin_login'] = False
-        return 1
-    
-    test_results['admin_login'] = True
-    headers = {"Authorization": f"Bearer {auth_token}"}
-    
-    # Test 1.2: Verify token contains proper admin info
-    print(f"\n  📊 Admin Token Verification:")
-    print(f"    - Token received: {bool(auth_token)}")
-    print(f"    - Token length: {len(auth_token) if auth_token else 0}")
-    print(f"    - Token starts with expected format: {auth_token.startswith('eyJ') if auth_token else False}")
-    
-    # ============= STEP 2: BUG REPORT APIS (PUBLIC - NO AUTH REQUIRED) =============
-    print("\n" + "="*80)
-    print("🐛 STEP 2: BUG REPORT APIS (PUBLIC - NO AUTH REQUIRED)")
+    print("🐛 STEP 1: BUG REPORT ENDPOINT TEST - POST /api/reports")
     print("="*80)
     
     # Test 2.1: Create bug report without photo
