@@ -202,6 +202,19 @@ const Admin = () => {
   const [productCategoryFilter, setProductCategoryFilter] = useState('all');
   const [productStateFilter, setProductStateFilter] = useState('all');
   const [productCityFilter, setProductCityFilter] = useState('all');
+  
+  // Reports tab state
+  const [bugReports, setBugReports] = useState([]);
+  const [reportsLoading, setReportsLoading] = useState(false);
+  
+  // Profile tab state
+  const [adminProfile, setAdminProfile] = useState({ mobile: '', email: '' });
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [otpEmail, setOtpEmail] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   // REMOVED: Settings tab state variables - functionality moved to Cities & States tab
   // const [freeDeliveryEnabled, setFreeDeliveryEnabled] = useState(false);
   // const [freeDeliveryThreshold, setFreeDeliveryThreshold] = useState(1000);
