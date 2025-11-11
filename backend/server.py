@@ -15,7 +15,7 @@ import aiofiles
 import base64
 from auth import create_access_token, decode_token, get_password_hash, verify_password
 from email_service import send_order_confirmation_email
-from gmail_service import send_order_confirmation_email_gmail, send_order_status_update_email, send_city_approval_email
+from gmail_service import send_order_confirmation_email_gmail, send_order_status_update_email, send_city_approval_email, send_city_rejection_email
 from cities_data import ALL_CITIES, DEFAULT_DELIVERY_CHARGES, DEFAULT_OTHER_CITY_CHARGE, ANDHRA_PRADESH_CITIES, TELANGANA_CITIES
 import random
 import string
