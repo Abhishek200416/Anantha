@@ -1432,7 +1432,10 @@ async def approve_custom_city(data: dict, current_user: dict = Depends(get_curre
     # Check if city already exists
     existing = await db.locations.find_one({"name": city_name, "state": state_name})
     if existing:
-        raise HTTPException(status_code=400, detail="City already exists in delivery locations")
+        raise HTTPException(
+            status_code=400, 
+            detail=f"City '{city_name}, {state_name}' has already been approved and is available for delivery. Please refresh the page to see updated pending cities."
+        )
     
     # Add city to locations
     city_data = {
