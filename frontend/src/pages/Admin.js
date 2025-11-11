@@ -749,7 +749,7 @@ const Admin = () => {
   const updateReportStatus = async (reportId, status) => {
     try {
       const backendUrl = process.env.REACT_APP_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL;
-      const response = await fetch(`${backendUrl}/admin/reports/${reportId}/status`, {
+      const response = await fetch(`${backendUrl}/api/admin/reports/${reportId}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
