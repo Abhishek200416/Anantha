@@ -2250,6 +2250,257 @@ const Admin = () => {
             </div>
           )}
 
+          {/* Reports Tab */}
+          {activeTab === 'reports' && (
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-800">Bug Reports</h2>
+                <button
+                  onClick={fetchBugReports}
+                  className="flex items-center space-x-2 bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  <span>Refresh</span>
+                </button>
+              </div>
+
+              {reportsLoading ? (
+                <div className="text-center py-12">
+                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+                  <p className="mt-4 text-gray-600">Loading reports...</p>
+                </div>
+              ) : bugReports.length === 0 ? (
+                <div className="text-center py-12 bg-gray-50 rounded-lg">
+                  <div className="text-6xl mb-4">📋</div>
+                  <p className="text-gray-600 text-lg">No bug reports yet</p>
+                  <p className="text-gray-500 text-sm mt-2">Reports submitted by users will appear here</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full bg-white rounded-lg overflow-hidden shadow">
+                    <thead className="bg-gradient-to-r from-orange-500 to-red-500 text-white">
+                      <tr>
+                        <th className="px-4 py-3 text-left">Date</th>
+                        <th className="px-4 py-3 text-left">Email</th>
+                        <th className="px-4 py-3 text-left">Mobile</th>
+                        <th className="px-4 py-3 text-left">Issue</th>
+                        <th className="px-4 py-3 text-left">Photo</th>
+                        <th className="px-4 py-3 text-left">Status</th>
+                        <th className="px-4 py-3 text-left">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {bugReports.map((report, index) => (
+                        <tr key={report.id} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
+                          <td className="px-4 py-3 text-sm">
+                            {new Date(report.created_at).toLocaleDateString('en-IN', { 
+                              day: '2-digit', 
+                              month: 'short', 
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </td>
+                          <td className="px-4 py-3 text-sm">
+                            <a href={`mailto:${report.email}`} className="text-blue-600 hover:underline">
+                              {report.email}
+                            </a>
+                          </td>
+                          <td className="px-4 py-3 text-sm">
+                            <a href={`tel:${report.mobile}`} className="text-blue-600 hover:underline">
+                              {report.mobile}
+                            </a>
+                          </td>
+                          <td className="px-4 py-3 text-sm max-w-md">
+                            <div className="line-clamp-3" title={report.issue_description}>
+                              {report.issue_description}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-sm">
+                            {report.photo_url ? (
+                              <a 
+                                href={report.photo_url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline"
+                              >
+                                View Photo
+                              </a>
+                            ) : (
+                              <span className="text-gray-400">No photo</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-sm">
+                            <select
+                              value={report.status}
+                              onChange={(e) => updateReportStatus(report.id, e.target.value)}
+                              className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                report.status === 'New' 
+                                  ? 'bg-blue-100 text-blue-800' 
+                                  : report.status === 'In Progress'
+                                  ? 'bg-yellow-100 text-yellow-800'
+                                  : 'bg-green-100 text-green-800'
+                              }`}
+                            >
+                              <option value="New">New</option>
+                              <option value="In Progress">In Progress</option>
+                              <option value="Resolved">Resolved</option>
+                            </select>
+                          </td>
+                          <td className="px-4 py-3 text-sm">
+                            <button
+                              onClick={() => deleteReport(report.id)}
+                              className="text-red-600 hover:text-red-800 font-semibold"
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Profile Tab */}
+          {activeTab === 'profile' && (
+            <div className="p-6 max-w-4xl mx-auto">
+              <h2 className="text-2xl font-bold text-gray-800 mb-6">Admin Profile</h2>
+
+              {profileLoading ? (
+                <div className="text-center py-12">
+                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+                  <p className="mt-4 text-gray-600">Loading profile...</p>
+                </div>
+              ) : (
+                <div className="space-y-8">
+                  {/* Profile Information */}
+                  <div className="bg-white rounded-xl shadow-lg p-6">
+                    <h3 className="text-xl font-semibold text-gray-800 mb-4">Profile Information</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Mobile Number
+                        </label>
+                        <input
+                          type="tel"
+                          value={adminProfile.mobile}
+                          onChange={(e) => setAdminProfile({...adminProfile, mobile: e.target.value})}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                          placeholder="Enter mobile number"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Email Address
+                        </label>
+                        <input
+                          type="email"
+                          value={adminProfile.email}
+                          onChange={(e) => setAdminProfile({...adminProfile, email: e.target.value})}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                          placeholder="Enter email address"
+                        />
+                      </div>
+                      <button
+                        onClick={updateAdminProfile}
+                        className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white py-3 rounded-lg font-semibold hover:from-orange-600 hover:to-red-600 transition"
+                      >
+                        Update Profile
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Change Password */}
+                  <div className="bg-white rounded-xl shadow-lg p-6">
+                    <h3 className="text-xl font-semibold text-gray-800 mb-4">Change Password</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Email for OTP
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            type="email"
+                            value={otpEmail}
+                            onChange={(e) => setOtpEmail(e.target.value)}
+                            disabled={otpSent}
+                            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent disabled:bg-gray-100"
+                            placeholder="Enter your email"
+                          />
+                          <button
+                            onClick={sendOTP}
+                            disabled={otpSent}
+                            className="px-6 py-2 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
+                          >
+                            {otpSent ? 'OTP Sent' : 'Send OTP'}
+                          </button>
+                        </div>
+                        {otpSent && (
+                          <p className="text-sm text-green-600 mt-1">
+                            ✓ OTP sent to {otpEmail}. Please check your email.
+                          </p>
+                        )}
+                      </div>
+
+                      {otpSent && (
+                        <>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Enter OTP
+                            </label>
+                            <input
+                              type="text"
+                              value={otpCode}
+                              onChange={(e) => setOtpCode(e.target.value)}
+                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                              placeholder="Enter 6-digit OTP"
+                              maxLength="6"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              New Password
+                            </label>
+                            <input
+                              type="password"
+                              value={newPassword}
+                              onChange={(e) => setNewPassword(e.target.value)}
+                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                              placeholder="Enter new password"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Confirm Password
+                            </label>
+                            <input
+                              type="password"
+                              value={confirmPassword}
+                              onChange={(e) => setConfirmPassword(e.target.value)}
+                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                              placeholder="Confirm new password"
+                            />
+                          </div>
+                          <button
+                            onClick={verifyOTPAndChangePassword}
+                            className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 transition"
+                          >
+                            Verify OTP & Change Password
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* States Tab - REMOVED: Combined with Cities */}
           {false && activeTab === 'states' && (
             <div className="p-6">
