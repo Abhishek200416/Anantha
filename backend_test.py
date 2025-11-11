@@ -433,7 +433,7 @@ def main():
         return 1
     else:
         print(f"\n🎉 ALL TESTS PASSED! Bug reporting and city suggestion endpoints are working correctly.")
-        print(f"✅ POST /api/reports - Bug report endpoint WORKING")
+        print(f"✅ POST /api/report-issue - Bug report endpoint WORKING")
         print(f"✅ POST /api/suggest-city - City suggestion endpoint WORKING")
         print(f"✅ Both endpoints return proper response structure with IDs")
         print(f"✅ Frontend can now call these endpoints with /api prefix successfully")
