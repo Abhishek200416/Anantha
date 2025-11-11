@@ -1098,60 +1098,11 @@ const Checkout = () => {
                           );
                         })
                       }
-                      {formData.state && (
-                        <option value="Others" className="font-semibold text-orange-600">
-                          Others (Enter Custom City)
-                        </option>
-                      )}
                     </select>
                     {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
                     
-                    {/* Custom City Input */}
-                    {showCustomCityInput && (
-                      <div className="mt-4 p-5 bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-xl shadow-sm">
-                        <div className="space-y-4">
-                          <div>
-                            <p className="text-base font-bold text-blue-900 mb-2 flex items-start gap-2">
-                              <span className="text-xl">📍</span>
-                              <span>Your City is Not in Our List</span>
-                            </p>
-                            <p className="text-sm text-gray-700 leading-relaxed">
-                              Please enter your city name below. We will calculate the delivery charges for your location and update it within <span className="font-semibold text-blue-700">5-10 minutes</span>.
-                            </p>
-                          </div>
-                          
-                          <div className="bg-white p-4 rounded-lg border border-blue-200">
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">
-                              Enter Your City Name <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                              type="text"
-                              value={customCity}
-                              onChange={(e) => setCustomCity(e.target.value)}
-                              placeholder="e.g., Nellore, Kurnool, Kadapa..."
-                              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
-                            />
-                          </div>
-
-                          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg">
-                            <p className="text-sm text-yellow-800 font-medium flex items-start gap-2">
-                              <span>📧</span>
-                              <span>
-                                <span className="font-bold">Track Your Order:</span> Use your <span className="font-semibold underline">mobile number</span> or <span className="font-semibold underline">email ID</span> to check your order status and see the updated delivery charges.
-                              </span>
-                            </p>
-                          </div>
-
-                          <div className="flex items-center gap-2 text-sm text-gray-600 bg-white p-3 rounded-lg border border-gray-200">
-                            <svg className="w-5 h-5 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                            <span>You can proceed with checkout. Delivery charges will be calculated and added to your order shortly.</span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                    {formData.city && formData.state && formData.city !== 'Others' && (
+                    {/* City delivery info */}
+                    {formData.city && formData.state && !showCustomCityInput && (
                       <div className="mt-2 space-y-1">
                         {(() => {
                           const loc = deliveryLocations.find(l => l.name === formData.city && l.state === formData.state);
@@ -1183,30 +1134,37 @@ const Checkout = () => {
                         })()}
                       </div>
                     )}
-                    {formData.city === 'Others' && customCity && (
-                      <div className="mt-2">
-                        <p className="text-sm text-blue-700 font-medium bg-blue-50 px-3 py-2 rounded-lg border border-blue-200">
-                          📍 Custom Location: <span className="font-semibold">{customCity}</span>
-                          <br />
-                          <span className="text-xs text-gray-600">💰 Delivery charges will be calculated and updated within 5-10 minutes</span>
-                        </p>
+
+                    {/* Custom City Selected Message */}
+                    {showCustomCityInput && customCity && (
+                      <div className="mt-3 p-4 bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-lg">
+                        <div className="flex items-start gap-3">
+                          <MapPin className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                          <div>
+                            <p className="text-sm font-semibold text-blue-900">
+                              Custom Location: <span className="font-bold">{customCity}, {customCityState || formData.state}</span>
+                            </p>
+                            <p className="text-xs text-gray-600 mt-1">
+                              💰 Delivery charges will be calculated and updated within <span className="font-semibold">5-10 minutes</span>
+                            </p>
+                          </div>
+                        </div>
                       </div>
                     )}
 
-                    {/* Add City Help Button */}
-                    <div className="mt-3">
-                      <button
-                        type="button"
-                        onClick={() => setShowAddCityModal(true)}
-                        className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all font-medium shadow-md text-sm"
-                      >
-                        <Plus className="h-4 w-4" />
-                        <span>City Not in List? Add Here</span>
-                      </button>
-                      <p className="text-xs text-gray-500 mt-2 text-center sm:text-left">
-                        💡 We'll add your city within 5-10 minutes. Check back soon!
-                      </p>
-                    </div>
+                    {/* City Not Listed Button */}
+                    {formData.state && (
+                      <div className="mt-3">
+                        <button
+                          type="button"
+                          onClick={() => setShowCustomCityModal(true)}
+                          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-lg transition-all font-medium shadow-md text-sm"
+                        >
+                          <MapPin className="h-4 w-4" />
+                          <span>City Not Listed? Click Here</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
 
