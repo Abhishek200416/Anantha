@@ -2028,7 +2028,7 @@ const Admin = () => {
 
           {/* Orders Tab */}
           {activeTab === 'orders' && (
-            <div className="p-6">
+            <div id="orders" className="p-6 transition-all duration-300 rounded-lg">
               <AdminOrders />
             </div>
           )}
