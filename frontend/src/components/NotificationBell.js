@@ -127,8 +127,46 @@ const NotificationBell = () => {
     setShowDropdown(!showDropdown);
   };
 
-  const handleNotificationClick = (notification) => {
+  const handleNotificationClick = async (notification) => {
     setShowDropdown(false);
+    
+    // Mark notification as dismissed when clicked
+    try {
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL;
+      const token = localStorage.getItem('token');
+      
+      await fetch(`${backendUrl}/api/admin/notifications/dismiss-all`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ type: notification.type })
+      });
+      
+      // Update local state immediately for better UX
+      setNotificationData(prev => ({
+        ...prev,
+        [notification.type]: 0
+      }));
+      
+      // Recalculate total
+      const newTotal = Object.keys(notificationData).reduce((sum, key) => {
+        if (key === notification.type) return sum;
+        if (key === 'total') return sum;
+        return sum + (notificationData[key] || 0);
+      }, 0);
+      
+      setNotificationCount(newTotal);
+      
+      // Remove from recent notifications
+      setRecentNotifications(prev => 
+        prev.filter(n => n.type !== notification.type)
+      );
+    } catch (error) {
+      console.error('Error dismissing notification:', error);
+    }
+    
     // Navigate with section parameter for auto-scroll
     if (notification.type === 'city_suggestions') {
       navigate(`/admin?tab=delivery&section=city-suggestions`);
