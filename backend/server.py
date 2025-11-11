@@ -158,18 +158,21 @@ class Order(BaseModel):
     total: float
     payment_method: str
     payment_sub_method: Optional[str] = None
-    payment_status: str = "pending"
+    payment_status: str = "pending"  # pending, completed, failed
     is_custom_location: bool = False  # True if city is "Others"
     custom_city: Optional[str] = None  # Custom city name entered by user
     custom_state: Optional[str] = None  # State for custom city
     distance_from_guntur: Optional[float] = None  # Distance in km
-    order_status: str = "pending"
+    custom_city_request: bool = False  # True if user requested a custom city
+    order_status: str = "pending"  # pending, confirmed, cancelled, delivered
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     estimated_delivery: Optional[str] = None
     admin_notes: Optional[str] = None
     delivery_days: Optional[int] = None
     cancelled: bool = False
+    cancelled_at: Optional[datetime] = None
     cancel_reason: Optional[str] = None
+    cancellation_fee: float = 0.0
 
 class Location(BaseModel):
     name: str
