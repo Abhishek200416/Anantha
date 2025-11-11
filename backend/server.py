@@ -1847,11 +1847,37 @@ async def update_city_suggestion_status(
         if status not in ["pending", "approved", "rejected"]:
             raise HTTPException(status_code=400, detail="Invalid status")
         
-        # Get the suggestion before updating to send email if approved
+        # Get the suggestion before updating to send email
         suggestion = await db.city_suggestions.find_one({"id": suggestion_id}, {"_id": 0})
         if not suggestion:
             raise HTTPException(status_code=404, detail="City suggestion not found")
         
+        # If approving, add city to locations collection (if delivery charge provided)
+        if status == "approved":
+            delivery_charge = data.get("delivery_charge")
+            free_delivery_threshold = data.get("free_delivery_threshold")
+            
+            # Check if city already exists in locations
+            existing = await db.locations.find_one({
+                "name": suggestion.get("city"),
+                "state": suggestion.get("state")
+            })
+            
+            # Only add to locations if it doesn't exist and delivery charge is provided
+            if not existing and delivery_charge is not None:
+                city_data = {
+                    "name": suggestion.get("city"),
+                    "state": suggestion.get("state"),
+                    "charge": delivery_charge
+                }
+                
+                if free_delivery_threshold:
+                    city_data["free_delivery_threshold"] = free_delivery_threshold
+                
+                await db.locations.insert_one(city_data)
+                logger.info(f"City {suggestion.get('city')}, {suggestion.get('state')} added to locations with charge ₹{delivery_charge}")
+        
+        # Update suggestion status
         result = await db.city_suggestions.update_one(
             {"id": suggestion_id},
             {"$set": {"status": status, "updated_at": datetime.now(timezone.utc)}}
@@ -1860,13 +1886,17 @@ async def update_city_suggestion_status(
         if result.matched_count == 0:
             raise HTTPException(status_code=404, detail="City suggestion not found")
         
-        # Send approval email if status is approved and email exists
-        if status == "approved" and suggestion.get("email"):
+        # Send email notifications based on status
+        if suggestion.get("email"):
             try:
-                await send_city_approval_email(suggestion["email"], suggestion)
-                logger.info(f"City approval email sent to {suggestion['email']} for {suggestion.get('city')}, {suggestion.get('state')}")
+                if status == "approved":
+                    await send_city_approval_email(suggestion["email"], suggestion)
+                    logger.info(f"City approval email sent to {suggestion['email']} for {suggestion.get('city')}, {suggestion.get('state')}")
+                elif status == "rejected":
+                    await send_city_rejection_email(suggestion["email"], suggestion)
+                    logger.info(f"City rejection email sent to {suggestion['email']} for {suggestion.get('city')}, {suggestion.get('state')}")
             except Exception as e:
-                logger.error(f"Failed to send city approval email: {str(e)}")
+                logger.error(f"Failed to send city status email: {str(e)}")
                 # Don't fail the request if email fails
         
         return {"message": "City suggestion status updated successfully"}
