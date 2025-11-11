@@ -52,6 +52,11 @@ const Admin = () => {
   const [citySearchEdit, setCitySearchEdit] = useState('');
   const [citySearchAdd, setCitySearchAdd] = useState('');
   const [stateFilter, setStateFilter] = useState('');
+  
+  // Product filters
+  const [productCategoryFilter, setProductCategoryFilter] = useState('all');
+  const [productStateFilter, setProductStateFilter] = useState('all');
+  const [productCityFilter, setProductCityFilter] = useState('all');
   // REMOVED: Settings tab state variables - functionality moved to Cities & States tab
   // const [freeDeliveryEnabled, setFreeDeliveryEnabled] = useState(false);
   // const [freeDeliveryThreshold, setFreeDeliveryThreshold] = useState(1000);
