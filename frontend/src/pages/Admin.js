@@ -386,6 +386,7 @@ const Admin = () => {
     orders
   } = useAdmin();
 
+  const location = useLocation();
   const [password, setPassword] = useState('');
   const [activeTab, setActiveTab] = useState('products');
   const [editingProduct, setEditingProduct] = useState(null);
