@@ -21,7 +21,7 @@ const PendingCitiesSection = () => {
 
   const fetchPendingCities = async () => {
     try {
-      const token = localStorage.getItem('adminToken');
+      const token = localStorage.getItem('token');
       const response = await axios.get(`${BACKEND_URL}/api/admin/pending-cities`, {
         headers: { Authorization: `Bearer ${token}` }
       });
