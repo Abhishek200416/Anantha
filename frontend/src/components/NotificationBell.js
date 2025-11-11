@@ -245,7 +245,7 @@ const NotificationBell = () => {
 
       {/* Notification Dropdown - Fixed positioning for mobile */}
       {showDropdown && (
-        <div className="absolute right-0 md:right-0 left-auto md:left-auto mt-2 w-[calc(100vw-2rem)] sm:w-80 md:w-96 bg-white rounded-lg shadow-2xl border border-gray-200 z-50 max-h-96 overflow-y-auto">
+        <div className="fixed sm:absolute top-16 sm:top-auto right-2 sm:right-0 mt-0 sm:mt-2 w-[calc(100vw-1rem)] sm:w-80 md:w-96 bg-white rounded-lg shadow-2xl border border-gray-200 z-50 max-h-[80vh] sm:max-h-96 overflow-y-auto">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-orange-50 to-red-50">
             <h3 className="font-bold text-gray-800 text-lg">Notifications</h3>
