@@ -120,10 +120,19 @@ const CitySuggestionsSection = () => {
         }
       );
 
-      // Update suggestion status to approved
+      // Update suggestion status to approved (with delivery charge for email)
+      const statusUpdateData = { 
+        status: 'approved',
+        delivery_charge: parseInt(approvalData.deliveryCharge)
+      };
+      
+      if (approvalData.freeDeliveryThreshold && approvalData.freeDeliveryThreshold.trim() !== '') {
+        statusUpdateData.free_delivery_threshold = parseInt(approvalData.freeDeliveryThreshold);
+      }
+      
       await axios.put(
         `${BACKEND_URL}/api/admin/city-suggestions/${selectedSuggestion.id}/status`,
-        { status: 'approved' },
+        statusUpdateData,
         {
           headers: { Authorization: `Bearer ${adminToken}` }
         }
