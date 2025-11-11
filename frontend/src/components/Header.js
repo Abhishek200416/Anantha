@@ -122,10 +122,10 @@ const Header = () => {
               <button
                 onClick={() => setShowReportBugModal(true)}
                 className="hidden md:flex items-center space-x-2 bg-red-500 text-white px-3 py-2 rounded-full hover:bg-red-600 transition-colors text-sm font-medium shadow-md"
-                title="Report an Issue"
+                title={t('reportIssue')}
               >
                 <AlertCircle className="h-4 w-4" />
-                <span>Report Issue</span>
+                <span>{t('reportIssue')}</span>
               </button>
 
               {/* Install App Button */}
