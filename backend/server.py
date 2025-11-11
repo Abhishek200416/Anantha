@@ -1087,19 +1087,26 @@ async def create_order(order_data: OrderCreate, current_user: dict = Depends(get
             "items": items_list
         }
         
-        # Send confirmation email via Gmail
-        await send_order_confirmation_email_gmail(order_data.email, email_data)
+        # Send confirmation email via Gmail (always send, even for custom city requests)
+        try:
+            await send_order_confirmation_email_gmail(order_data.email, email_data)
+            print(f"✅ Order confirmation email sent to {order_data.email}")
+        except Exception as e:
+            logger.error(f"Failed to send order confirmation email: {str(e)}")
+            # Don't fail the order creation if email fails
         
         # Remove MongoDB _id field before returning
         order.pop("_id", None)
         
         return {
-            "message": "Order created successfully",
+            "message": "Order created successfully" + (" - Awaiting city approval" if custom_city_request else ""),
             "order_id": order_id,
             "tracking_code": tracking_code,
             "subtotal": order_data.subtotal,
             "delivery_charge": calculated_delivery_charge,
             "total": calculated_total,
+            "custom_city_request": custom_city_request,
+            "payment_required": custom_city_request,
             "order": order
         }
     
