@@ -952,6 +952,10 @@ async def create_order(order_data: OrderCreate, current_user: dict = Depends(get
         # Calculate correct total
         calculated_total = order_data.subtotal + calculated_delivery_charge
         
+        # Determine payment status based on whether it's a custom city request
+        payment_status = "pending" if custom_city_request else "completed"
+        order_status = "pending" if custom_city_request else "confirmed"
+        
         # Create order with SERVER-CALCULATED values
         order = {
             "id": str(uuid.uuid4()),
@@ -975,19 +979,39 @@ async def create_order(order_data: OrderCreate, current_user: dict = Depends(get
             "total": calculated_total,
             "payment_method": order_data.payment_method,
             "payment_sub_method": order_data.payment_sub_method,
-            "payment_status": "completed",
-            "order_status": "confirmed",
+            "payment_status": payment_status,
+            "order_status": order_status,
+            "custom_city_request": custom_city_request,
             "created_at": datetime.now(timezone.utc).isoformat(),
             "estimated_delivery": (datetime.now(timezone.utc)).isoformat(),
             "admin_notes": None,
             "delivery_days": None,
             "cancelled": False,
+            "cancelled_at": None,
             "cancel_reason": None,
+            "cancellation_fee": 0.0,
             "is_custom_location": is_custom_location,
             "custom_city": custom_city,
             "custom_state": custom_state,
             "distance_from_guntur": order_data.distance_from_guntur if hasattr(order_data, 'distance_from_guntur') else None
         }
+        
+        # If custom city request, create a city suggestion entry
+        if custom_city_request:
+            suggestion_id = str(uuid.uuid4())
+            city_suggestion = {
+                "id": suggestion_id,
+                "city": order_data.city,
+                "state": order_data.state,
+                "customer_name": order_data.customer_name,
+                "phone": order_data.phone,
+                "email": order_data.email,
+                "status": "pending",
+                "order_id": order_id,
+                "created_at": datetime.now(timezone.utc)
+            }
+            await db.city_suggestions.insert_one(city_suggestion)
+            print(f"📝 City suggestion created: {suggestion_id} for {order_data.city}, {order_data.state}")
         
         await db.orders.insert_one(order)
         
