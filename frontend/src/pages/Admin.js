@@ -53,6 +53,11 @@ const CitySuggestionsSection = () => {
     deliveryCharge: '',
     freeDeliveryThreshold: ''
   });
+  const [showRejectDialog, setShowRejectDialog] = useState(false);
+  const [rejectingSuggestionId, setRejectingSuggestionId] = useState(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deletingSuggestionId, setDeleteSuggestionId] = useState(null);
+  const [deletingSuggestionName, setDeleteSuggestionName] = useState('');
 
   React.useEffect(() => {
     fetchCitySuggestions();
