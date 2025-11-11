@@ -11,10 +11,13 @@ import NotificationBell from './NotificationBell';
 const Header = () => {
   const { getCartCount, setIsOpen } = useCart();
   const { isAuthenticated } = useAuth();
+  const { language, changeLanguage } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showInstallButton, setShowInstallButton] = useState(false);
   const [showReportBugModal, setShowReportBugModal] = useState(false);
+
+  const t = (key) => getTranslation(language, key);
 
   useEffect(() => {
     const handler = (e) => {
