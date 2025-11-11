@@ -818,7 +818,7 @@ const Checkout = () => {
     }
   };
 
-  const handleCustomCityModalSubmit = async (cityName) => {
+  const handleCustomCityModalSubmit = async (cityName, phone, email) => {
     // Set custom city and enable custom city mode
     setCustomCity(cityName);
     setCustomCityState(formData.state);
@@ -826,9 +826,21 @@ const Checkout = () => {
     setFormData(prev => ({ ...prev, city: '', location: '' }));
     setDeliveryCharge(0);
     
+    // Save city suggestion with contact info to backend
+    try {
+      await axios.post(`${API}/city-suggestions`, {
+        city_name: cityName,
+        state: formData.state,
+        phone: phone,
+        email: email
+      });
+    } catch (error) {
+      console.error('Failed to save city suggestion:', error);
+    }
+    
     toast({
       title: "Custom City Added",
-      description: `${cityName} has been added. Delivery charges will be calculated and updated within 5-10 minutes.`,
+      description: `${cityName} has been added. We'll contact you at ${phone} or ${email} to confirm the exact location. Delivery charges will be calculated within 5-10 minutes.`,
     });
   };
 
