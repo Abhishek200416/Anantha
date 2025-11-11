@@ -347,7 +347,7 @@ def main():
     
     # ============= FINAL SUMMARY =============
     print(f"\n{'='*80}")
-    print("🎯 BUG REPORTING AND ADMIN PROFILE FEATURES TEST SUMMARY")
+    print("🎯 BUG REPORTING AND CITY SUGGESTION ENDPOINTS TEST SUMMARY")
     print(f"{'='*80}")
     
     total_tests = len(test_results)
@@ -358,22 +358,13 @@ def main():
     
     # Group results by category
     categories = {
-        "Admin Authentication": ['admin_login'],
-        "Bug Report APIs (Public)": [
-            'create_bug_report_no_photo', 'verify_bug_report_creation',
-            'create_bug_report_with_photo', 'verify_bug_report_with_photo',
-            'bug_report_validation'
+        "Bug Report Endpoint (POST /api/reports)": [
+            'create_bug_report_form_data', 'verify_bug_report_creation',
+            'create_bug_report_minimal'
         ],
-        "Admin Bug Reports Management": [
-            'get_all_reports_admin', 'verify_report_in_admin_list', 'get_reports_no_auth',
-            'update_report_status_valid', 'update_report_status_resolved', 'update_report_status_invalid',
-            'update_nonexistent_report', 'delete_report', 'verify_report_deleted'
-        ],
-        "Admin Profile Management": [
-            'get_admin_profile', 'update_admin_profile', 'verify_profile_update', 'get_profile_no_auth'
-        ],
-        "Password Change with OTP": [
-            'send_otp', 'verify_invalid_otp', 'send_otp_no_auth'
+        "City Suggestion Endpoint (POST /api/suggest-city)": [
+            'create_city_suggestion', 'verify_city_suggestion_creation',
+            'create_city_suggestion_2', 'create_city_suggestion_incomplete'
         ]
     }
     
@@ -395,48 +386,57 @@ def main():
     
     print(f"\n🎯 KEY FINDINGS:")
     
-    # Admin Login
-    if test_results.get('admin_login'):
-        print(f"  ✅ Admin login with password 'admin123' works correctly")
+    # Bug Report Endpoint
+    if test_results.get('create_bug_report_form_data') and test_results.get('verify_bug_report_creation'):
+        print(f"  ✅ POST /api/reports endpoint works correctly with form-data")
+        print(f"      - Accepts issue_title, description, name, email, phone, page fields")
+        print(f"      - Returns success response with report_id")
+        print(f"      - Response structure is valid")
     else:
-        print(f"  ❌ Admin login failed - check password or backend service")
+        print(f"  ❌ POST /api/reports endpoint failed")
     
-    # Bug Reports
-    if test_results.get('create_bug_report_no_photo') and test_results.get('verify_bug_report_creation'):
-        print(f"  ✅ Bug report creation (without photo) works correctly")
+    if test_results.get('create_bug_report_minimal'):
+        print(f"  ✅ Bug report endpoint works with minimal required fields")
     else:
-        print(f"  ❌ Bug report creation failed")
+        print(f"  ❌ Bug report endpoint failed with minimal fields")
     
-    if test_results.get('get_all_reports_admin'):
-        print(f"  ✅ Admin can access all bug reports with JWT token")
+    # City Suggestion Endpoint
+    if test_results.get('create_city_suggestion') and test_results.get('verify_city_suggestion_creation'):
+        print(f"  ✅ POST /api/suggest-city endpoint works correctly with JSON body")
+        print(f"      - Accepts state, city, customer_name, phone, email fields")
+        print(f"      - Returns success response with suggestion_id")
+        print(f"      - Response structure is valid")
     else:
-        print(f"  ❌ Admin bug reports access failed")
+        print(f"  ❌ POST /api/suggest-city endpoint failed")
     
-    if test_results.get('update_report_status_valid'):
-        print(f"  ✅ Bug report status updates work correctly")
+    if test_results.get('create_city_suggestion_2'):
+        print(f"  ✅ City suggestion endpoint works with different state/city combinations")
     else:
-        print(f"  ❌ Bug report status updates failed")
+        print(f"  ❌ City suggestion endpoint failed with different combinations")
     
-    # Admin Profile
-    if test_results.get('get_admin_profile') and test_results.get('update_admin_profile'):
-        print(f"  ✅ Admin profile management works correctly")
+    if test_results.get('create_city_suggestion_incomplete'):
+        print(f"  ✅ City suggestion endpoint handles missing optional fields gracefully")
     else:
-        print(f"  ❌ Admin profile management failed")
+        print(f"  ❌ City suggestion endpoint failed with missing optional fields")
     
-    # OTP
-    if test_results.get('send_otp'):
-        print(f"  ✅ OTP sending for password change works")
-    else:
-        print(f"  ❌ OTP sending failed")
+    print(f"\n🔧 ENDPOINT VERIFICATION:")
+    print(f"  📍 Bug Report Endpoint: POST {BACKEND_URL}/reports")
+    print(f"  📍 City Suggestion Endpoint: POST {BACKEND_URL}/suggest-city")
+    print(f"  📍 Both endpoints are accessible with /api prefix as expected")
     
     if failed_tests > 0:
         print(f"\n⚠️  {failed_tests} test(s) failed. Check the detailed output above for specific issues.")
+        print(f"🔍 TROUBLESHOOTING:")
+        print(f"  - Verify backend service is running on {BACKEND_URL}")
+        print(f"  - Check if endpoints are properly mapped with /api prefix")
+        print(f"  - Ensure MongoDB is accessible and collections are created")
         return 1
     else:
-        print(f"\n🎉 ALL TESTS PASSED! Bug reporting and admin profile features are working correctly.")
-        print(f"✅ Bug report creation and management - WORKING")
-        print(f"✅ Admin profile management - WORKING")
-        print(f"✅ OTP password change system - WORKING")
+        print(f"\n🎉 ALL TESTS PASSED! Bug reporting and city suggestion endpoints are working correctly.")
+        print(f"✅ POST /api/reports - Bug report endpoint WORKING")
+        print(f"✅ POST /api/suggest-city - City suggestion endpoint WORKING")
+        print(f"✅ Both endpoints return proper response structure with IDs")
+        print(f"✅ Frontend can now call these endpoints with /api prefix successfully")
         return 0
 
 if __name__ == "__main__":
