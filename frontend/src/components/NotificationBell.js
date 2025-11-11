@@ -310,7 +310,7 @@ const NotificationBell = () => {
                       >
                         <div className="w-full p-4 hover:bg-gray-50 transition-colors text-left"
                         >
-                          <div className="flex items-start gap-3">
+                          <div className="flex items-start gap-3 pointer-events-none">
                             <div className={`flex-shrink-0 ${notification.bgColor} rounded-full p-2`}>
                               <IconComponent className={`h-5 w-5 ${notification.color}`} />
                             </div>
@@ -327,11 +327,11 @@ const NotificationBell = () => {
                                 {notification.message}
                               </p>
                               <p className="text-xs text-gray-400 mt-1">
-                                ← Swipe to delete
+                                ← Swipe left/right to delete
                               </p>
                             </div>
                           </div>
-                        </button>
+                        </div>
                       </div>
                     </div>
                   );
