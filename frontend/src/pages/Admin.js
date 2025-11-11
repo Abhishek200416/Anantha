@@ -41,7 +41,7 @@ const PendingCitiesSection = () => {
   const handleApproveCity = async (cityName, stateName, suggestedCharge) => {
     setApproving(`${cityName}_${stateName}`);
     try {
-      const token = localStorage.getItem('adminToken');
+      const token = localStorage.getItem('token');
       const deliveryCharge = prompt(
         `Set delivery charge for ${cityName}, ${stateName}\n\nSuggested charge based on distance: ₹${suggestedCharge}\n\nEnter delivery charge:`,
         suggestedCharge
