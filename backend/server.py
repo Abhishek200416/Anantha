@@ -1816,6 +1816,11 @@ async def update_city_suggestion_status(
         if status not in ["pending", "approved", "rejected"]:
             raise HTTPException(status_code=400, detail="Invalid status")
         
+        # Get the suggestion before updating to send email if approved
+        suggestion = await db.city_suggestions.find_one({"id": suggestion_id}, {"_id": 0})
+        if not suggestion:
+            raise HTTPException(status_code=404, detail="City suggestion not found")
+        
         result = await db.city_suggestions.update_one(
             {"id": suggestion_id},
             {"$set": {"status": status, "updated_at": datetime.now(timezone.utc)}}
@@ -1823,6 +1828,15 @@ async def update_city_suggestion_status(
         
         if result.matched_count == 0:
             raise HTTPException(status_code=404, detail="City suggestion not found")
+        
+        # Send approval email if status is approved and email exists
+        if status == "approved" and suggestion.get("email"):
+            try:
+                await send_city_approval_email(suggestion["email"], suggestion)
+                logger.info(f"City approval email sent to {suggestion['email']} for {suggestion.get('city')}, {suggestion.get('state')}")
+            except Exception as e:
+                logger.error(f"Failed to send city approval email: {str(e)}")
+                # Don't fail the request if email fails
         
         return {"message": "City suggestion status updated successfully"}
     except HTTPException:
