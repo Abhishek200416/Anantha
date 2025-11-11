@@ -717,8 +717,8 @@ const AdminOrders = () => {
                         {!order.cancelled && (
                           <button
                             onClick={() => {
-                              const reason = prompt('Enter cancellation reason:');
-                              if (reason) handleCancelOrder(order.order_id, reason);
+                              setOrderToCancel({ id: order.order_id, name: `${order.customer_name} - ${order.order_id}` });
+                              setCancelModalOpen(true);
                             }}
                             className="flex items-center space-x-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
                           >
