@@ -1540,7 +1540,346 @@ async def suggest_city(data: dict):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to submit city suggestion: {str(e)}")
 
-# Bug Report endpoint
+# ============= BUG REPORT ENDPOINTS =============
+
+@api_router.post("/reports")
+async def create_bug_report(
+    email: str = Form(...),
+    mobile: str = Form(...),
+    issue_description: str = Form(...),
+    photo: UploadFile = File(None)
+):
+    """Create a new bug report with optional photo"""
+    try:
+        photo_url = None
+        
+        # Save photo if provided
+        if photo:
+            photo_filename = f"bug_report_{uuid.uuid4()}_{photo.filename}"
+            photo_path = f"/app/frontend/public/uploads/{photo_filename}"
+            
+            async with aiofiles.open(photo_path, "wb") as buffer:
+                content = await photo.read()
+                await buffer.write(content)
+            
+            photo_url = f"/uploads/{photo_filename}"
+        
+        bug_report = {
+            "id": str(uuid.uuid4()),
+            "email": email,
+            "mobile": mobile,
+            "issue_description": issue_description,
+            "photo_url": photo_url,
+            "status": "New",
+            "created_at": datetime.now(timezone.utc)
+        }
+        
+        await db.bug_reports.insert_one(bug_report)
+        
+        return {
+            "message": "Bug report submitted successfully! We'll look into it soon.",
+            "report_id": bug_report["id"]
+        }
+    except Exception as e:
+        logger.error(f"Error creating bug report: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to submit bug report: {str(e)}")
+
+@api_router.get("/admin/reports")
+async def get_all_reports(current_user: dict = Depends(get_current_user)):
+    """Get all bug reports (admin only)"""
+    try:
+        if not current_user.get("is_admin"):
+            raise HTTPException(status_code=403, detail="Admin access required")
+        
+        reports = await db.bug_reports.find({}, {"_id": 0}).sort("created_at", -1).to_list(length=None)
+        
+        # Convert datetime to ISO string for JSON serialization
+        for report in reports:
+            if isinstance(report.get("created_at"), datetime):
+                report["created_at"] = report["created_at"].isoformat()
+        
+        return reports
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching bug reports: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch bug reports: {str(e)}")
+
+@api_router.put("/admin/reports/{report_id}/status")
+async def update_report_status(
+    report_id: str,
+    status_update: BugReportStatusUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update bug report status (admin only)"""
+    try:
+        if not current_user.get("is_admin"):
+            raise HTTPException(status_code=403, detail="Admin access required")
+        
+        # Validate status
+        valid_statuses = ["New", "In Progress", "Resolved"]
+        if status_update.status not in valid_statuses:
+            raise HTTPException(status_code=400, detail=f"Invalid status. Must be one of: {', '.join(valid_statuses)}")
+        
+        result = await db.bug_reports.update_one(
+            {"id": report_id},
+            {"$set": {"status": status_update.status}}
+        )
+        
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Bug report not found")
+        
+        return {"message": "Status updated successfully", "status": status_update.status}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating report status: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to update status: {str(e)}")
+
+@api_router.delete("/admin/reports/{report_id}")
+async def delete_report(
+    report_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Delete a bug report (admin only)"""
+    try:
+        if not current_user.get("is_admin"):
+            raise HTTPException(status_code=403, detail="Admin access required")
+        
+        # Get report to delete photo if exists
+        report = await db.bug_reports.find_one({"id": report_id}, {"_id": 0})
+        
+        if not report:
+            raise HTTPException(status_code=404, detail="Bug report not found")
+        
+        # Delete photo file if exists
+        if report.get("photo_url"):
+            try:
+                photo_path = f"/app/frontend/public{report['photo_url']}"
+                if os.path.exists(photo_path):
+                    os.remove(photo_path)
+            except Exception as e:
+                logger.warning(f"Failed to delete photo: {str(e)}")
+        
+        result = await db.bug_reports.delete_one({"id": report_id})
+        
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Bug report not found")
+        
+        return {"message": "Bug report deleted successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting report: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to delete report: {str(e)}")
+
+# ============= ADMIN PROFILE ENDPOINTS =============
+
+@api_router.get("/admin/profile")
+async def get_admin_profile(current_user: dict = Depends(get_current_user)):
+    """Get admin profile"""
+    try:
+        if not current_user.get("is_admin"):
+            raise HTTPException(status_code=403, detail="Admin access required")
+        
+        profile = await db.admin_profile.find_one({"id": "admin_profile"}, {"_id": 0, "password_hash": 0})
+        
+        if not profile:
+            # Return default profile if not exists
+            profile = {
+                "id": "admin_profile",
+                "mobile": None,
+                "email": None
+            }
+        
+        return profile
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching admin profile: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch profile: {str(e)}")
+
+@api_router.put("/admin/profile")
+async def update_admin_profile(
+    profile_update: AdminProfileUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update admin profile (mobile and email only)"""
+    try:
+        if not current_user.get("is_admin"):
+            raise HTTPException(status_code=403, detail="Admin access required")
+        
+        update_data = {}
+        if profile_update.mobile is not None:
+            update_data["mobile"] = profile_update.mobile
+        if profile_update.email is not None:
+            update_data["email"] = profile_update.email
+        
+        if not update_data:
+            raise HTTPException(status_code=400, detail="No data to update")
+        
+        result = await db.admin_profile.update_one(
+            {"id": "admin_profile"},
+            {"$set": update_data},
+            upsert=True
+        )
+        
+        return {"message": "Profile updated successfully", "updated_fields": list(update_data.keys())}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating admin profile: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to update profile: {str(e)}")
+
+@api_router.post("/admin/profile/send-otp")
+async def send_otp_for_password_change(
+    otp_request: SendOTPRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """Send OTP to admin email for password change"""
+    try:
+        if not current_user.get("is_admin"):
+            raise HTTPException(status_code=403, detail="Admin access required")
+        
+        # Generate 6-digit OTP
+        otp = ''.join(random.choices(string.digits, k=6))
+        
+        # Calculate expiry (10 minutes from now)
+        expires_at = datetime.now(timezone.utc).timestamp() + (10 * 60)
+        
+        # Save OTP to database
+        otp_data = {
+            "email": otp_request.email,
+            "otp": otp,
+            "created_at": datetime.now(timezone.utc),
+            "expires_at": datetime.fromtimestamp(expires_at, tz=timezone.utc)
+        }
+        
+        # Delete any existing OTPs for this email
+        await db.otp_verifications.delete_many({"email": otp_request.email})
+        
+        # Insert new OTP
+        await db.otp_verifications.insert_one(otp_data)
+        
+        # Send OTP email using Gmail service
+        try:
+            import smtplib
+            from email.mime.text import MIMEText
+            from email.mime.multipart import MIMEMultipart
+            
+            gmail_email = os.getenv("GMAIL_EMAIL")
+            gmail_password = os.getenv("GMAIL_APP_PASSWORD")
+            
+            if not gmail_email or not gmail_password:
+                raise HTTPException(status_code=500, detail="Email service not configured")
+            
+            msg = MIMEMultipart()
+            msg['From'] = gmail_email
+            msg['To'] = otp_request.email
+            msg['Subject'] = "Password Change OTP - Anantha Lakshmi Admin"
+            
+            body = f"""
+            <html>
+            <body>
+                <h2>Password Change OTP</h2>
+                <p>Your OTP for password change is: <strong style="font-size: 24px; color: #FF6B35;">{otp}</strong></p>
+                <p>This OTP will expire in 10 minutes.</p>
+                <p>If you did not request this, please ignore this email.</p>
+                <br>
+                <p>Thank you,<br>Anantha Lakshmi Team</p>
+            </body>
+            </html>
+            """
+            
+            msg.attach(MIMEText(body, 'html'))
+            
+            # Send email via Gmail SMTP
+            with smtplib.SMTP('smtp.gmail.com', 587) as server:
+                server.starttls()
+                server.login(gmail_email, gmail_password)
+                server.send_message(msg)
+            
+            logger.info(f"OTP sent successfully to {otp_request.email}")
+            
+        except Exception as email_error:
+            logger.error(f"Failed to send OTP email: {str(email_error)}")
+            raise HTTPException(status_code=500, detail="Failed to send OTP email")
+        
+        return {"message": f"OTP sent successfully to {otp_request.email}", "expires_in_minutes": 10}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error sending OTP: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to send OTP: {str(e)}")
+
+@api_router.post("/admin/profile/verify-otp-change-password")
+async def verify_otp_and_change_password(
+    verify_request: VerifyOTPAndChangePassword,
+    current_user: dict = Depends(get_current_user)
+):
+    """Verify OTP and change admin password"""
+    try:
+        if not current_user.get("is_admin"):
+            raise HTTPException(status_code=403, detail="Admin access required")
+        
+        # Find OTP record
+        otp_record = await db.otp_verifications.find_one(
+            {"email": verify_request.email, "otp": verify_request.otp},
+            {"_id": 0}
+        )
+        
+        if not otp_record:
+            raise HTTPException(status_code=400, detail="Invalid OTP")
+        
+        # Check if OTP is expired
+        expires_at = otp_record.get("expires_at")
+        if isinstance(expires_at, datetime):
+            if expires_at < datetime.now(timezone.utc):
+                # Delete expired OTP
+                await db.otp_verifications.delete_one({"email": verify_request.email, "otp": verify_request.otp})
+                raise HTTPException(status_code=400, detail="OTP has expired")
+        
+        # OTP is valid, change password
+        # Update admin password in environment (this is for the current session)
+        # In production, you'd want to update this in a secure database
+        
+        # For now, we'll update the ADMIN_PASSWORD environment variable
+        # Note: This only persists in the .env file
+        new_password_hash = get_password_hash(verify_request.new_password)
+        
+        # Update admin profile with new password hash
+        await db.admin_profile.update_one(
+            {"id": "admin_profile"},
+            {"$set": {"password_hash": new_password_hash}},
+            upsert=True
+        )
+        
+        # Also update .env file for persistence
+        env_path = ROOT_DIR / '.env'
+        if env_path.exists():
+            with open(env_path, 'r') as f:
+                lines = f.readlines()
+            
+            with open(env_path, 'w') as f:
+                for line in lines:
+                    if line.startswith('ADMIN_PASSWORD='):
+                        f.write(f'ADMIN_PASSWORD="{verify_request.new_password}"\n')
+                    else:
+                        f.write(line)
+        
+        # Delete used OTP
+        await db.otp_verifications.delete_one({"email": verify_request.email, "otp": verify_request.otp})
+        
+        logger.info(f"Admin password changed successfully")
+        
+        return {"message": "Password changed successfully! Please login again with your new password."}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error changing password: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to change password: {str(e)}")
+
+# Bug Report endpoint (Legacy - keep for backward compatibility)
 @api_router.post("/report-issue")
 async def report_issue(
     name: str = Form(None),
