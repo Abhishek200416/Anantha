@@ -726,10 +726,20 @@ const Checkout = () => {
       const result = response.data;
       clearCart();
 
-      toast({
-        title: "Order Placed Successfully!",
-        description: `Order ID: ${result.order_id}. Check your email for tracking code.`,
-      });
+      // Check if this is a custom city request
+      if (result.custom_city_request) {
+        toast({
+          title: "Order Created - Awaiting City Approval",
+          description: `Order ID: ${result.order_id}\n\nYour city is being reviewed for delivery. You'll receive an email notification within 10-15 minutes.\n\nYou can track your order using your mobile number: ${formData.phone}\n\nPayment can be completed after city approval.`,
+          duration: 10000
+        });
+      } else {
+        toast({
+          title: "Order Placed Successfully!",
+          description: `Order ID: ${result.order_id}\n\nCheck your email for order confirmation and tracking code.`,
+          duration: 6000
+        });
+      }
 
       navigate('/order-success', { state: { orderData: result } });
     } catch (error) {
