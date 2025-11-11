@@ -738,12 +738,13 @@ const Admin = () => {
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                     >
                       <option value="all">All Cities</option>
-                      {deliveryLocations
-                        .filter(loc => productStateFilter === 'all' || loc.state === productStateFilter)
-                        .sort((a, b) => a.name.localeCompare(b.name))
-                        .map(loc => (
-                          <option key={loc.name} value={loc.name}>{loc.name}</option>
-                        ))}
+                      {[...new Set(
+                        deliveryLocations
+                          .filter(loc => productStateFilter === 'all' || loc.state === productStateFilter)
+                          .map(loc => loc.name)
+                      )].sort().map(cityName => (
+                        <option key={cityName} value={cityName}>{cityName}</option>
+                      ))}
                     </select>
                   </div>
                 </div>
