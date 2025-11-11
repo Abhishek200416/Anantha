@@ -731,7 +731,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Bug Reporting and Admin Profile Features Testing - COMPLETED"
+    - "Bug Report and City Suggestion Endpoints Testing - COMPLETED"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
