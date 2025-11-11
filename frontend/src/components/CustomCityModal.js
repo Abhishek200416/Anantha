@@ -106,6 +106,42 @@ const CustomCityModal = ({ isOpen, onClose, onSubmit, selectedState }) => {
             />
           </div>
 
+          {/* Phone Input */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <Phone className="w-4 h-4" />
+              Your Mobile Number <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="e.g., 9876543210"
+              disabled={isSubmitting}
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base disabled:bg-gray-100 disabled:cursor-not-allowed"
+            />
+            <p className="text-xs text-gray-500 mt-1">We'll contact you if needed to confirm the exact location</p>
+          </div>
+
+          {/* Email Input */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <Mail className="w-4 h-4" />
+              Your Email Address <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="e.g., your.email@example.com"
+              disabled={isSubmitting}
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base disabled:bg-gray-100 disabled:cursor-not-allowed"
+            />
+            <p className="text-xs text-gray-500 mt-1">For order updates and delivery confirmation</p>
+          </div>
+
           {/* Benefits List */}
           <div className="space-y-2">
             {[
