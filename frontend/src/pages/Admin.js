@@ -48,6 +48,7 @@ const CitySuggestionsSection = () => {
   const [processing, setProcessing] = useState(null);
   const [showApprovalModal, setShowApprovalModal] = useState(false);
   const [selectedSuggestion, setSelectedSuggestion] = useState(null);
+  const [statusFilter, setStatusFilter] = useState('all'); // all, pending, approved, rejected
   const [approvalData, setApprovalData] = useState({
     deliveryCharge: '',
     freeDeliveryThreshold: ''
@@ -55,12 +56,17 @@ const CitySuggestionsSection = () => {
 
   React.useEffect(() => {
     fetchCitySuggestions();
-  }, []);
+  }, [statusFilter]);
 
   const fetchCitySuggestions = async () => {
+    setLoading(true);
     try {
       const adminToken = localStorage.getItem('token');
-      const response = await axios.get(`${BACKEND_URL}/api/admin/city-suggestions`, {
+      const url = statusFilter === 'all' 
+        ? `${BACKEND_URL}/api/admin/city-suggestions`
+        : `${BACKEND_URL}/api/admin/city-suggestions?status=${statusFilter}`;
+      
+      const response = await axios.get(url, {
         headers: { Authorization: `Bearer ${adminToken}` }
       });
       setCitySuggestions(response.data);
