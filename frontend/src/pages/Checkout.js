@@ -1147,7 +1147,7 @@ const Checkout = () => {
                         </div>
                       </div>
                     )}
-                    {formData.city && formData.state && (
+                    {formData.city && formData.state && formData.city !== 'Others' && (
                       <div className="mt-2 space-y-1">
                         {(() => {
                           const loc = deliveryLocations.find(l => l.name === formData.city && l.state === formData.state);
@@ -1177,6 +1177,15 @@ const Checkout = () => {
                             </>
                           );
                         })()}
+                      </div>
+                    )}
+                    {formData.city === 'Others' && customCity && (
+                      <div className="mt-2">
+                        <p className="text-sm text-blue-700 font-medium bg-blue-50 px-3 py-2 rounded-lg border border-blue-200">
+                          📍 Custom Location: <span className="font-semibold">{customCity}</span>
+                          <br />
+                          <span className="text-xs text-gray-600">💰 Delivery charges will be calculated and updated within 5-10 minutes</span>
+                        </p>
                       </div>
                     )}
                   </div>
