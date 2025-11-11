@@ -1001,15 +1001,16 @@ const Admin = () => {
     }
   };
 
-  // Delete report
-  const deleteReport = async (reportId) => {
-    if (!window.confirm('Are you sure you want to delete this report?')) {
-      return;
-    }
-    
+  // Handle delete report
+  const handleDeleteReport = (reportId, email, index) => {
+    setDeleteReportDialog({ isOpen: true, reportId, reportEmail: email, reportIndex: index + 1 });
+  };
+
+  // Confirm delete report
+  const confirmDeleteReport = async () => {
     try {
       const backendUrl = process.env.REACT_APP_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL;
-      const response = await fetch(`${backendUrl}/api/admin/reports/${reportId}`, {
+      const response = await fetch(`${backendUrl}/api/admin/reports/${deleteReportDialog.reportId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -1022,6 +1023,7 @@ const Admin = () => {
           description: "Report deleted successfully"
         });
         fetchBugReports();
+        setDeleteReportDialog({ isOpen: false, reportId: null, reportEmail: '', reportIndex: 0 });
       } else {
         throw new Error('Failed to delete report');
       }
