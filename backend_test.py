@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
 """
 Backend API Testing Script for Anantha Lakshmi Food Delivery App
-FOCUSED TEST: Bug Reporting and City Suggestion Endpoints
-Tests: POST /api/report-issue and POST /api/suggest-city endpoints that were just fixed
+COMPREHENSIVE BUG REPORTING FLOW TEST
+Tests the complete bug reporting flow from submission to admin viewing:
+1. Bug report submission (POST /api/reports)
+2. Admin login (POST /api/auth/admin-login) 
+3. Admin fetch bug reports (GET /api/admin/reports)
+4. Update report status (PUT /api/admin/reports/{report_id}/status)
+5. Verify complete flow: Submit report → Admin sees it in panel
 """
 
 import requests
@@ -16,6 +21,7 @@ import tempfile
 
 # Backend URL from environment
 BACKEND_URL = "https://bug-report-dropdown.preview.emergentagent.com/api"
+ADMIN_PASSWORD = "admin123"
 
 def test_api_endpoint(method, endpoint, headers=None, data=None, description="", expected_status=None):
     """Test a single API endpoint"""
