@@ -464,13 +464,7 @@ def main():
         print(f"❌ 500 errors detected - check logs above for details")
         return 1
     
-    # Prepare authorization headers
-    auth_headers = {
-        "Authorization": f"Bearer {admin_token}",
-        "Content-Type": "application/json"
-    }
-    
-    # ============= STEP 2: SUBMIT BUG REPORTS =============
+    # Run the OTP testing instead of bug reports
     print("\n" + "="*80)
     print("📝 STEP 2: SUBMIT BUG REPORTS - POST /api/reports")
     print("="*80)
