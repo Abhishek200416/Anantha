@@ -806,9 +806,8 @@ const Checkout = () => {
         console.log('💰 Setting delivery charge:', charge);
         setDeliveryCharge(charge);
       } else {
-          console.log('⚠️ Location not found or no charge, using default: 99');
-          setDeliveryCharge(99);
-        }
+        console.log('⚠️ Location not found or no charge, using default: 99');
+        setDeliveryCharge(99);
       }
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
