@@ -1476,7 +1476,9 @@ const Checkout = () => {
                 <div className="flex justify-between text-gray-600">
                   <span>Delivery Charge:</span>
                   <span className={`font-semibold ${isFreeDeliveryApplicable() ? 'text-green-600' : ''}`}>
-                    {isFreeDeliveryApplicable() ? (
+                    {formData.city === 'Others' ? (
+                      <span className="text-blue-600 text-sm">To be calculated</span>
+                    ) : isFreeDeliveryApplicable() ? (
                       <span className="flex items-center space-x-1">
                         <span className="line-through text-gray-400">₹{deliveryCharge}</span>
                         <span className="text-green-600 font-bold">FREE</span>
@@ -1488,7 +1490,16 @@ const Checkout = () => {
                 </div>
                 <div className="flex justify-between text-xl font-bold text-gray-800 border-t pt-3">
                   <span>Total:</span>
-                  <span className="text-orange-600">₹{totalAmount}</span>
+                  <span className="text-orange-600">
+                    {formData.city === 'Others' ? (
+                      <span className="flex flex-col items-end">
+                        <span>₹{getCartTotal()}</span>
+                        <span className="text-xs font-normal text-gray-500">+ delivery charge (TBD)</span>
+                      </span>
+                    ) : (
+                      `₹${totalAmount}`
+                    )}
+                  </span>
                 </div>
               </div>
             </div>
