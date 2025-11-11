@@ -711,10 +711,10 @@ const Checkout = () => {
       total: getCartTotal() + finalDeliveryCharge,
       payment_method: formData.paymentMethod,
       payment_sub_method: formData.paymentSubMethod,
-      is_custom_location: formData.city === 'Others',
-      custom_city: formData.city === 'Others' ? customCity : null,
-      custom_state: formData.city === 'Others' ? (customCityState || formData.state) : null,
-      distance_from_guntur: formData.city === 'Others' ? customCityDistance : null
+      is_custom_location: showCustomCityInput,
+      custom_city: showCustomCityInput ? customCity : null,
+      custom_state: showCustomCityInput ? (customCityState || formData.state) : null,
+      distance_from_guntur: showCustomCityInput ? customCityDistance : null
     };
 
     try {
