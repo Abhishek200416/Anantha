@@ -161,6 +161,13 @@ const Header = () => {
                 >
                   📦 Track Order
                 </Link>
+                <Link 
+                  to="/report-bug" 
+                  className="block py-3 px-4 text-gray-800 hover:bg-orange-100 font-semibold rounded-lg transition-colors text-lg"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  🐛 Report Bug
+                </Link>
                 {isAuthenticated && (
                   <Link 
                     to="/my-orders" 
