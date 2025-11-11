@@ -231,13 +231,13 @@ const Home = () => {
           <p className="text-gray-600 text-sm md:text-base">Browse our delicious collection of traditional foods</p>
         </div>
         
-        {/* City Filter with Auto-detect button - Simplified */}
-        <div className="mb-6 bg-white rounded-lg shadow-sm border border-gray-200 p-3">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+        {/* City Filter with Auto-detect button */}
+        <div className="mb-6 bg-gradient-to-r from-orange-50 to-red-50 rounded-xl shadow-md border border-orange-200 p-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 flex-wrap">
             {/* Filter Label */}
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <MapPin className="h-4 w-4" />
-              <span>Location:</span>
+            <div className="flex items-center gap-2 text-gray-700 font-semibold">
+              <MapPin className="h-5 w-5 text-orange-600" />
+              <span>Filter by Location:</span>
             </div>
 
             {/* State Filter */}
@@ -247,7 +247,7 @@ const Home = () => {
                 setSelectedState(e.target.value);
                 setSelectedCity(''); // Reset city when state changes
               }}
-              className="px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-orange-500 bg-white"
+              className="px-4 py-2 border-2 border-orange-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white font-medium shadow-sm"
             >
               <option value="all">All States</option>
               {[...new Set(deliveryLocations.map(l => l.state))].sort().map((state) => (
@@ -259,7 +259,7 @@ const Home = () => {
             <select
               value={selectedCity}
               onChange={(e) => setSelectedCity(e.target.value)}
-              className="px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-orange-500 bg-white"
+              className="px-4 py-2 border-2 border-orange-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white font-medium shadow-sm"
             >
               <option value="">All Cities</option>
               {[...new Set(
@@ -277,16 +277,16 @@ const Home = () => {
             <button
               onClick={detectLocation}
               disabled={detectingLocation}
-              className="px-3 py-1.5 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 whitespace-nowrap"
+              className="px-5 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:from-orange-600 hover:to-red-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-semibold shadow-md flex items-center gap-2 whitespace-nowrap"
             >
-              <MapPin className="h-3.5 w-3.5" />
-              <span>{detectingLocation ? 'Detecting...' : 'Detect'}</span>
+              <MapPin className="h-4 w-4" />
+              <span>{detectingLocation ? 'Detecting...' : 'Detect My Location'}</span>
             </button>
 
             {/* Status - Inline */}
             {selectedCity && (
-              <span className="text-xs text-gray-600 bg-orange-50 px-2 py-1 rounded">
-                📍 {selectedCity}
+              <span className="text-sm text-orange-700 bg-white px-3 py-2 rounded-lg border border-orange-300 font-medium shadow-sm">
+                📍 Showing: {selectedCity}
               </span>
             )}
           </div>
