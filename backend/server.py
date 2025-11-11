@@ -1554,6 +1554,31 @@ async def suggest_city(data: dict):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to submit city suggestion: {str(e)}")
 
+# City Suggestions endpoint (alternative endpoint for checkout flow)
+@api_router.post("/city-suggestions")
+async def create_city_suggestion(data: dict):
+    """Save city suggestion with contact info when customer searches for unlisted city"""
+    try:
+        suggestion = {
+            "id": str(uuid.uuid4()),
+            "state": data.get("state"),
+            "city": data.get("city_name", data.get("city")),
+            "customer_name": data.get("customer_name", ""),
+            "phone": data.get("phone"),
+            "email": data.get("email"),
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "status": "pending"
+        }
+        
+        await db.city_suggestions.insert_one(suggestion)
+        
+        logger.info(f"City suggestion saved: {suggestion['city']} ({suggestion['state']}) - Contact: {suggestion['phone']}, {suggestion['email']}")
+        
+        return {"message": "City suggestion saved successfully", "suggestion_id": suggestion["id"]}
+    except Exception as e:
+        logger.error(f"Failed to save city suggestion: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to save city suggestion: {str(e)}")
+
 # ============= BUG REPORT ENDPOINTS =============
 
 @api_router.post("/reports")
