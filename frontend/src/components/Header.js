@@ -72,6 +72,17 @@ const Header = () => {
 
             {/* Action Buttons */}
             <div className="flex items-center space-x-2 md:space-x-4">
+              {/* Report Bug Button */}
+              <button
+                onClick={() => setShowReportBugModal(true)}
+                className="flex items-center space-x-1 md:space-x-2 bg-red-500 text-white px-2 md:px-3 py-2 rounded-full hover:bg-red-600 transition-colors text-xs md:text-sm font-medium shadow-md"
+                title="Report an Issue"
+              >
+                <AlertCircle className="h-4 w-4" />
+                <span className="hidden sm:inline">Report Issue</span>
+                <span className="sm:hidden">Report</span>
+              </button>
+
               {/* Install App Button */}
               {showInstallButton && (
                 <button
