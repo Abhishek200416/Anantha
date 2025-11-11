@@ -721,7 +721,7 @@ const Admin = () => {
     setReportsLoading(true);
     try {
       const backendUrl = process.env.REACT_APP_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL;
-      const response = await fetch(`${backendUrl}/admin/reports`, {
+      const response = await fetch(`${backendUrl}/api/admin/reports`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
         }
