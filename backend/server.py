@@ -909,33 +909,45 @@ async def create_order(order_data: OrderCreate, current_user: dict = Depends(get
         custom_city = order_data.custom_city
         custom_state = order_data.custom_state
         
+        # Detect if this is a custom city request (city not in our delivery locations)
+        custom_city_request = False
+        if not is_custom_location and order_data.city:
+            city_exists = await db.locations.find_one({"name": order_data.city})
+            if not city_exists:
+                custom_city_request = True
+                print(f"🆕 CUSTOM CITY REQUEST: {order_data.city}, {order_data.state} - Awaiting approval")
+        
         # SERVER-SIDE DELIVERY CHARGE CALCULATION
-        # For custom locations, delivery charge is 0 initially (to be calculated by admin)
+        # For custom locations or custom city requests, delivery charge is 0 initially
         calculated_delivery_charge = 0.0
         
-        if is_custom_location:
+        if is_custom_location or custom_city_request:
             # Custom city - delivery charge will be calculated by admin
             calculated_delivery_charge = 0.0
-            print(f"📍 CUSTOM LOCATION: {custom_city}, {custom_state} - Delivery charge to be calculated by admin")
+            if custom_city_request:
+                print(f"📍 CUSTOM CITY REQUEST: {order_data.city}, {order_data.state} - Delivery charge to be determined after approval")
+            else:
+                print(f"📍 CUSTOM LOCATION: {custom_city}, {custom_state} - Delivery charge to be calculated by admin")
         else:
             # Find the city's delivery settings from database
             city_location = await db.locations.find_one({"name": order_data.city})
             
             if city_location:
                 base_charge = city_location.get("charge", 99.0)
-                free_delivery_threshold = city_location.get("free_delivery_threshold")
+                free_delivery_threshold = city_location.get("free_delivery_threshold", 0)
                 
-                # Check if order qualifies for free delivery
-                if free_delivery_threshold and order_data.subtotal >= free_delivery_threshold:
+                # Check if order qualifies for free delivery (threshold must be > 0)
+                if free_delivery_threshold > 0 and order_data.subtotal >= free_delivery_threshold:
                     calculated_delivery_charge = 0.0
                     print(f"🎁 FREE DELIVERY APPLIED: {order_data.city} - Subtotal ₹{order_data.subtotal} >= Threshold ₹{free_delivery_threshold}")
                 else:
                     calculated_delivery_charge = base_charge
                     print(f"💰 DELIVERY CHARGE APPLIED: {order_data.city} - ₹{base_charge}")
             else:
-                # City not found in database, use default charge
-                calculated_delivery_charge = 99.0
-                print(f"⚠️ CITY NOT FOUND: {order_data.city} - Using default charge ₹99")
+                # City not found in database, treat as custom city request
+                custom_city_request = True
+                calculated_delivery_charge = 0.0
+                print(f"⚠️ CITY NOT IN DATABASE: {order_data.city} - Treating as custom city request")
         
         # Calculate correct total
         calculated_total = order_data.subtotal + calculated_delivery_charge
