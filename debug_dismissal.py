@@ -7,7 +7,7 @@ import requests
 import json
 from datetime import datetime, timezone, timedelta
 
-BACKEND_URL = "https://admin-city-manager.preview.emergentagent.com/api"
+BACKEND_URL = "https://ap-city-explorer.preview.emergentagent.com/api"
 
 def debug_dismissal():
     # Login
