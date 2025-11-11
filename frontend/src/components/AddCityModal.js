@@ -32,7 +32,7 @@ const AddCityModal = ({ isOpen, onClose, preSelectedState = '' }) => {
 
     setIsSubmitting(true);
     try {
-      await axios.post(`${API}/suggest-city`, {
+      await axios.post(`${API}/api/suggest-city`, {
         state: formData.state,
         city: formData.city,
         customer_name: formData.name,
