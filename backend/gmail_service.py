@@ -287,3 +287,75 @@ async def send_city_approval_email(to_email: str, city_data: dict):
     except Exception as e:
         logger.error(f"Failed to send city approval email via Gmail: {str(e)}")
         return False
+
+async def send_city_rejection_email(to_email: str, city_data: dict):
+    """Send email notification when a city suggestion is rejected"""
+    try:
+        if not GMAIL_EMAIL or not GMAIL_APP_PASSWORD:
+            logger.warning("Gmail credentials not configured. Email not sent.")
+            return False
+            
+        # Create message
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = f'Update on Your City Request - {city_data["city"]}'
+        msg['From'] = f'Anantha Home Foods <{GMAIL_EMAIL}>'
+        msg['To'] = to_email
+        
+        html_content = f'''
+        <html>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+                <h2 style="color: #ea580c; text-align: center;">Update on Your Delivery Request</h2>
+                <p>Dear {city_data.get("customer_name", "Valued Customer")},</p>
+                <p>Thank you for your interest in getting Anantha Home Foods delivered to <strong>{city_data["city"]}, {city_data["state"]}</strong>.</p>
+                
+                <div style="background-color: #fff7ed; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                    <h3 style="color: #ea580c; margin: 0;">📍 Current Status</h3>
+                    <p style="margin-top: 15px;">
+                        We appreciate your suggestion! Unfortunately, we are not able to deliver to <strong>{city_data["city"]}</strong> at this time due to logistical constraints.
+                    </p>
+                </div>
+                
+                <div style="background-color: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                    <h4 style="margin-top: 0;">🔔 Stay Updated</h4>
+                    <p>We're constantly expanding our delivery network! If there's enough demand from your area, we'll definitely consider adding {city_data["city"]} in the future.</p>
+                    <p>We'll keep your request on file and notify you if we start delivering to your area.</p>
+                </div>
+                
+                <div style="background-color: #f0fdf4; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                    <h4 style="margin-top: 0;">💡 Alternative Options</h4>
+                    <p>In the meantime, you might consider:</p>
+                    <ul style="margin: 10px 0;">
+                        <li>Checking if we deliver to nearby cities</li>
+                        <li>Arranging a bulk order for delivery to a nearby location</li>
+                        <li>Following us on social media for expansion updates</li>
+                    </ul>
+                </div>
+                
+                <p style="margin-top: 30px;">If you have any questions or would like to discuss alternatives, feel free to contact us at <strong>9985116385</strong></p>
+                
+                <p style="text-align: center; color: #666; margin-top: 30px; font-size: 12px;">
+                    Thank you for your understanding and interest in Anantha Home Foods!<br>
+                    Handcrafted with love and tradition 💚
+                </p>
+            </div>
+        </body>
+        </html>
+        '''
+        
+        # Attach HTML content
+        html_part = MIMEText(html_content, 'html')
+        msg.attach(html_part)
+        
+        # Send email using Gmail SMTP
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+            server.login(GMAIL_EMAIL, GMAIL_APP_PASSWORD)
+            server.send_message(msg)
+        
+        logger.info(f"City rejection email sent successfully to {to_email} via Gmail")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Failed to send city rejection email via Gmail: {str(e)}")
+        return False
+
