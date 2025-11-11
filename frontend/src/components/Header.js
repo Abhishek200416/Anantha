@@ -194,7 +194,7 @@ const Header = () => {
                 </div>
               )}
 
-              {/* Made by PROMPT FORGE */}
+              {/* Made by PROMPT FORGE IN */}
               <div className="pt-2 border-t mt-2">
                 <a
                   href="https://docs.google.com/forms/d/e/1FAIpQLScmA2rRfJjHOEASpd6QPPAnRfbwQTZzCe_WhVzsvDIbjedeug/viewform?usp=publish-editor"
@@ -203,7 +203,7 @@ const Header = () => {
                   className="flex items-center justify-center space-x-1 py-2 text-blue-600 hover:text-blue-700 font-medium text-sm"
                 >
                   <span>Made by</span>
-                  <span className="font-bold">PROMPT FORGE</span>
+                  <span className="font-bold">PROMPT FORGE IN</span>
                 </a>
               </div>
             </nav>
