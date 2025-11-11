@@ -243,9 +243,9 @@ const NotificationBell = () => {
         )}
       </button>
 
-      {/* Notification Dropdown */}
+      {/* Notification Dropdown - Fixed positioning for mobile */}
       {showDropdown && (
-        <div className="absolute right-0 mt-2 w-80 md:w-96 bg-white rounded-lg shadow-2xl border border-gray-200 z-50 max-h-96 overflow-y-auto">
+        <div className="absolute right-0 md:right-0 left-auto md:left-auto mt-2 w-[calc(100vw-2rem)] sm:w-80 md:w-96 bg-white rounded-lg shadow-2xl border border-gray-200 z-50 max-h-96 overflow-y-auto">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-orange-50 to-red-50">
             <h3 className="font-bold text-gray-800 text-lg">Notifications</h3>
@@ -352,7 +352,7 @@ const NotificationBell = () => {
                 onClick={handleViewAll}
                 className="w-full text-center text-orange-600 hover:text-orange-700 font-semibold text-sm py-2 rounded-lg hover:bg-orange-50 transition-colors"
               >
-                View All in Admin Panel
+                View All
               </button>
             </div>
           )}
