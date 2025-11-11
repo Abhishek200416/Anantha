@@ -19,6 +19,8 @@ const AdminOrders = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState({ start: '', end: '' });
+  const [cityFilter, setCityFilter] = useState('all');
+  const [stateFilter, setStateFilter] = useState('all');
   const [analytics, setAnalytics] = useState(null);
   const [editingOrder, setEditingOrder] = useState(null);
   const [editData, setEditData] = useState({});
