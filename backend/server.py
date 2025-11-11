@@ -1342,6 +1342,7 @@ async def update_city_settings(
     city_name: str, 
     charge: Optional[float] = None,
     free_delivery_threshold: Optional[float] = None,
+    state: Optional[str] = None,
     current_user: dict = Depends(get_current_user)
 ):
     """Update city delivery settings including charge and free delivery threshold"""
@@ -1356,6 +1357,8 @@ async def update_city_settings(
             update_data["charge"] = charge
         if free_delivery_threshold is not None:
             update_data["free_delivery_threshold"] = free_delivery_threshold
+        if state is not None:
+            update_data["state"] = state
         
         if update_data:
             await db.locations.update_one({"name": city_name}, {"$set": update_data})
@@ -1367,8 +1370,10 @@ async def update_city_settings(
         if free_delivery_threshold is not None:
             city_data["free_delivery_threshold"] = free_delivery_threshold
         
-        # Determine state
-        if city_name in ANDHRA_PRADESH_CITIES:
+        # Determine state - use provided state or auto-detect
+        if state:
+            city_data["state"] = state
+        elif city_name in ANDHRA_PRADESH_CITIES:
             city_data["state"] = "Andhra Pradesh"
         elif city_name in TELANGANA_CITIES:
             city_data["state"] = "Telangana"
