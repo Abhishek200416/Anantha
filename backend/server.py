@@ -10,7 +10,7 @@ from pathlib import Path
 from pydantic import BaseModel, Field, EmailStr, ConfigDict, ValidationError
 from typing import List, Optional
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import aiofiles
 import base64
 from auth import create_access_token, decode_token, get_password_hash, verify_password
