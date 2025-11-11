@@ -4,7 +4,9 @@ import ProductCard from '../components/ProductCard';
 import ProductDetailModal from '../components/ProductDetailModal';
 import AddCityModal from '../components/AddCityModal';
 import { useAdmin } from '../contexts/AdminContext';
-import { Sparkles, X, ArrowRight, MapPin, Plus } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
+import { getTranslation } from '../translations/translations';
+import { Sparkles, X, ArrowRight, MapPin, Plus, Globe } from 'lucide-react';
 import axios from 'axios';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
