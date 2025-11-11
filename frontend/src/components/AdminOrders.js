@@ -342,43 +342,91 @@ const AdminOrders = () => {
               {/* Order Header - Clickable */}
               <div
                 onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}
-                className="flex items-center justify-between p-6 cursor-pointer hover:bg-gray-50 transition-colors"
+                className="p-4 sm:p-6 cursor-pointer hover:bg-gray-50 transition-colors"
               >
-                <div className="flex items-center space-x-4">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                    order.cancelled ? 'bg-red-100' :
-                    order.order_status === 'delivered' ? 'bg-green-100' :
-                    'bg-blue-100'
-                  }`}>
-                    {order.cancelled ? <XCircle className="h-6 w-6 text-red-600" /> :
-                     order.order_status === 'delivered' ? <CheckCircle className="h-6 w-6 text-green-600" /> :
-                     <Clock className="h-6 w-6 text-blue-600" />}
+                {/* Desktop Layout */}
+                <div className="hidden sm:flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                      order.cancelled ? 'bg-red-100' :
+                      order.order_status === 'delivered' ? 'bg-green-100' :
+                      'bg-blue-100'
+                    }`}>
+                      {order.cancelled ? <XCircle className="h-6 w-6 text-red-600" /> :
+                       order.order_status === 'delivered' ? <CheckCircle className="h-6 w-6 text-green-600" /> :
+                       <Clock className="h-6 w-6 text-blue-600" />}
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-800">{order.customer_name}</h3>
+                      <p className="text-sm text-gray-600">Order #{order.order_id}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-800">{order.customer_name}</h3>
-                    <p className="text-sm text-gray-600">Order #{order.order_id}</p>
+
+                  <div className="flex items-center space-x-6">
+                    <div className="text-right">
+                      <p className="text-lg font-bold text-gray-800">₹{order.total}</p>
+                      <p className="text-sm text-gray-600">
+                        {new Date(order.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        order.cancelled ? 'bg-red-100 text-red-700' :
+                        order.order_status === 'delivered' ? 'bg-green-100 text-green-700' :
+                        'bg-blue-100 text-blue-700'
+                      }`}>
+                        {order.cancelled ? 'Cancelled' : order.order_status}
+                      </span>
+                      {expandedOrder === order.id ? 
+                        <ChevronUp className="h-5 w-5 text-gray-400" /> : 
+                        <ChevronDown className="h-5 w-5 text-gray-400" />
+                      }
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-6">
-                  <div className="text-right">
-                    <p className="text-lg font-bold text-gray-800">₹{order.total}</p>
-                    <p className="text-sm text-gray-600">
-                      {new Date(order.created_at).toLocaleDateString()}
-                    </p>
+                {/* Mobile Layout */}
+                <div className="sm:hidden space-y-3">
+                  {/* Top row: Icon and Name */}
+                  <div className="flex items-start space-x-3">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                      order.cancelled ? 'bg-red-100' :
+                      order.order_status === 'delivered' ? 'bg-green-100' :
+                      'bg-blue-100'
+                    }`}>
+                      {order.cancelled ? <XCircle className="h-5 w-5 text-red-600" /> :
+                       order.order_status === 'delivered' ? <CheckCircle className="h-5 w-5 text-green-600" /> :
+                       <Clock className="h-5 w-5 text-blue-600" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-base font-bold text-gray-800 truncate">{order.customer_name}</h3>
+                      <p className="text-xs text-gray-600 truncate">Order #{order.order_id}</p>
+                    </div>
+                    {expandedOrder === order.id ? 
+                      <ChevronUp className="h-5 w-5 text-gray-400 flex-shrink-0" /> : 
+                      <ChevronDown className="h-5 w-5 text-gray-400 flex-shrink-0" />
+                    }
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+
+                  {/* Middle row: Price and Date */}
+                  <div className="flex items-center justify-between pl-13">
+                    <div>
+                      <p className="text-lg font-bold text-gray-800">₹{order.total}</p>
+                      <p className="text-xs text-gray-600">
+                        {new Date(order.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Bottom row: Status Badge */}
+                  <div className="pl-13">
+                    <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
                       order.cancelled ? 'bg-red-100 text-red-700' :
                       order.order_status === 'delivered' ? 'bg-green-100 text-green-700' :
                       'bg-blue-100 text-blue-700'
                     }`}>
                       {order.cancelled ? 'Cancelled' : order.order_status}
                     </span>
-                    {expandedOrder === order.id ? 
-                      <ChevronUp className="h-5 w-5 text-gray-400" /> : 
-                      <ChevronDown className="h-5 w-5 text-gray-400" />
-                    }
                   </div>
                 </div>
               </div>
