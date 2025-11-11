@@ -21,10 +21,10 @@ const AddCityModal = ({ isOpen, onClose, preSelectedState = '' }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.state || !formData.city || !formData.phone || !formData.email) {
+    if (!formData.state || !formData.city || !formData.name || !formData.phone || !formData.email) {
       toast({
         title: "Required Fields",
-        description: "Please fill in all required fields including phone and email",
+        description: "Please fill in all required fields: State, City, Name, Phone, and Email",
         variant: "destructive"
       });
       return;
