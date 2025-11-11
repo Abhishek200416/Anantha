@@ -416,6 +416,7 @@ const Admin = () => {
   // Reports tab state
   const [bugReports, setBugReports] = useState([]);
   const [reportsLoading, setReportsLoading] = useState(false);
+  const [deleteReportDialog, setDeleteReportDialog] = useState({ isOpen: false, reportId: null, reportEmail: '', reportIndex: 0 });
   
   // Profile tab state
   const [adminProfile, setAdminProfile] = useState({ mobile: '', email: '' });
