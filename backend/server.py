@@ -1389,14 +1389,25 @@ async def get_pending_cities(current_user: dict = Depends(get_current_user)):
         {"_id": 0, "custom_city": 1, "custom_state": 1, "distance_from_guntur": 1, "delivery_charge": 1, "created_at": 1}
     ).to_list(1000)
     
+    # Get all existing locations to filter out already-approved cities
+    existing_locations = await db.locations.find({}, {"_id": 0, "name": 1, "state": 1}).to_list(10000)
+    existing_set = {f"{loc['name']}_{loc['state']}" for loc in existing_locations}
+    
     # Group by city and state to remove duplicates
     cities_dict = {}
     for order in orders:
-        city_key = f"{order.get('custom_city', '')}_{order.get('custom_state', '')}"
+        city_name = order.get('custom_city', '')
+        state_name = order.get('custom_state', '')
+        city_key = f"{city_name}_{state_name}"
+        
+        # Skip if this city has already been approved (exists in locations)
+        if city_key in existing_set:
+            continue
+            
         if city_key not in cities_dict:
             cities_dict[city_key] = {
-                "city_name": order.get("custom_city"),
-                "state_name": order.get("custom_state"),
+                "city_name": city_name,
+                "state_name": state_name,
                 "distance_km": order.get("distance_from_guntur"),
                 "suggested_charge": order.get("delivery_charge"),
                 "first_order_date": order.get("created_at"),
