@@ -163,15 +163,6 @@ const Header = () => {
                 >
                   📦 Track Order
                 </Link>
-                <button 
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    setShowReportBugModal(true);
-                  }}
-                  className="w-full text-left py-3 px-4 text-gray-800 hover:bg-orange-100 font-semibold rounded-lg transition-colors text-lg"
-                >
-                  🐛 Report Bug
-                </button>
                 {isAuthenticated && (
                   <Link 
                     to="/my-orders" 
