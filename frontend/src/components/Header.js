@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Phone, ShoppingCart, Menu, X, Download, AlertCircle } from 'lucide-react';
+import { Phone, ShoppingCart, Menu, X, Download, AlertCircle, Globe } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
+import { getTranslation } from '../translations/translations';
 import { Link } from 'react-router-dom';
 import ReportBugModal from './ReportBugModal';
 import NotificationBell from './NotificationBell';
