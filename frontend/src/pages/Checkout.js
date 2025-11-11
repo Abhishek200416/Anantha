@@ -42,6 +42,12 @@ const Checkout = () => {
   const [allProducts, setAllProducts] = useState([]);
   const [recommendations, setRecommendations] = useState([]);
   const [freeDeliverySettings, setFreeDeliverySettings] = useState({ enabled: true, threshold: 1000 });
+  const [showCustomCityInput, setShowCustomCityInput] = useState(false);
+  const [customCity, setCustomCity] = useState('');
+  const [customCityState, setCustomCityState] = useState('');
+  const [customCityDeliveryCharge, setCustomCityDeliveryCharge] = useState(199);
+  const [customCityDistance, setCustomCityDistance] = useState(null);
+  const [calculatingCustomCity, setCalculatingCustomCity] = useState(false);
 
   useEffect(() => {
     fetchDeliveryLocations();
