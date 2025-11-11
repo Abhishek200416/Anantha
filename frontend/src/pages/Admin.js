@@ -172,11 +172,15 @@ const CitySuggestionsSection = () => {
     }
   };
 
-  const handleRejectSuggestion = async (suggestionId) => {
-    if (!window.confirm('Are you sure you want to reject this city suggestion?')) {
-      return;
-    }
+  const openRejectDialog = (suggestionId) => {
+    setRejectingSuggestionId(suggestionId);
+    setShowRejectDialog(true);
+  };
 
+  const handleRejectSuggestion = async () => {
+    const suggestionId = rejectingSuggestionId;
+    setShowRejectDialog(false);
+    
     setProcessing(suggestionId);
     try {
       const adminToken = localStorage.getItem('token');
