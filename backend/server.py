@@ -1473,6 +1473,73 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# City Suggestion endpoint
+@api_router.post("/suggest-city")
+async def suggest_city(data: dict):
+    """Handle city suggestion from customers"""
+    try:
+        suggestion = {
+            "id": str(uuid.uuid4()),
+            "state": data.get("state"),
+            "city": data.get("city"),
+            "customer_name": data.get("customer_name"),
+            "phone": data.get("phone"),
+            "email": data.get("email"),
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "status": "pending"
+        }
+        
+        await db.city_suggestions.insert_one(suggestion)
+        
+        return {"message": "City suggestion received successfully", "suggestion_id": suggestion["id"]}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to submit city suggestion: {str(e)}")
+
+# Bug Report endpoint
+@api_router.post("/report-issue")
+async def report_issue(
+    name: str = Form(None),
+    email: str = Form(None),
+    phone: str = Form(None),
+    issue_title: str = Form(...),
+    description: str = Form(...),
+    page: str = Form(None),
+    screenshot: UploadFile = File(None)
+):
+    """Handle bug/issue reports from customers"""
+    try:
+        screenshot_path = None
+        
+        # Save screenshot if provided
+        if screenshot:
+            screenshot_filename = f"issue_{uuid.uuid4()}_{screenshot.filename}"
+            screenshot_path = f"/app/frontend/public/uploads/{screenshot_filename}"
+            
+            with open(screenshot_path, "wb") as buffer:
+                content = await screenshot.read()
+                buffer.write(content)
+            
+            screenshot_path = f"/uploads/{screenshot_filename}"
+        
+        issue_report = {
+            "id": str(uuid.uuid4()),
+            "name": name,
+            "email": email,
+            "phone": phone,
+            "issue_title": issue_title,
+            "description": description,
+            "page": page,
+            "screenshot": screenshot_path,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "status": "open"
+        }
+        
+        await db.issue_reports.insert_one(issue_report)
+        
+        return {"message": "Issue report submitted successfully", "report_id": issue_report["id"]}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to submit issue report: {str(e)}")
+
 # Include router
 app.include_router(api_router)
 
