@@ -11,6 +11,7 @@ const API = `${BACKEND_URL}/api`;
 
 const Home = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedState, setSelectedState] = useState('all');
   const [selectedCity, setSelectedCity] = useState('');
   const [autoDetectedCity, setAutoDetectedCity] = useState('');
   const [showFestivalPopup, setShowFestivalPopup] = useState(false);
