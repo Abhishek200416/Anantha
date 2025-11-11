@@ -789,35 +789,23 @@ const Checkout = () => {
         setErrors(prev => ({ ...prev, city: '' }));
       }
     } else if (name === 'city') {
-      // Check if "Others" is selected
-      if (value === 'Others') {
-        setShowCustomCityInput(true);
-        setCustomCityState(formData.state);
-        setFormData(prev => ({ ...prev, [name]: value, location: '' }));
-        // Don't set delivery charge here - it will be calculated by admin
-        setDeliveryCharge(0);
-        setCustomCityDeliveryCharge(0);
-        setCustomCityDistance(null);
+      setFormData(prev => ({ ...prev, [name]: value, location: value }));
+      
+      // Find location with matching city name and state
+      const currentState = formData.state;
+      const selectedLocation = deliveryLocations.find(loc => 
+        loc.name === value && loc.state === currentState
+      );
+      
+      console.log('🏙️ City selected:', value, 'State:', currentState);
+      console.log('📍 All locations:', deliveryLocations.length);
+      console.log('📍 Found location:', selectedLocation);
+      
+      if (selectedLocation && selectedLocation.charge !== undefined) {
+        const charge = Number(selectedLocation.charge);
+        console.log('💰 Setting delivery charge:', charge);
+        setDeliveryCharge(charge);
       } else {
-        setShowCustomCityInput(false);
-        setCustomCity('');
-        setFormData(prev => ({ ...prev, [name]: value, location: value }));
-        
-        // Find location with matching city name and state
-        const currentState = formData.state;
-        const selectedLocation = deliveryLocations.find(loc => 
-          loc.name === value && loc.state === currentState
-        );
-        
-        console.log('🏙️ City selected:', value, 'State:', currentState);
-        console.log('📍 All locations:', deliveryLocations.length);
-        console.log('📍 Found location:', selectedLocation);
-        
-        if (selectedLocation && selectedLocation.charge !== undefined) {
-          const charge = Number(selectedLocation.charge);
-          console.log('💰 Setting delivery charge:', charge);
-          setDeliveryCharge(charge);
-        } else {
           console.log('⚠️ Location not found or no charge, using default: 99');
           setDeliveryCharge(99);
         }
