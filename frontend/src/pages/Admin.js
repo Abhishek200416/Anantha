@@ -2834,7 +2834,7 @@ const Admin = () => {
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Email for OTP
                         </label>
-                        <div className="flex gap-2">
+                        <div className="flex flex-col sm:flex-row gap-2">
                           <input
                             type="email"
                             value={otpEmail}
@@ -2846,13 +2846,13 @@ const Admin = () => {
                           <button
                             onClick={sendOTP}
                             disabled={otpSent}
-                            className="px-6 py-2 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
+                            className="w-full sm:w-auto px-6 py-2 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition whitespace-nowrap"
                           >
                             {otpSent ? 'OTP Sent' : 'Send OTP'}
                           </button>
                         </div>
                         {otpSent && (
-                          <p className="text-sm text-green-600 mt-1">
+                          <p className="text-sm text-green-600 mt-1 break-words">
                             ✓ OTP sent to {otpEmail}. Please check your email.
                           </p>
                         )}
