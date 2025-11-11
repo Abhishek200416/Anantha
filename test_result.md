@@ -1805,6 +1805,115 @@ agent_communication:
     - Approve the city with delivery charge
     - Refresh and verify city no longer appears in pending list
     - Verify city now appears in locations dropdown in checkout
+  - agent: "main"
+    message: "✅ IMPLEMENTED CUSTOM CITY & CANCEL ORDER FEATURES: User requested to remove 'Others' option from city dropdown and create clean UI for custom cities and order cancellation.
+    
+    FEATURES IMPLEMENTED:
+    
+    1. CUSTOM CITY INPUT - NEW APPROACH (/app/frontend/src/pages/Checkout.js):
+       - Removed 'Others' dropdown option completely
+       - Added beautiful 'City Not Listed? Click Here' button below city dropdown
+       - Created professional CustomCityModal component (/app/frontend/src/components/CustomCityModal.js)
+       - Modal features:
+         * Clean gradient header with MapPin icon
+         * Shows selected state for context
+         * Large text input with placeholder examples
+         * Benefits list (tracking, delivery calculation, email confirmation)
+         * Processing time message (5-10 minutes)
+         * Responsive for mobile and desktop
+         * Keyboard support (Enter to submit)
+         * Loading state during submission
+       - When custom city is submitted:
+         * Sets showCustomCityInput flag to true
+         * Displays custom city info card with location details
+         * Order tagged as is_custom_location = true
+         * Admin receives city in pending cities for approval
+       - Validation updated to handle custom city mode properly
+    
+    2. CANCEL ORDER MODAL (/app/frontend/src/components/CancelOrderModal.js):
+       - Created beautiful cancellation modal instead of alerts
+       - Modal features:
+         * Red gradient header with AlertTriangle icon
+         * Shows order details (Order ID, Tracking Code, Total)
+         * Warning notice about refund processing (5-7 business days)
+         * Required textarea for cancellation reason
+         * Example placeholder text for guidance
+         * Two-button layout: 'Keep Order' and 'Submit Cancellation Request'
+         * Loading state during submission
+         * Disabled state validation (requires reason)
+       - Mobile-responsive:
+         * Full-screen on mobile devices
+         * Stacked buttons on small screens
+         * Proper padding and spacing
+         * Touch-friendly button sizes
+       - Animations:
+         * Fade-in backdrop animation
+         * Scale-in modal animation
+         * Smooth transitions
+    
+    3. TRACK ORDER PAGE INTEGRATION (/app/frontend/src/pages/TrackOrder.js):
+       - Added 'Cancel Order' button in order status section
+       - Button only shows for cancelable orders (confirmed/pending status)
+       - Hidden if order already cancelled
+       - Displays cancellation reason if order is cancelled
+       - Red banner shows cancellation details
+       - handleCancelOrder function:
+         * Calls PUT /api/orders/{order_id}/cancel endpoint
+         * Sends cancel_reason in request body
+         * Shows success toast notification
+         * Refreshes order data to show updated status
+         * Error handling with proper messages
+       - canCancelOrder function checks:
+         * Order is not already cancelled
+         * Order status is 'confirmed' or 'pending'
+       - Mobile-responsive cancel button:
+         * Full width on mobile
+         * Proper positioning in status section
+         * Stacked layout on small screens
+    
+    HOW IT WORKS:
+    
+    CUSTOM CITY FLOW:
+    1. User selects state from dropdown
+    2. If city not in list, clicks 'City Not Listed? Click Here' button
+    3. Modal opens with state pre-filled
+    4. User enters custom city name (e.g., 'Nellore', 'Kadapa')
+    5. Clicks 'Proceed with This City'
+    6. Custom city info card appears below dropdown
+    7. User can proceed with checkout
+    8. Order flagged as custom location with city/state/distance data
+    9. Admin sees city in pending cities list within 5-10 minutes
+    10. Admin approves city with delivery charge
+    11. City becomes available in dropdown for future orders
+    
+    ORDER CANCELLATION FLOW:
+    1. User searches for order on Track Order page
+    2. If order is confirmed/pending, 'Cancel Order' button appears
+    3. User clicks button → Modal opens
+    4. Order details displayed for confirmation
+    5. User enters cancellation reason (required)
+    6. Clicks 'Submit Cancellation Request'
+    7. Backend receives cancellation request with reason
+    8. Success notification shown
+    9. Order data refreshed to show cancelled status
+    10. Cancellation reason displayed in red banner
+    11. Admin can process refund based on payment method
+    
+    BENEFITS:
+    ✅ Clean, professional UI without dropdown clutter
+    ✅ Modal approach provides better UX than inline forms
+    ✅ Mobile-optimized with responsive design
+    ✅ Clear visual hierarchy and information display
+    ✅ Proper validation and error handling
+    ✅ Loading states during async operations
+    ✅ Keyboard shortcuts for power users
+    ✅ Animations for smooth user experience
+    ✅ Consistent design language across app
+    ✅ No more ugly browser alerts or prompts
+    ✅ Better control flow and state management
+    
+    Frontend service restarted successfully. All features live and working!"
+
     - Try to approve same city again (should get clear error message)
     
     Backend service restarted successfully. All fixes are live!"
