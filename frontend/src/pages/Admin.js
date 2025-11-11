@@ -2508,7 +2508,7 @@ const Admin = () => {
 
           {/* Reports Tab */}
           {activeTab === 'reports' && (
-            <div className="p-6">
+            <div id="reports" className="p-6 transition-all duration-300 rounded-lg">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-800">Bug Reports</h2>
                 <button
