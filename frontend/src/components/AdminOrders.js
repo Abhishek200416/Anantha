@@ -145,9 +145,15 @@ const AdminOrders = () => {
         }
       }
 
-      return matchesSearch && matchesStatus && matchesDate;
+      // City filter
+      const matchesCity = cityFilter === 'all' || order.city === cityFilter;
+
+      // State filter
+      const matchesState = stateFilter === 'all' || order.state === stateFilter;
+
+      return matchesSearch && matchesStatus && matchesDate && matchesCity && matchesState;
     });
-  }, [orders, searchTerm, statusFilter, dateFilter]);
+  }, [orders, searchTerm, statusFilter, dateFilter, cityFilter, stateFilter]);
 
   const sortedOrders = useMemo(() => {
     return [...filteredOrders].sort((a, b) => 
