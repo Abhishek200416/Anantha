@@ -790,7 +790,10 @@ const Checkout = () => {
         setShowCustomCityInput(true);
         setCustomCityState(formData.state);
         setFormData(prev => ({ ...prev, [name]: value, location: '' }));
-        setDeliveryCharge(199); // Default charge until calculated
+        // Don't set delivery charge here - it will be calculated by admin
+        setDeliveryCharge(0);
+        setCustomCityDeliveryCharge(0);
+        setCustomCityDistance(null);
       } else {
         setShowCustomCityInput(false);
         setCustomCity('');
