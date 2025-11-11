@@ -773,7 +773,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Password Change with OTP APIs - COMPLETED TESTING"
+    - "Recent Backend API Fixes - COMPLETED TESTING"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
