@@ -10,17 +10,19 @@ const CustomCityModal = ({ isOpen, onClose, onSubmit, selectedState }) => {
   useEffect(() => {
     if (isOpen) {
       setCityName('');
+      setPhone('');
+      setEmail('');
     }
   }, [isOpen]);
 
   const handleSubmit = async () => {
-    if (!cityName.trim()) {
+    if (!cityName.trim() || !phone.trim() || !email.trim()) {
       return;
     }
     
     setIsSubmitting(true);
     try {
-      await onSubmit(cityName.trim());
+      await onSubmit(cityName.trim(), phone.trim(), email.trim());
       onClose();
     } catch (error) {
       console.error('Custom city submission error:', error);
