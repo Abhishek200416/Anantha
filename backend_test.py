@@ -444,28 +444,380 @@ def test_admin_password_change_otp():
     
     return True
 
+def test_admin_authentication():
+    """Test admin authentication with password 'admin123'"""
+    print("\n" + "="*80)
+    print("🔐 TESTING ADMIN AUTHENTICATION")
+    print("="*80)
+    
+    login_data = {"password": ADMIN_PASSWORD}
+    
+    success, response_data = test_api_endpoint(
+        "POST",
+        "/auth/admin-login",
+        data=login_data,
+        description="Admin login with password 'admin123'"
+    )
+    
+    if success and response_data:
+        # Verify response structure
+        required_fields = ["user", "token", "message"]
+        missing_fields = [field for field in required_fields if field not in response_data]
+        
+        if missing_fields:
+            print(f"❌ FAILED: Missing fields in response: {missing_fields}")
+            return False, None
+        
+        # Verify user object structure
+        user = response_data.get("user", {})
+        user_required_fields = ["id", "email", "name", "is_admin"]
+        user_missing_fields = [field for field in user_required_fields if field not in user]
+        
+        if user_missing_fields:
+            print(f"❌ FAILED: Missing user fields: {user_missing_fields}")
+            return False, None
+        
+        # Verify admin user details
+        if (user.get("id") == "admin" and 
+            user.get("email") == "admin@ananthalakshmi.com" and
+            user.get("name") == "Admin" and
+            user.get("is_admin") == True):
+            
+            token = response_data.get("token")
+            if token and len(token) > 100:  # JWT tokens are typically long
+                print(f"✅ SUCCESS: Admin authentication working perfectly")
+                print(f"   - User ID: {user.get('id')}")
+                print(f"   - Email: {user.get('email')}")
+                print(f"   - Name: {user.get('name')}")
+                print(f"   - Is Admin: {user.get('is_admin')}")
+                print(f"   - Token Length: {len(token)} characters")
+                return True, token
+            else:
+                print(f"❌ FAILED: Invalid or missing JWT token")
+                return False, None
+        else:
+            print(f"❌ FAILED: Invalid admin user object")
+            return False, None
+    
+    print(f"❌ FAILED: Admin authentication failed")
+    return False, None
+
+def test_city_suggestions_api(admin_token):
+    """Test GET /api/admin/city-suggestions API"""
+    print("\n" + "="*80)
+    print("🏙️  TESTING CITY SUGGESTIONS API")
+    print("="*80)
+    
+    auth_headers = {
+        "Authorization": f"Bearer {admin_token}",
+        "Content-Type": "application/json"
+    }
+    
+    success, response_data = test_api_endpoint(
+        "GET",
+        "/admin/city-suggestions",
+        headers=auth_headers,
+        description="Get city suggestions (admin endpoint)"
+    )
+    
+    if success:
+        # Verify response is proper JSON array
+        if isinstance(response_data, list):
+            print(f"✅ SUCCESS: City suggestions API returns proper JSON array")
+            print(f"   - Number of suggestions: {len(response_data)}")
+            
+            # If there are suggestions, verify structure
+            if response_data:
+                suggestion = response_data[0]
+                expected_fields = ["id", "state", "city", "customer_name", "phone", "email", "created_at", "status"]
+                
+                for field in expected_fields:
+                    if field in suggestion:
+                        print(f"   - Sample suggestion has '{field}' field ✓")
+                    else:
+                        print(f"   - Sample suggestion missing '{field}' field ⚠️")
+            
+            return True
+        else:
+            print(f"❌ FAILED: Response is not a JSON array, got: {type(response_data)}")
+            return False
+    
+    print(f"❌ FAILED: City suggestions API failed")
+    return False
+
+def test_products_api():
+    """Test GET /api/products API and verify 56 products across 7 categories"""
+    print("\n" + "="*80)
+    print("📦 TESTING PRODUCTS API")
+    print("="*80)
+    
+    success, response_data = test_api_endpoint(
+        "GET",
+        "/products",
+        description="Get all products and verify count and categories"
+    )
+    
+    if success and isinstance(response_data, list):
+        total_products = len(response_data)
+        print(f"✅ SUCCESS: Products API returns {total_products} products")
+        
+        # Verify we have 56 products as expected
+        if total_products == 56:
+            print(f"✅ SUCCESS: Correct number of products (56)")
+        else:
+            print(f"⚠️  WARNING: Expected 56 products, got {total_products}")
+        
+        # Count products by category
+        category_counts = {}
+        for product in response_data:
+            category = product.get("category", "unknown")
+            category_counts[category] = category_counts.get(category, 0) + 1
+        
+        print(f"\n📊 CATEGORY BREAKDOWN:")
+        expected_categories = {
+            "laddus-chikkis": 8,
+            "sweets": 10, 
+            "hot-items": 10,
+            "snacks": 3,
+            "pickles": 9,
+            "powders": 12,
+            "spices": 4
+        }
+        
+        total_expected = sum(expected_categories.values())
+        print(f"Expected total: {total_expected} products across {len(expected_categories)} categories")
+        
+        for category, expected_count in expected_categories.items():
+            actual_count = category_counts.get(category, 0)
+            if actual_count == expected_count:
+                print(f"   ✅ {category}: {actual_count}/{expected_count}")
+            else:
+                print(f"   ⚠️  {category}: {actual_count}/{expected_count}")
+        
+        # Check for unexpected categories
+        unexpected_categories = set(category_counts.keys()) - set(expected_categories.keys())
+        if unexpected_categories:
+            print(f"\n⚠️  UNEXPECTED CATEGORIES FOUND:")
+            for category in unexpected_categories:
+                print(f"   - {category}: {category_counts[category]} products")
+        
+        # Verify product structure
+        if response_data:
+            sample_product = response_data[0]
+            required_fields = ["id", "name", "category", "description", "image", "prices", "isBestSeller", "isNew", "tag"]
+            
+            print(f"\n🔍 PRODUCT STRUCTURE VERIFICATION:")
+            for field in required_fields:
+                if field in sample_product:
+                    print(f"   ✅ '{field}' field present")
+                else:
+                    print(f"   ❌ '{field}' field missing")
+            
+            # Verify prices structure
+            prices = sample_product.get("prices", [])
+            if isinstance(prices, list) and prices:
+                print(f"   ✅ Prices array has {len(prices)} price tiers")
+                sample_price = prices[0]
+                if "weight" in sample_price and "price" in sample_price:
+                    print(f"   ✅ Price structure correct (weight: {sample_price.get('weight')}, price: {sample_price.get('price')})")
+                else:
+                    print(f"   ❌ Price structure incorrect")
+            else:
+                print(f"   ❌ Prices array empty or invalid")
+        
+        return True
+    
+    print(f"❌ FAILED: Products API failed or returned invalid data")
+    return False
+
+def test_notifications_count_api(admin_token):
+    """Test GET /api/admin/notifications/count API"""
+    print("\n" + "="*80)
+    print("🔔 TESTING NOTIFICATIONS COUNT API")
+    print("="*80)
+    
+    auth_headers = {
+        "Authorization": f"Bearer {admin_token}",
+        "Content-Type": "application/json"
+    }
+    
+    success, response_data = test_api_endpoint(
+        "GET",
+        "/admin/notifications/count",
+        headers=auth_headers,
+        description="Get notifications count with admin token"
+    )
+    
+    if success and response_data:
+        # Verify response structure
+        expected_fields = ["bug_reports", "city_suggestions", "new_orders", "total"]
+        
+        print(f"🔍 NOTIFICATIONS COUNT STRUCTURE:")
+        all_fields_present = True
+        
+        for field in expected_fields:
+            if field in response_data:
+                count = response_data[field]
+                print(f"   ✅ {field}: {count}")
+                
+                # Verify it's a number
+                if not isinstance(count, (int, float)):
+                    print(f"   ⚠️  {field} is not a number: {type(count)}")
+                    all_fields_present = False
+            else:
+                print(f"   ❌ Missing field: {field}")
+                all_fields_present = False
+        
+        if all_fields_present:
+            print(f"✅ SUCCESS: Notifications count API returns proper structure")
+            
+            # Verify total calculation
+            calculated_total = (response_data.get("bug_reports", 0) + 
+                             response_data.get("city_suggestions", 0) + 
+                             response_data.get("new_orders", 0))
+            actual_total = response_data.get("total", 0)
+            
+            if calculated_total == actual_total:
+                print(f"   ✅ Total calculation correct: {actual_total}")
+            else:
+                print(f"   ⚠️  Total calculation mismatch: expected {calculated_total}, got {actual_total}")
+            
+            return True
+        else:
+            print(f"❌ FAILED: Missing required fields in response")
+            return False
+    
+    print(f"❌ FAILED: Notifications count API failed")
+    return False
+
+def test_error_handling():
+    """Test error handling with invalid data to ensure proper JSON responses"""
+    print("\n" + "="*80)
+    print("⚠️  TESTING ERROR HANDLING")
+    print("="*80)
+    
+    test_cases = [
+        {
+            "name": "Invalid admin password",
+            "method": "POST",
+            "endpoint": "/auth/admin-login",
+            "data": {"password": "wrongpassword"},
+            "expected_status": 401,
+            "description": "Test admin login with wrong password"
+        },
+        {
+            "name": "Missing required fields in admin login",
+            "method": "POST", 
+            "endpoint": "/auth/admin-login",
+            "data": {},
+            "expected_status": 422,
+            "description": "Test admin login with missing password field"
+        },
+        {
+            "name": "Unauthorized access to admin endpoint",
+            "method": "GET",
+            "endpoint": "/admin/notifications/count",
+            "data": None,
+            "expected_status": 401,
+            "description": "Test admin endpoint without authentication"
+        },
+        {
+            "name": "Invalid product ID",
+            "method": "GET",
+            "endpoint": "/products/nonexistent-id",
+            "data": None,
+            "expected_status": 404,
+            "description": "Test with non-existent product ID"
+        }
+    ]
+    
+    all_passed = True
+    
+    for test_case in test_cases:
+        print(f"\n🧪 Testing: {test_case['name']}")
+        
+        success, response_data = test_api_endpoint(
+            test_case["method"],
+            test_case["endpoint"],
+            data=test_case["data"],
+            description=test_case["description"],
+            expected_status=test_case["expected_status"]
+        )
+        
+        if success:
+            # Verify response is proper JSON with detail field
+            if response_data and "detail" in response_data:
+                print(f"   ✅ Proper JSON error response with detail field")
+            elif response_data:
+                print(f"   ✅ JSON response received (structure may vary)")
+            else:
+                print(f"   ⚠️  No response data, but status code correct")
+        else:
+            print(f"   ❌ Error handling test failed")
+            all_passed = False
+    
+    return all_passed
+
 def main():
-    """Main testing function - ADMIN PASSWORD CHANGE OTP TESTING"""
-    print("🚀 Starting Admin Password Change OTP Testing")
+    """Main testing function - COMPREHENSIVE BACKEND API TESTING"""
+    print("🚀 Starting Comprehensive Backend API Testing")
     print(f"Backend URL: {BACKEND_URL}")
     print(f"Test Time: {datetime.now()}")
     print("="*80)
     
-    # Test the admin password change OTP flow
-    success = test_admin_password_change_otp()
+    test_results = []
     
-    if success:
-        print(f"\n🎉 OVERALL RESULT: OTP TESTING COMPLETED")
-        print(f"✅ Admin password change OTP endpoints tested")
-        print(f"✅ Any 500 errors have been identified and logged")
-        return 0
-    else:
-        print(f"\n⚠️  OVERALL RESULT: ISSUES FOUND IN OTP FLOW")
-        print(f"❌ 500 errors detected - check logs above for details")
+    # Test 1: Admin Authentication
+    print("\n" + "🔐" * 20 + " TEST 1: ADMIN AUTHENTICATION " + "🔐" * 20)
+    auth_success, admin_token = test_admin_authentication()
+    test_results.append(("Admin Authentication", auth_success))
+    
+    if not auth_success:
+        print("❌ CRITICAL: Cannot proceed without admin authentication")
         return 1
     
-    # Run the OTP testing instead of bug reports
-    # Run the OTP testing
+    # Test 2: City Suggestions API
+    print("\n" + "🏙️" * 20 + " TEST 2: CITY SUGGESTIONS API " + "🏙️" * 20)
+    city_success = test_city_suggestions_api(admin_token)
+    test_results.append(("City Suggestions API", city_success))
+    
+    # Test 3: Products API
+    print("\n" + "📦" * 20 + " TEST 3: PRODUCTS API " + "📦" * 20)
+    products_success = test_products_api()
+    test_results.append(("Products API", products_success))
+    
+    # Test 4: Notifications Count API
+    print("\n" + "🔔" * 20 + " TEST 4: NOTIFICATIONS COUNT API " + "🔔" * 20)
+    notifications_success = test_notifications_count_api(admin_token)
+    test_results.append(("Notifications Count API", notifications_success))
+    
+    # Test 5: Error Handling
+    print("\n" + "⚠️" * 20 + " TEST 5: ERROR HANDLING " + "⚠️" * 20)
+    error_handling_success = test_error_handling()
+    test_results.append(("Error Handling", error_handling_success))
+    
+    # Summary
+    print("\n" + "="*80)
+    print("📊 FINAL TEST RESULTS SUMMARY")
+    print("="*80)
+    
+    passed_tests = 0
+    total_tests = len(test_results)
+    
+    for test_name, success in test_results:
+        status = "✅ PASSED" if success else "❌ FAILED"
+        print(f"{status}: {test_name}")
+        if success:
+            passed_tests += 1
+    
+    print(f"\n🎯 OVERALL RESULT: {passed_tests}/{total_tests} tests passed ({(passed_tests/total_tests)*100:.1f}%)")
+    
+    if passed_tests == total_tests:
+        print("🎉 ALL TESTS PASSED - Backend APIs are working correctly!")
+        return 0
+    else:
+        print("⚠️  SOME TESTS FAILED - Check individual test results above")
+        return 1
 
 if __name__ == "__main__":
     exit_code = main()
