@@ -61,7 +61,7 @@ const ReportBugModal = ({ isOpen, onClose }) => {
         formDataToSend.append('screenshot', selectedImage);
       }
 
-      await axios.post(`${API}/report-issue`, formDataToSend, {
+      await axios.post(`${API}/api/report-issue`, formDataToSend, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
