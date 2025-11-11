@@ -420,7 +420,7 @@ def main():
         print(f"  ❌ City suggestion endpoint failed with missing optional fields")
     
     print(f"\n🔧 ENDPOINT VERIFICATION:")
-    print(f"  📍 Bug Report Endpoint: POST {BACKEND_URL}/reports")
+    print(f"  📍 Bug Report Endpoint: POST {BACKEND_URL}/report-issue")
     print(f"  📍 City Suggestion Endpoint: POST {BACKEND_URL}/suggest-city")
     print(f"  📍 Both endpoints are accessible with /api prefix as expected")
     
