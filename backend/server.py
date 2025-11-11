@@ -1895,16 +1895,31 @@ async def delete_city_suggestion(
     suggestion_id: str,
     current_user: dict = Depends(get_current_user)
 ):
-    """Delete a city suggestion (admin only)"""
+    """Delete a city suggestion (admin only) - only approved or rejected suggestions can be deleted"""
     try:
         if not current_user.get("is_admin"):
             raise HTTPException(status_code=403, detail="Admin access required")
         
+        # Check if suggestion exists and get its status
+        suggestion = await db.city_suggestions.find_one({"id": suggestion_id}, {"_id": 0})
+        
+        if not suggestion:
+            raise HTTPException(status_code=404, detail="City suggestion not found")
+        
+        # Prevent deleting pending suggestions
+        if suggestion.get("status") == "pending":
+            raise HTTPException(
+                status_code=400, 
+                detail="Cannot delete pending suggestions. Please approve or reject first."
+            )
+        
+        # Delete the suggestion
         result = await db.city_suggestions.delete_one({"id": suggestion_id})
         
         if result.deleted_count == 0:
             raise HTTPException(status_code=404, detail="City suggestion not found")
         
+        logger.info(f"City suggestion deleted: {suggestion.get('city')}, {suggestion.get('state')} (Status: {suggestion.get('status')})")
         return {"message": "City suggestion deleted successfully"}
     except HTTPException:
         raise
