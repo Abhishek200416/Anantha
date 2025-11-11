@@ -1096,40 +1096,47 @@ const Checkout = () => {
                     
                     {/* Custom City Input */}
                     {showCustomCityInput && (
-                      <div className="mt-4 p-4 bg-orange-50 border-2 border-orange-200 rounded-lg">
-                        <p className="text-sm font-semibold text-orange-800 mb-3">
-                          📍 Enter Your City Name
-                        </p>
-                        <div className="flex flex-col sm:flex-row gap-2">
-                          <input
-                            type="text"
-                            value={customCity}
-                            onChange={(e) => setCustomCity(e.target.value)}
-                            placeholder="Enter city name (e.g., Nellore, Kurnool)"
-                            className="flex-1 px-4 py-2 border border-orange-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                            onKeyPress={(e) => {
-                              if (e.key === 'Enter') {
-                                handleCustomCitySubmit();
-                              }
-                            }}
-                          />
-                          <button
-                            type="button"
-                            onClick={handleCustomCitySubmit}
-                            disabled={calculatingCustomCity || !customCity.trim()}
-                            className="px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed whitespace-nowrap"
-                          >
-                            {calculatingCustomCity ? 'Calculating...' : 'Calculate Delivery'}
-                          </button>
+                      <div className="mt-4 p-5 bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-xl shadow-sm">
+                        <div className="space-y-4">
+                          <div>
+                            <p className="text-base font-bold text-blue-900 mb-2 flex items-start gap-2">
+                              <span className="text-xl">📍</span>
+                              <span>Your City is Not in Our List</span>
+                            </p>
+                            <p className="text-sm text-gray-700 leading-relaxed">
+                              Please enter your city name below. We will calculate the delivery charges for your location and update it within <span className="font-semibold text-blue-700">5-10 minutes</span>.
+                            </p>
+                          </div>
+                          
+                          <div className="bg-white p-4 rounded-lg border border-blue-200">
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                              Enter Your City Name <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={customCity}
+                              onChange={(e) => setCustomCity(e.target.value)}
+                              placeholder="e.g., Nellore, Kurnool, Kadapa..."
+                              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                            />
+                          </div>
+
+                          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg">
+                            <p className="text-sm text-yellow-800 font-medium flex items-start gap-2">
+                              <span>📧</span>
+                              <span>
+                                <span className="font-bold">Track Your Order:</span> Use your <span className="font-semibold underline">mobile number</span> or <span className="font-semibold underline">email ID</span> to check your order status and see the updated delivery charges.
+                              </span>
+                            </p>
+                          </div>
+
+                          <div className="flex items-center gap-2 text-sm text-gray-600 bg-white p-3 rounded-lg border border-gray-200">
+                            <svg className="w-5 h-5 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span>You can proceed with checkout. Delivery charges will be calculated and added to your order shortly.</span>
+                          </div>
                         </div>
-                        {customCityDistance && (
-                          <p className="text-xs text-gray-600 mt-2">
-                            💰 Delivery: ₹{customCityDeliveryCharge} (Distance: {customCityDistance}km from Guntur)
-                          </p>
-                        )}
-                        <p className="text-xs text-gray-500 mt-2">
-                          💡 We'll calculate delivery charges based on distance from Guntur
-                        </p>
                       </div>
                     )}
                     {formData.city && formData.state && (
