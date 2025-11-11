@@ -687,6 +687,18 @@ backend:
         agent: "testing"
         comment: "✅ BUG REPORTING APIS TESTING COMPLETED - EXCELLENT SUCCESS (4/5 TESTS PASSED - 80% SUCCESS): Comprehensive testing of bug reporting system completed. TESTED SCENARIOS: 1) **PUBLIC BUG REPORT CREATION** ✅ - POST /api/reports without photo: Successfully creates bug report with form-data (email, mobile, issue_description), returns proper report_id and success message, no authentication required as expected. - POST /api/reports with photo: Successfully creates bug report with file upload, handles multipart/form-data correctly, saves photo to /uploads/ directory with proper URL. 2) **ADMIN BUG REPORTS MANAGEMENT** ✅ - GET /api/admin/reports: Successfully returns all bug reports with admin authentication, correctly shows created reports in chronological order, returns 401 without authentication as expected. - PUT /api/admin/reports/{id}/status: Successfully updates report status to 'In Progress' and 'Resolved', correctly validates status values (rejects invalid statuses with 400), returns 404 for non-existent report IDs. - DELETE /api/admin/reports/{id}: Successfully deletes bug reports, verification confirms deleted reports no longer appear in list. MINOR ISSUE: Form validation returns 500 instead of 422 for missing required fields (non-critical). CONCLUSION: Bug reporting system is fully functional and production-ready for customer support operations."
 
+  - task: "Bug Report and City Suggestion Endpoints (Fixed /api prefix issue)"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ BUG REPORT AND CITY SUGGESTION ENDPOINTS TESTING COMPLETED - ALL TESTS PASSED (7/7 - 100% SUCCESS): Comprehensive testing of the two specific endpoints that were just fixed for /api prefix issues. TESTED ENDPOINTS: 1) **POST /api/report-issue** ✅ - Successfully accepts form-data fields: issue_title, description, name, email, phone, page (all optional except issue_title and description), Returns proper response with report_id and success message, Works with both full field set and minimal required fields only, Correctly saves reports to database with proper structure. 2) **POST /api/suggest-city** ✅ - Successfully accepts JSON body with fields: state, city, customer_name, phone, email, Returns proper response with suggestion_id and success message, Works with different state/city combinations (tested Andhra Pradesh/Kadapa, Telangana/Warangal, Karnataka/Bangalore), Handles missing optional fields gracefully (customer_name, phone, email are optional). VERIFICATION RESULTS: ✅ Both endpoints accessible with /api prefix as expected, ✅ Bug report endpoint returns report_id in response structure, ✅ City suggestion endpoint returns suggestion_id in response structure, ✅ All response formats are valid JSON with proper success messages, ✅ Frontend can now call these endpoints successfully with /api prefix. CONCLUSION: The /api prefix issue has been completely resolved. Both endpoints are working correctly and ready for frontend integration. The fix allows frontend to call /api/report-issue and /api/suggest-city without 404 errors."
+
   - task: "Admin Profile Management APIs"
     implemented: true
     working: true
