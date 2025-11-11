@@ -1080,8 +1080,52 @@ const Checkout = () => {
                           );
                         })
                       }
+                      {formData.state && (
+                        <option value="Others" className="font-semibold text-orange-600">
+                          Others (Enter Custom City)
+                        </option>
+                      )}
                     </select>
                     {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
+                    
+                    {/* Custom City Input */}
+                    {showCustomCityInput && (
+                      <div className="mt-4 p-4 bg-orange-50 border-2 border-orange-200 rounded-lg">
+                        <p className="text-sm font-semibold text-orange-800 mb-3">
+                          📍 Enter Your City Name
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-2">
+                          <input
+                            type="text"
+                            value={customCity}
+                            onChange={(e) => setCustomCity(e.target.value)}
+                            placeholder="Enter city name (e.g., Nellore, Kurnool)"
+                            className="flex-1 px-4 py-2 border border-orange-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                            onKeyPress={(e) => {
+                              if (e.key === 'Enter') {
+                                handleCustomCitySubmit();
+                              }
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={handleCustomCitySubmit}
+                            disabled={calculatingCustomCity || !customCity.trim()}
+                            className="px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed whitespace-nowrap"
+                          >
+                            {calculatingCustomCity ? 'Calculating...' : 'Calculate Delivery'}
+                          </button>
+                        </div>
+                        {customCityDistance && (
+                          <p className="text-xs text-gray-600 mt-2">
+                            💰 Delivery: ₹{customCityDeliveryCharge} (Distance: {customCityDistance}km from Guntur)
+                          </p>
+                        )}
+                        <p className="text-xs text-gray-500 mt-2">
+                          💡 We'll calculate delivery charges based on distance from Guntur
+                        </p>
+                      </div>
+                    )}
                     {formData.city && formData.state && (
                       <div className="mt-2 space-y-1">
                         {(() => {
