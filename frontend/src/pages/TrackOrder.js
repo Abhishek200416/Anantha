@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Search, Package, Truck, CheckCircle, Clock, MapPin, Mail, Phone, CreditCard, Calendar, User } from 'lucide-react';
+import { Search, Package, Truck, CheckCircle, Clock, MapPin, Mail, Phone, CreditCard, Calendar, User, XCircle } from 'lucide-react';
 import axios from 'axios';
 import { toast } from '../hooks/use-toast';
+import CancelOrderModal from '../components/CancelOrderModal';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -11,6 +12,7 @@ const TrackOrder = () => {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
 
   const handleSearch = async (e) => {
     e.preventDefault();
