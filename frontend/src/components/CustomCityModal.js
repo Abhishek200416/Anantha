@@ -32,7 +32,7 @@ const CustomCityModal = ({ isOpen, onClose, onSubmit, selectedState }) => {
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && cityName.trim()) {
+    if (e.key === 'Enter' && cityName.trim() && phone.trim() && email.trim()) {
       handleSubmit();
     }
   };
