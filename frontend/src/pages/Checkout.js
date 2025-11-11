@@ -1519,6 +1519,14 @@ const Checkout = () => {
         onClose={() => setShowAddCityModal(false)}
         preSelectedState={formData.state || ''}
       />
+
+      {/* Custom City Modal */}
+      <CustomCityModal
+        isOpen={showCustomCityModal}
+        onClose={() => setShowCustomCityModal(false)}
+        onSubmit={handleCustomCityModalSubmit}
+        selectedState={formData.state}
+      />
     </div>
   );
 };
