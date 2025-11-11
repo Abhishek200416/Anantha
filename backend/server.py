@@ -1780,35 +1780,6 @@ async def delete_report(
         logger.error(f"Error deleting report: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to delete report: {str(e)}")
 
-@api_router.get("/admin/notifications/count")
-async def get_notification_count(current_user: dict = Depends(get_current_user)):
-    """Get count of new/pending notifications for admin (bug reports, city suggestions, new orders)"""
-    try:
-        if not current_user.get("is_admin"):
-            raise HTTPException(status_code=403, detail="Admin access required")
-        
-        # Count new bug reports (status = "New")
-        bug_reports_count = await db.bug_reports.count_documents({"status": "New"})
-        
-        # Count pending city suggestions
-        city_suggestions_count = await db.city_suggestions.count_documents({})
-        
-        # Count new orders (status = "confirmed" - newly placed orders)
-        new_orders_count = await db.orders.count_documents({"status": "confirmed"})
-        
-        return {
-            "bug_reports": bug_reports_count,
-            "city_suggestions": city_suggestions_count,
-            "new_orders": new_orders_count,
-            "total": bug_reports_count + city_suggestions_count + new_orders_count
-        }
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error fetching notification count: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to fetch notification count: {str(e)}")
-
-
 # ============= CITY SUGGESTION ENDPOINTS =============
 
 @api_router.get("/admin/city-suggestions")
