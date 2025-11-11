@@ -211,7 +211,7 @@ const CitySuggestionsSection = () => {
     }
   };
 
-  const handleDeleteSuggestion = async (suggestionId, suggestionStatus) => {
+  const openDeleteDialog = (suggestionId, suggestionName, suggestionStatus) => {
     // Only allow deleting approved or rejected suggestions (not pending)
     if (suggestionStatus === 'pending') {
       toast({
@@ -222,9 +222,14 @@ const CitySuggestionsSection = () => {
       return;
     }
 
-    if (!window.confirm('Are you sure you want to delete this city suggestion? This action cannot be undone.')) {
-      return;
-    }
+    setDeleteSuggestionId(suggestionId);
+    setDeleteSuggestionName(suggestionName);
+    setShowDeleteDialog(true);
+  };
+
+  const handleDeleteSuggestion = async () => {
+    const suggestionId = deletingSuggestionId;
+    setShowDeleteDialog(false);
 
     setProcessing(suggestionId);
     try {
