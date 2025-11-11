@@ -20,7 +20,7 @@ import os
 import tempfile
 
 # Backend URL from environment
-BACKEND_URL = "https://bug-report-dropdown.preview.emergentagent.com/api"
+BACKEND_URL = "https://neat-delete-ui.preview.emergentagent.com/api"
 ADMIN_PASSWORD = "admin123"
 
 def test_api_endpoint(method, endpoint, headers=None, data=None, description="", expected_status=None):
