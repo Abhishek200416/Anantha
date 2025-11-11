@@ -270,8 +270,8 @@ const Home = () => {
       {/* Products Section */}
       <section id="products" className="container mx-auto px-4 pb-20 pt-8">
         <div className="mb-6">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">Our Products</h2>
-          <p className="text-gray-600 text-sm md:text-base">Browse our delicious collection of traditional foods</p>
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">{t('ourProducts')}</h2>
+          <p className="text-gray-600 text-sm md:text-base">{t('browseProducts')}</p>
         </div>
         
         {/* City Filter with Auto-detect button */}
@@ -280,7 +280,7 @@ const Home = () => {
             {/* Filter Label */}
             <div className="flex items-center gap-2 text-gray-700 font-semibold">
               <MapPin className="h-5 w-5 text-orange-600" />
-              <span>Filter by Location:</span>
+              <span>{t('filterByLocation')}</span>
             </div>
 
             {/* State Filter */}
@@ -292,7 +292,7 @@ const Home = () => {
               }}
               className="px-4 py-2 border-2 border-orange-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white font-medium shadow-sm"
             >
-              <option value="all">All States</option>
+              <option value="all">{t('allStates')}</option>
               {[...new Set(deliveryLocations.map(l => l.state))].sort().map((state) => (
                 <option key={state} value={state}>{state}</option>
               ))}
