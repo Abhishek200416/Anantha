@@ -69,7 +69,6 @@ const Header = () => {
             <nav className="hidden md:flex items-center space-x-6">
               <Link to="/" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">Home</Link>
               <Link to="/track-order" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">Track Order</Link>
-              <Link to="/report-bug" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">Report Bug</Link>
             </nav>
 
             {/* Action Buttons */}
