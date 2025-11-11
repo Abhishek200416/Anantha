@@ -1283,6 +1283,7 @@ const Admin = () => {
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {Array.isArray(deliveryLocations) && deliveryLocations
                     .filter(location => !stateFilter || location.state === stateFilter)
+                    .filter(location => !citySearchEdit || location.name.toLowerCase().includes(citySearchEdit.toLowerCase()))
                     .map((location, index) => (
                     <div key={`${location.state || 'unknown'}-${location.name}-${index}`} className="bg-gray-50 rounded-lg p-4 flex items-center justify-between">
                       <div className="flex items-center space-x-3 flex-1">
