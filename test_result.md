@@ -719,7 +719,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "State Management APIs Testing - COMPLETED"
+    - "Bug Reporting and Admin Profile Features Testing - COMPLETED"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
