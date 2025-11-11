@@ -451,23 +451,18 @@ def main():
     print(f"Test Time: {datetime.now()}")
     print("="*80)
     
-    # Test results tracking
-    test_results = {}
-    created_report_ids = []
+    # Test the admin password change OTP flow
+    success = test_admin_password_change_otp()
     
-    # ============= STEP 1: ADMIN LOGIN =============
-    print("\n" + "="*80)
-    print("🔐 STEP 1: ADMIN LOGIN - POST /api/auth/admin-login")
-    print("="*80)
-    
-    admin_token = admin_login()
-    
-    if not admin_token:
-        print("❌ CRITICAL: Cannot proceed without admin authentication")
-        test_results['admin_login'] = False
+    if success:
+        print(f"\n🎉 OVERALL RESULT: OTP TESTING COMPLETED")
+        print(f"✅ Admin password change OTP endpoints tested")
+        print(f"✅ Any 500 errors have been identified and logged")
+        return 0
+    else:
+        print(f"\n⚠️  OVERALL RESULT: ISSUES FOUND IN OTP FLOW")
+        print(f"❌ 500 errors detected - check logs above for details")
         return 1
-    
-    test_results['admin_login'] = True
     
     # Prepare authorization headers
     auth_headers = {
