@@ -178,8 +178,8 @@ def create_test_image():
         return None
 
 def main():
-    """Main testing function - FOCUSED ON BUG REPORTING AND CITY SUGGESTION ENDPOINTS"""
-    print("🚀 Starting Backend API Tests - Bug Reporting and City Suggestion Endpoints")
+    """Main testing function - FOCUSED ON ADMIN BUG REPORTS ENDPOINT"""
+    print("🚀 Starting Backend API Tests - Admin Bug Reports Endpoint")
     print(f"Backend URL: {BACKEND_URL}")
     print(f"Test Time: {datetime.now()}")
     
