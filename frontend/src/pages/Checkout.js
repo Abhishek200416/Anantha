@@ -1570,6 +1570,13 @@ const Checkout = () => {
           </div>
         </div>
       </div>
+
+      {/* Add City Modal */}
+      <AddCityModal 
+        isOpen={showAddCityModal}
+        onClose={() => setShowAddCityModal(false)}
+        preSelectedState={formData.state || ''}
+      />
     </div>
   );
 };
