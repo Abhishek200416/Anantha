@@ -26,29 +26,31 @@ import ReportBug from './pages/ReportBug';
 function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <AdminProvider>
-          <CartProvider>
-            <div className="App">
-              <Header />
-              <CartSidebar />
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/checkout" element={<Checkout />} />
-                <Route path="/order-success" element={<OrderSuccess />} />
-                <Route path="/track-order" element={<TrackOrder />} />
-                <Route path="/order-confirmation/:orderId" element={<OrderConfirmation />} />
-                <Route path="/admin" element={<Admin />} />
-                <Route path="/report-bug" element={<ReportBug />} />
-              </Routes>
-              <Footer />
-              <Toaster />
-            </div>
-          </CartProvider>
-        </AdminProvider>
-      </AuthProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <AdminProvider>
+            <CartProvider>
+              <div className="App">
+                <Header />
+                <CartSidebar />
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/checkout" element={<Checkout />} />
+                  <Route path="/order-success" element={<OrderSuccess />} />
+                  <Route path="/track-order" element={<TrackOrder />} />
+                  <Route path="/order-confirmation/:orderId" element={<OrderConfirmation />} />
+                  <Route path="/admin" element={<Admin />} />
+                  <Route path="/report-bug" element={<ReportBug />} />
+                </Routes>
+                <Footer />
+                <Toaster />
+              </div>
+            </CartProvider>
+          </AdminProvider>
+        </AuthProvider>
+      </LanguageProvider>
     </BrowserRouter>
   );
 }
