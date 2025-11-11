@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Backend API Testing Script for Anantha Lakshmi Food Delivery App
-FOCUSED TEST: Bug Reporting and Admin Profile Features
-Tests: Bug Report APIs, Admin Profile Management, OTP Password Change
+FOCUSED TEST: Bug Reporting and City Suggestion Endpoints
+Tests: POST /api/report-issue and POST /api/suggest-city endpoints that were just fixed
 """
 
 import requests
