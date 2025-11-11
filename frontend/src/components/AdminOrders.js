@@ -758,6 +758,21 @@ const AdminOrders = () => {
           ))
         )}
       </div>
+
+      {/* Cancel Order Modal */}
+      <CancelOrderModal
+        isOpen={cancelModalOpen}
+        onClose={() => {
+          setCancelModalOpen(false);
+          setOrderToCancel(null);
+        }}
+        onConfirm={(reason) => {
+          if (orderToCancel) {
+            handleCancelOrder(orderToCancel.id, reason);
+          }
+        }}
+        orderName={orderToCancel?.name}
+      />
     </div>
   );
 };
