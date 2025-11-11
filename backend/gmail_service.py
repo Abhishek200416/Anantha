@@ -288,8 +288,14 @@ async def send_city_approval_email(to_email: str, city_data: dict):
         logger.error(f"Failed to send city approval email via Gmail: {str(e)}")
         return False
 
-async def send_city_rejection_email(to_email: str, city_data: dict):
-    """Send email notification when a city suggestion is rejected"""
+async def send_city_rejection_email(to_email: str, city_data: dict, has_payment: bool = False):
+    """Send email notification when a city suggestion is rejected
+    
+    Args:
+        to_email: Customer's email address
+        city_data: Dictionary containing city, state, customer_name etc.
+        has_payment: True if customer has already made payment for this city
+    """
     try:
         if not GMAIL_EMAIL or not GMAIL_APP_PASSWORD:
             logger.warning("Gmail credentials not configured. Email not sent.")
@@ -300,6 +306,28 @@ async def send_city_rejection_email(to_email: str, city_data: dict):
         msg['Subject'] = f'Update on Your City Request - {city_data["city"]}'
         msg['From'] = f'Anantha Home Foods <{GMAIL_EMAIL}>'
         msg['To'] = to_email
+        
+        # Add refund section if payment was made
+        refund_section = ""
+        if has_payment:
+            refund_section = f'''
+                <div style="background-color: #fef2f2; padding: 20px; border-radius: 8px; margin: 20px 0; border: 2px solid #fca5a5;">
+                    <h3 style="color: #dc2626; margin: 0;">💰 Refund Information</h3>
+                    <p style="margin-top: 15px; font-weight: bold;">
+                        Since you have already made a payment for delivery to {city_data["city"]}, we will process a full refund.
+                    </p>
+                    <p>
+                        <strong>Refund Timeline:</strong> Your payment will be refunded within 2-3 working days.
+                    </p>
+                    <p style="background-color: #fee2e2; padding: 15px; border-radius: 6px; margin-top: 10px;">
+                        <strong>⚠️ IMPORTANT:</strong> Please reply to this email with your UPI details so we can process the refund quickly:
+                    </p>
+                    <ul style="margin: 10px 0 0 20px;">
+                        <li>UPI ID (e.g., yourname@paytm, yourname@okaxis)</li>
+                        <li>Or Bank Account details (Account Number, IFSC Code, Account Holder Name)</li>
+                    </ul>
+                </div>
+            '''
         
         html_content = f'''
         <html>
@@ -315,6 +343,8 @@ async def send_city_rejection_email(to_email: str, city_data: dict):
                         We appreciate your suggestion! Unfortunately, we are not able to deliver to <strong>{city_data["city"]}</strong> at this time due to logistical constraints.
                     </p>
                 </div>
+                
+                {refund_section}
                 
                 <div style="background-color: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0;">
                     <h4 style="margin-top: 0;">🔔 Stay Updated</h4>
