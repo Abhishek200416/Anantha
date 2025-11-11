@@ -64,16 +64,53 @@ const Header = () => {
               />
               <div>
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent" style={{ fontFamily: "'Poppins', sans-serif" }}>
-                  Anantha Home Foods
+                  {t('brandName')}
                 </h1>
-                <p className="text-xs text-gray-600">Traditional Homemade Foods</p>
+                <p className="text-xs text-gray-600">{t('brandTagline')}</p>
               </div>
             </Link>
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-6">
-              <Link to="/" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">Home</Link>
-              <Link to="/track-order" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">Track Order</Link>
+              <Link to="/" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">{t('home')}</Link>
+              <Link to="/track-order" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">{t('trackOrder')}</Link>
+              
+              {/* Language Selector - Desktop (Toggle Buttons) */}
+              <div className="flex items-center space-x-2 bg-gray-100 rounded-full p-1">
+                <button
+                  onClick={() => changeLanguage('en')}
+                  className={`px-3 py-1 rounded-full text-sm font-semibold transition-all ${
+                    language === 'en' 
+                      ? 'bg-orange-500 text-white shadow-md' 
+                      : 'text-gray-600 hover:text-orange-600'
+                  }`}
+                  title="English"
+                >
+                  EN
+                </button>
+                <button
+                  onClick={() => changeLanguage('te')}
+                  className={`px-3 py-1 rounded-full text-sm font-semibold transition-all ${
+                    language === 'te' 
+                      ? 'bg-orange-500 text-white shadow-md' 
+                      : 'text-gray-600 hover:text-orange-600'
+                  }`}
+                  title="Telugu"
+                >
+                  TE
+                </button>
+                <button
+                  onClick={() => changeLanguage('hi')}
+                  className={`px-3 py-1 rounded-full text-sm font-semibold transition-all ${
+                    language === 'hi' 
+                      ? 'bg-orange-500 text-white shadow-md' 
+                      : 'text-gray-600 hover:text-orange-600'
+                  }`}
+                  title="Hindi"
+                >
+                  HI
+                </button>
+              </div>
             </nav>
 
             {/* Action Buttons */}
