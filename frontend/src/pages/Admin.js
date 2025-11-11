@@ -223,6 +223,12 @@ const PendingCitiesSection = () => {
   const [pendingCities, setPendingCities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [approving, setApproving] = useState(null);
+  const [showApproveModal, setShowApproveModal] = useState(false);
+  const [selectedCity, setSelectedCity] = useState(null);
+  const [approvalForm, setApprovalForm] = useState({
+    deliveryCharge: '',
+    freeDeliveryThreshold: ''
+  });
 
   React.useEffect(() => {
     fetchPendingCities();
@@ -247,32 +253,48 @@ const PendingCitiesSection = () => {
     }
   };
 
-  const handleApproveCity = async (cityName, stateName, suggestedCharge) => {
-    setApproving(`${cityName}_${stateName}`);
+  const openApprovalModal = (city) => {
+    setSelectedCity(city);
+    setApprovalForm({
+      deliveryCharge: city.suggested_charge || '',
+      freeDeliveryThreshold: ''
+    });
+    setShowApproveModal(true);
+  };
+
+  const closeApprovalModal = () => {
+    setShowApproveModal(false);
+    setSelectedCity(null);
+    setApprovalForm({
+      deliveryCharge: '',
+      freeDeliveryThreshold: ''
+    });
+  };
+
+  const handleApproveCity = async () => {
+    if (!selectedCity) return;
+    
+    // Validation
+    if (!approvalForm.deliveryCharge || parseFloat(approvalForm.deliveryCharge) <= 0) {
+      toast({
+        title: "Invalid Input",
+        description: "Please enter a valid delivery charge",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setApproving(`${selectedCity.city_name}_${selectedCity.state_name}`);
     try {
       const token = localStorage.getItem('token');
-      const deliveryCharge = prompt(
-        `Set delivery charge for ${cityName}, ${stateName}\n\nSuggested charge based on distance: ₹${suggestedCharge}\n\nEnter delivery charge:`,
-        suggestedCharge
-      );
-
-      if (!deliveryCharge) {
-        setApproving(null);
-        return;
-      }
-
-      const freeDeliveryThreshold = prompt(
-        `Set free delivery threshold for ${cityName} (optional):\n\nLeave empty or enter amount (e.g., 1000):`,
-        ''
-      );
 
       await axios.post(
         `${BACKEND_URL}/api/admin/approve-city`,
         {
-          city_name: cityName,
-          state_name: stateName,
-          delivery_charge: parseFloat(deliveryCharge),
-          free_delivery_threshold: freeDeliveryThreshold ? parseFloat(freeDeliveryThreshold) : null
+          city_name: selectedCity.city_name,
+          state_name: selectedCity.state_name,
+          delivery_charge: parseFloat(approvalForm.deliveryCharge),
+          free_delivery_threshold: approvalForm.freeDeliveryThreshold ? parseFloat(approvalForm.freeDeliveryThreshold) : null
         },
         {
           headers: { Authorization: `Bearer ${token}` }
@@ -281,10 +303,11 @@ const PendingCitiesSection = () => {
 
       toast({
         title: "City Approved!",
-        description: `${cityName} has been added to delivery locations with ₹${deliveryCharge} charge`
+        description: `${selectedCity.city_name} has been added to delivery locations with ₹${approvalForm.deliveryCharge} charge`
       });
 
-      // Refresh the list
+      // Close modal and refresh
+      closeApprovalModal();
       fetchPendingCities();
     } catch (error) {
       console.error('Failed to approve city:', error);
