@@ -237,7 +237,7 @@ def main():
     
     success, minimal_response = test_api_endpoint_form_data(
         "POST",
-        "/reports",
+        "/report-issue",
         form_data=minimal_bug_report_data,
         description="Create bug report with minimal required fields only"
     )
