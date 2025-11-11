@@ -74,6 +74,9 @@ const Header = () => {
 
             {/* Action Buttons */}
             <div className="flex items-center space-x-2 md:space-x-4">
+              {/* Admin Notification Bell */}
+              <NotificationBell />
+              
               {/* Report Bug Button - Hidden on mobile, shown on desktop */}
               <button
                 onClick={() => setShowReportBugModal(true)}
