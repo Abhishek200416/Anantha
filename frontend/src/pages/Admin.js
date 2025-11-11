@@ -9,6 +9,214 @@ import axios from 'axios';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
 
+// City Suggestions Component (from homepage "Suggest a City" form)
+const CitySuggestionsSection = () => {
+  const [citySuggestions, setCitySuggestions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [processing, setProcessing] = useState(null);
+
+  React.useEffect(() => {
+    fetchCitySuggestions();
+  }, []);
+
+  const fetchCitySuggestions = async () => {
+    try {
+      const adminToken = localStorage.getItem('adminToken');
+      const response = await axios.get(`${BACKEND_URL}/api/admin/city-suggestions`, {
+        headers: { Authorization: `Bearer ${adminToken}` }
+      });
+      setCitySuggestions(response.data);
+    } catch (error) {
+      console.error('Failed to fetch city suggestions:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load city suggestions",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApproveSuggestion = async (suggestion) => {
+    setProcessing(suggestion.id);
+    try {
+      const adminToken = localStorage.getItem('adminToken');
+      
+      // Ask admin for delivery charge and threshold
+      const deliveryCharge = prompt(
+        `Set delivery charge for ${suggestion.city}, ${suggestion.state}\n\nEnter delivery charge (e.g., 99):`,
+        '99'
+      );
+
+      if (!deliveryCharge) {
+        setProcessing(null);
+        return;
+      }
+
+      const freeDeliveryThreshold = prompt(
+        `Set free delivery threshold for ${suggestion.city} (optional):\n\nLeave empty or enter amount (e.g., 1000):`,
+        ''
+      );
+
+      // Add city to locations
+      await axios.post(
+        `${BACKEND_URL}/api/admin/locations`,
+        {
+          name: suggestion.city,
+          state: suggestion.state,
+          charge: parseFloat(deliveryCharge),
+          free_delivery_threshold: freeDeliveryThreshold ? parseFloat(freeDeliveryThreshold) : null
+        },
+        {
+          headers: { Authorization: `Bearer ${adminToken}` }
+        }
+      );
+
+      // Update suggestion status to approved
+      await axios.put(
+        `${BACKEND_URL}/api/admin/city-suggestions/${suggestion.id}/status`,
+        { status: 'approved' },
+        {
+          headers: { Authorization: `Bearer ${adminToken}` }
+        }
+      );
+
+      toast({
+        title: "City Approved!",
+        description: `${suggestion.city} has been added to delivery locations with ₹${deliveryCharge} charge`
+      });
+
+      // Refresh the list
+      fetchCitySuggestions();
+    } catch (error) {
+      console.error('Failed to approve city suggestion:', error);
+      toast({
+        title: "Error",
+        description: error.response?.data?.detail || "Failed to approve city suggestion",
+        variant: "destructive"
+      });
+    } finally {
+      setProcessing(null);
+    }
+  };
+
+  const handleRejectSuggestion = async (suggestionId) => {
+    if (!window.confirm('Are you sure you want to reject this city suggestion?')) {
+      return;
+    }
+
+    setProcessing(suggestionId);
+    try {
+      const adminToken = localStorage.getItem('adminToken');
+      
+      await axios.put(
+        `${BACKEND_URL}/api/admin/city-suggestions/${suggestionId}/status`,
+        { status: 'rejected' },
+        {
+          headers: { Authorization: `Bearer ${adminToken}` }
+        }
+      );
+
+      toast({
+        title: "Success",
+        description: "City suggestion rejected"
+      });
+
+      fetchCitySuggestions();
+    } catch (error) {
+      console.error('Failed to reject city suggestion:', error);
+      toast({
+        title: "Error",
+        description: "Failed to reject city suggestion",
+        variant: "destructive"
+      });
+    } finally {
+      setProcessing(null);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="text-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto"></div>
+        <p className="text-gray-600 mt-2">Loading city suggestions...</p>
+      </div>
+    );
+  }
+
+  if (citySuggestions.length === 0) {
+    return (
+      <div className="text-center py-8 text-gray-500">
+        <MapPin className="h-12 w-12 mx-auto mb-3 opacity-50" />
+        <p className="font-semibold">No Pending City Suggestions</p>
+        <p className="text-sm mt-2">When customers suggest new cities, they'll appear here for review</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {citySuggestions.map((suggestion) => (
+        <div key={suggestion.id} className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg p-4">
+          <div className="flex items-start justify-between mb-3">
+            <div className="flex-1">
+              <div className="flex items-center space-x-2">
+                <MapPin className="h-5 w-5 text-blue-600" />
+                <span className="font-bold text-gray-800">{suggestion.city}</span>
+              </div>
+              <span className="text-sm text-gray-600 ml-7">{suggestion.state}</span>
+            </div>
+            <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-1 rounded">
+              NEW
+            </span>
+          </div>
+          
+          <div className="space-y-2 text-sm">
+            {suggestion.customer_name && (
+              <p className="text-gray-700">
+                👤 Customer: <span className="font-semibold">{suggestion.customer_name}</span>
+              </p>
+            )}
+            {suggestion.phone && (
+              <p className="text-gray-700">
+                📞 Phone: <span className="font-semibold">{suggestion.phone}</span>
+              </p>
+            )}
+            {suggestion.email && (
+              <p className="text-gray-700">
+                ✉️ Email: <span className="font-semibold text-xs">{suggestion.email}</span>
+              </p>
+            )}
+            {suggestion.created_at && (
+              <p className="text-xs text-gray-500">
+                Suggested: {new Date(suggestion.created_at).toLocaleDateString()} at {new Date(suggestion.created_at).toLocaleTimeString()}
+              </p>
+            )}
+          </div>
+
+          <div className="flex space-x-2 mt-4">
+            <button
+              onClick={() => handleApproveSuggestion(suggestion)}
+              disabled={processing === suggestion.id}
+              className="flex-1 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold text-sm"
+            >
+              {processing === suggestion.id ? 'Processing...' : 'Approve'}
+            </button>
+            <button
+              onClick={() => handleRejectSuggestion(suggestion.id)}
+              disabled={processing === suggestion.id}
+              className="flex-1 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold text-sm"
+            >
+              Reject
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 // Pending Cities Component
 const PendingCitiesSection = () => {
   const [pendingCities, setPendingCities] = useState([]);
