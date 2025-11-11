@@ -285,6 +285,16 @@ const Home = () => {
               <span>{detectingLocation ? 'Detecting...' : 'Detect My Location'}</span>
             </button>
 
+            {/* Add My City Button */}
+            <button
+              onClick={() => setShowAddCityModal(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all font-medium shadow-md"
+            >
+              <Plus className="h-4 w-4" />
+              <span className="hidden sm:inline">City Not Found? Add Here</span>
+              <span className="sm:hidden">Add City</span>
+            </button>
+
             {/* Status - Inline */}
             {selectedCity && (
               <span className="text-sm text-orange-700 bg-white px-3 py-2 rounded-lg border border-orange-300 font-medium shadow-sm">
@@ -293,6 +303,13 @@ const Home = () => {
             )}
           </div>
         </div>
+
+        {/* Add City Modal */}
+        <AddCityModal 
+          isOpen={showAddCityModal}
+          onClose={() => setShowAddCityModal(false)}
+          preSelectedState={selectedState !== 'all' ? selectedState : ''}
+        />
         
         <CategoryFilter selectedCategory={selectedCategory} onSelectCategory={setSelectedCategory} />
         
