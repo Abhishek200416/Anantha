@@ -13,7 +13,7 @@ import time
 import random
 
 # Backend URL from environment
-BACKEND_URL = "https://ap-city-explorer.preview.emergentagent.com/api"
+BACKEND_URL = "https://state-management-1.preview.emergentagent.com/api"
 
 def test_api_endpoint(method, endpoint, headers=None, data=None, description="", expected_status=None):
     """Test a single API endpoint"""
