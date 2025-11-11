@@ -358,7 +358,7 @@ def main():
     
     # Group results by category
     categories = {
-        "Bug Report Endpoint (POST /api/reports)": [
+        "Bug Report Endpoint (POST /api/report-issue)": [
             'create_bug_report_form_data', 'verify_bug_report_creation',
             'create_bug_report_minimal'
         ],
