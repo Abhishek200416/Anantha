@@ -920,6 +920,19 @@ const Admin = () => {
     }
   };
 
+  // Read tab from URL query parameter on mount and when location changes
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const tabParam = searchParams.get('tab');
+    if (tabParam) {
+      // Validate tab parameter against allowed tabs
+      const allowedTabs = ['products', 'orders', 'analytics', 'bestsellers', 'festival', 'discounts', 'settings', 'reports', 'profile'];
+      if (allowedTabs.includes(tabParam)) {
+        setActiveTab(tabParam);
+      }
+    }
+  }, [location.search]);
+
   // Load selected best sellers on mount
   React.useEffect(() => {
     const bestSellerIds = products.filter(p => p.isBestSeller).map(p => p.id);
