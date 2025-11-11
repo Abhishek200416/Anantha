@@ -1965,6 +1965,73 @@ async def get_notification_count(current_user: dict = Depends(get_current_user))
         logger.error(f"Error fetching notification count: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to fetch notification count: {str(e)}")
 
+
+@api_router.post("/admin/notifications/mark-read")
+async def mark_notification_read(data: dict, current_user: dict = Depends(get_current_user)):
+    """Mark a notification as read"""
+    try:
+        if not current_user.get("is_admin"):
+            raise HTTPException(status_code=403, detail="Admin access required")
+        
+        notification_type = data.get("type")
+        notification_id = data.get("id")
+        
+        if not notification_type:
+            raise HTTPException(status_code=400, detail="Notification type is required")
+        
+        # Create or update notification read record
+        read_record = {
+            "admin_id": current_user.get("id"),
+            "type": notification_type,
+            "read_at": datetime.now(timezone.utc)
+        }
+        
+        if notification_id:
+            read_record["item_id"] = notification_id
+        
+        # Store in read notifications collection
+        await db.read_notifications.insert_one(read_record)
+        
+        logger.info(f"Notification marked as read: {notification_type} by {current_user.get('id')}")
+        
+        return {"message": "Notification marked as read"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error marking notification as read: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to mark as read: {str(e)}")
+
+@api_router.post("/admin/notifications/dismiss-all")
+async def dismiss_all_notifications(data: dict, current_user: dict = Depends(get_current_user)):
+    """Dismiss all notifications of a specific type"""
+    try:
+        if not current_user.get("is_admin"):
+            raise HTTPException(status_code=403, detail="Admin access required")
+        
+        notification_type = data.get("type")
+        
+        if not notification_type:
+            raise HTTPException(status_code=400, detail="Notification type is required")
+        
+        # Record dismissal
+        dismiss_record = {
+            "admin_id": current_user.get("id"),
+            "type": notification_type,
+            "dismissed_at": datetime.now(timezone.utc)
+        }
+        
+        await db.dismissed_notifications.insert_one(dismiss_record)
+        
+        logger.info(f"All {notification_type} notifications dismissed by {current_user.get('id')}")
+        
+        return {"message": f"All {notification_type} notifications dismissed"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error dismissing notifications: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to dismiss: {str(e)}")
+
+
 # ============= ADMIN PROFILE ENDPOINTS =============
 
 @api_router.get("/admin/profile")
