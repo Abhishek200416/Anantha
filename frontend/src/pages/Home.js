@@ -323,7 +323,7 @@ const Home = () => {
               className="px-5 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:from-orange-600 hover:to-red-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-semibold shadow-md flex items-center gap-2 whitespace-nowrap"
             >
               <MapPin className="h-4 w-4" />
-              <span>{detectingLocation ? 'Detecting...' : 'Detect My Location'}</span>
+              <span>{detectingLocation ? t('detecting') : t('detectMyLocation')}</span>
             </button>
 
             {/* Add My City Button */}
@@ -332,8 +332,8 @@ const Home = () => {
               className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all font-medium shadow-md"
             >
               <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline">City Not Found? Add Here</span>
-              <span className="sm:hidden">Add City</span>
+              <span className="hidden sm:inline">{t('cityNotFound')}</span>
+              <span className="sm:hidden">{t('addCity')}</span>
             </button>
 
             {/* Status - Inline */}
