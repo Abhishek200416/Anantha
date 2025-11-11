@@ -1608,7 +1608,7 @@ const Admin = () => {
                 </div>
               </div>
 
-              <div className="grid gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {realProducts
                   .filter(product => {
                     // Category filter
@@ -1643,138 +1643,126 @@ const Admin = () => {
                     return true;
                   })
                   .map(product => (
-                  <div key={product.id} className="bg-gray-50 rounded-lg p-4">
-                    {/* Mobile and Desktop Layout */}
-                    <div className="flex flex-col md:flex-row md:items-center md:space-x-4">
-                      {/* Product Image */}
-                      <img src={product.image} alt={product.name} className="w-full md:w-20 h-48 md:h-20 object-cover rounded-lg mb-3 md:mb-0" />
-                      
-                      {/* Product Details */}
-                      <div className="flex-1">
-                        <h3 className="font-bold text-gray-800 text-lg">{product.name}</h3>
-                        <p className="text-sm text-gray-600 mb-2">{product.category}</p>
-                        
-                        {/* Price and Weight - Stack on Mobile */}
-                        <div className="flex flex-col space-y-1 mb-2">
-                          {product.prices && product.prices.length > 0 && (
-                            <>
-                              <div className="text-sm">
-                                <span className="font-semibold text-gray-700">Weights: </span>
-                                <span className="text-gray-600">{product.prices.map(p => p.weight).join(', ')}</span>
-                              </div>
-                              <div className="text-sm">
-                                <span className="font-semibold text-gray-700">Prices: </span>
-                                <span className="text-gray-600">₹{product.prices.map(p => p.price).join(', ₹')}</span>
-                              </div>
-                            </>
-                          )}
+                  <div key={product.id} className="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow p-4 flex flex-col">
+                    {/* Product Image */}
+                    <div className="relative mb-3">
+                      <img src={product.image} alt={product.name} className="w-full h-48 object-cover rounded-lg" />
+                      {/* Discount Badge Overlay */}
+                      {product.discount_active && product.discount_percentage > 0 && (
+                        <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-lg text-xs font-bold">
+                          {product.discount_percentage}% OFF
                         </div>
-                        
-                        {/* Badges Row */}
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          {/* Discount Badge */}
-                          {product.discount_active && product.discount_percentage > 0 && (
-                            <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded font-semibold">
-                              {product.discount_percentage}% OFF
-                            </span>
-                          )}
-                          
-                          {/* Inventory Badge */}
-                          {product.inventory_count !== null && product.inventory_count !== undefined && (
-                            <span className={`text-xs px-2 py-1 rounded font-semibold ${
-                              product.inventory_count < 10 
-                                ? 'bg-orange-100 text-orange-700' 
-                                : 'bg-green-100 text-green-700'
-                            }`}>
-                              Stock: {product.inventory_count}
-                            </span>
-                          )}
-                          
-                          {/* Out of Stock Badge */}
-                          {product.out_of_stock && (
-                            <span className="text-xs bg-gray-700 text-white px-2 py-1 rounded font-semibold">
-                              OUT OF STOCK
-                            </span>
-                          )}
-                          
-                          {/* Best Seller Badge */}
-                          {product.isBestSeller && (
-                            <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded">Best Seller</span>
-                          )}
-                          
-                          {/* New Badge */}
-                          {product.isNew && (
-                            <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">New</span>
-                          )}
+                      )}
+                      {/* Out of Stock Overlay */}
+                      {product.out_of_stock && (
+                        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg">
+                          <span className="bg-gray-800 text-white px-3 py-1 rounded-lg text-sm font-bold">
+                            OUT OF STOCK
+                          </span>
                         </div>
-                        
-                        {/* Inventory Quick Settings */}
-                        <div className="mt-3 flex items-center space-x-3">
-                          <div className="flex items-center space-x-2">
-                            <label className="text-xs text-gray-600">Inventory:</label>
-                            <input
-                              type="number"
-                              min="0"
-                              value={product.inventory_count ?? ''}
-                              onChange={async (e) => {
-                                const newCount = e.target.value === '' ? 0 : parseInt(e.target.value);
-                                try {
-                                  const token = localStorage.getItem('token');
-                                  await axios.put(
-                                    `${BACKEND_URL}/api/admin/products/${product.id}/inventory`,
-                                    { inventory_count: newCount },
-                                    { headers: { Authorization: `Bearer ${token}` } }
-                                  );
-                                  toast({
-                                    title: "Success",
-                                    description: "Inventory updated"
-                                  });
-                                  window.location.reload();
-                                } catch (error) {
-                                  toast({
-                                    title: "Error",
-                                    description: "Failed to update inventory",
-                                    variant: "destructive"
-                                  });
-                                }
-                              }}
-                              placeholder="Stock"
-                              className="w-20 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-orange-500"
-                            />
+                      )}
+                    </div>
+                    
+                    {/* Product Name */}
+                    <h3 className="font-bold text-gray-800 text-base mb-1 line-clamp-2">{product.name}</h3>
+                    
+                    {/* Category */}
+                    <p className="text-xs text-gray-500 mb-2 capitalize">{product.category.replace('-', ' ')}</p>
+                    
+                    {/* Prices */}
+                    {product.prices && product.prices.length > 0 && (
+                      <div className="text-xs text-gray-600 mb-3 space-y-1">
+                        {product.prices.map((p, idx) => (
+                          <div key={idx} className="flex justify-between">
+                            <span>{p.weight}</span>
+                            <span className="font-semibold text-orange-600">₹{p.price}</span>
                           </div>
-                        </div>
+                        ))}
                       </div>
-                      
-                      {/* Action Buttons - Stack on Mobile, Horizontal on Desktop */}
-                      <div className="flex md:flex-row flex-col md:space-x-2 space-y-2 md:space-y-0 mt-3 md:mt-0">
-                        <button
-                          type="button"
-                          onClick={() => setAsFestivalProduct(product)}
-                          className="p-2 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors flex items-center justify-center md:justify-start space-x-2"
-                          title="Set as festival product"
-                        >
-                          <Star className="h-5 w-5" />
-                          <span className="md:hidden text-sm">Festival</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setEditingProduct({...product})}
-                          className="p-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors flex items-center justify-center md:justify-start space-x-2"
-                          title="Edit product"
-                        >
-                          <Edit className="h-5 w-5" />
-                          <span className="md:hidden text-sm">Edit</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteProduct(product.id, product.name)}
-                          className="p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors flex items-center justify-center md:justify-start space-x-2"
-                          title="Delete product"
-                        >
-                          <Trash2 className="h-5 w-5" />
-                          <span className="md:hidden text-sm">Delete</span>
-                        </button>
-                      </div>
+                    )}
+                    
+                    {/* Badges */}
+                    <div className="flex flex-wrap gap-1 mb-3">
+                      {product.isBestSeller && (
+                        <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded">Best Seller</span>
+                      )}
+                      {product.isNew && (
+                        <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">New</span>
+                      )}
+                      {product.inventory_count !== null && product.inventory_count !== undefined && (
+                        <span className={`text-xs px-2 py-0.5 rounded font-semibold ${
+                          product.inventory_count < 10 
+                            ? 'bg-orange-100 text-orange-700' 
+                            : 'bg-green-100 text-green-700'
+                        }`}>
+                          Stock: {product.inventory_count}
+                        </span>
+                      )}
+                    </div>
+                    
+                    {/* Inventory Input */}
+                    <div className="mb-3">
+                      <label className="text-xs text-gray-600 block mb-1">Inventory</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={product.inventory_count ?? ''}
+                        onChange={async (e) => {
+                          const newCount = e.target.value === '' ? 0 : parseInt(e.target.value);
+                          try {
+                            const token = localStorage.getItem('token');
+                            await axios.put(
+                              `${BACKEND_URL}/api/admin/products/${product.id}/inventory`,
+                              { inventory_count: newCount },
+                              { headers: { Authorization: `Bearer ${token}` } }
+                            );
+                            toast({
+                              title: "Success",
+                              description: "Inventory updated"
+                            });
+                            window.location.reload();
+                          } catch (error) {
+                            toast({
+                              title: "Error",
+                              description: "Failed to update inventory",
+                              variant: "destructive"
+                            });
+                          }
+                        }}
+                        placeholder="Stock"
+                        className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      />
+                    </div>
+                    
+                    {/* Action Buttons - Below Product */}
+                    <div className="grid grid-cols-3 gap-2 mt-auto">
+                      <button
+                        type="button"
+                        onClick={() => setAsFestivalProduct(product)}
+                        className="flex flex-col items-center justify-center p-2 bg-yellow-50 text-yellow-700 rounded-lg hover:bg-yellow-100 transition-colors border border-yellow-200"
+                        title="Set as festival product"
+                      >
+                        <Star className="h-4 w-4 mb-1" />
+                        <span className="text-xs">Festival</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditingProduct({...product})}
+                        className="flex flex-col items-center justify-center p-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors border border-blue-200"
+                        title="Edit product"
+                      >
+                        <Edit className="h-4 w-4 mb-1" />
+                        <span className="text-xs">Edit</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteProduct(product.id, product.name)}
+                        className="flex flex-col items-center justify-center p-2 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors border border-red-200"
+                        title="Delete product"
+                      >
+                        <Trash2 className="h-4 w-4 mb-1" />
+                        <span className="text-xs">Delete</span>
+                      </button>
                     </div>
                   </div>
                 ))}
