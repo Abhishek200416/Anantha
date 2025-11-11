@@ -226,16 +226,15 @@ const NotificationBell = () => {
       const backendUrl = process.env.REACT_APP_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL;
       const token = localStorage.getItem('token');
       
-      // Mark notification as read/dismissed based on type
-      if (notification.type === 'city_suggestions') {
-        // We'll mark the most recent city suggestion as reviewed
-        // This is a simplified approach - in production you'd want specific IDs
-        console.log('Dismissing city suggestion notification');
-      } else if (notification.type === 'bug_reports') {
-        console.log('Dismissing bug report notification');
-      } else if (notification.type === 'new_orders') {
-        console.log('Dismissing order notification');
-      }
+      // Dismiss notification via API
+      await fetch(`${backendUrl}/api/admin/notifications/dismiss-all`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ type: notification.type })
+      });
       
       // Remove from local state immediately for better UX
       setRecentNotifications(prev => 
