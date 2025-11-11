@@ -9,6 +9,151 @@ import axios from 'axios';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
 
+// Pending Cities Component
+const PendingCitiesSection = () => {
+  const [pendingCities, setPendingCities] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [approving, setApproving] = useState(null);
+
+  React.useEffect(() => {
+    fetchPendingCities();
+  }, []);
+
+  const fetchPendingCities = async () => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      const response = await axios.get(`${BACKEND_URL}/api/admin/pending-cities`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setPendingCities(response.data);
+    } catch (error) {
+      console.error('Failed to fetch pending cities:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load pending cities",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApproveCity = async (cityName, stateName, suggestedCharge) => {
+    setApproving(`${cityName}_${stateName}`);
+    try {
+      const token = localStorage.getItem('adminToken');
+      const deliveryCharge = prompt(
+        `Set delivery charge for ${cityName}, ${stateName}\n\nSuggested charge based on distance: ₹${suggestedCharge}\n\nEnter delivery charge:`,
+        suggestedCharge
+      );
+
+      if (!deliveryCharge) {
+        setApproving(null);
+        return;
+      }
+
+      const freeDeliveryThreshold = prompt(
+        `Set free delivery threshold for ${cityName} (optional):\n\nLeave empty or enter amount (e.g., 1000):`,
+        ''
+      );
+
+      await axios.post(
+        `${BACKEND_URL}/api/admin/approve-city`,
+        {
+          city_name: cityName,
+          state_name: stateName,
+          delivery_charge: parseFloat(deliveryCharge),
+          free_delivery_threshold: freeDeliveryThreshold ? parseFloat(freeDeliveryThreshold) : null
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      toast({
+        title: "City Approved!",
+        description: `${cityName} has been added to delivery locations with ₹${deliveryCharge} charge`
+      });
+
+      // Refresh the list
+      fetchPendingCities();
+    } catch (error) {
+      console.error('Failed to approve city:', error);
+      toast({
+        title: "Error",
+        description: error.response?.data?.detail || "Failed to approve city",
+        variant: "destructive"
+      });
+    } finally {
+      setApproving(null);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="text-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto"></div>
+        <p className="text-gray-600 mt-2">Loading pending cities...</p>
+      </div>
+    );
+  }
+
+  if (pendingCities.length === 0) {
+    return (
+      <div className="text-center py-8 text-gray-500">
+        <MapPin className="h-12 w-12 mx-auto mb-3 opacity-50" />
+        <p className="font-semibold">No Pending Cities</p>
+        <p className="text-sm mt-2">When customers enter custom cities, they'll appear here for approval</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {pendingCities.map((city, index) => (
+        <div key={index} className="bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-orange-200 rounded-lg p-4">
+          <div className="flex items-start justify-between mb-3">
+            <div className="flex-1">
+              <div className="flex items-center space-x-2">
+                <MapPin className="h-5 w-5 text-orange-600" />
+                <span className="font-bold text-gray-800">{city.city_name}</span>
+              </div>
+              <span className="text-sm text-gray-600 ml-7">{city.state_name}</span>
+            </div>
+          </div>
+          
+          <div className="space-y-2 text-sm">
+            {city.distance_km && (
+              <p className="text-gray-700">
+                📍 Distance: <span className="font-semibold">{city.distance_km} km from Guntur</span>
+              </p>
+            )}
+            <p className="text-gray-700">
+              💰 Suggested Charge: <span className="font-semibold text-orange-600">₹{city.suggested_charge}</span>
+            </p>
+            <p className="text-gray-700">
+              📦 Orders: <span className="font-semibold">{city.order_count}</span>
+            </p>
+            {city.first_order_date && (
+              <p className="text-xs text-gray-500">
+                First order: {new Date(city.first_order_date).toLocaleDateString()}
+              </p>
+            )}
+          </div>
+
+          <button
+            onClick={() => handleApproveCity(city.city_name, city.state_name, city.suggested_charge)}
+            disabled={approving === `${city.city_name}_${city.state_name}`}
+            className="w-full mt-4 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold"
+          >
+            {approving === `${city.city_name}_${city.state_name}` ? 'Approving...' : 'Approve & Add to Cities'}
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 const Admin = () => {
   const {
     isAuthenticated,
