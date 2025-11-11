@@ -104,7 +104,8 @@ const CitySuggestionsSection = () => {
       
       // Add city to locations using PUT endpoint with query parameters
       const params = new URLSearchParams({
-        charge: approvalData.deliveryCharge
+        charge: approvalData.deliveryCharge,
+        state: selectedSuggestion.state
       });
       
       if (approvalData.freeDeliveryThreshold && approvalData.freeDeliveryThreshold.trim() !== '') {
