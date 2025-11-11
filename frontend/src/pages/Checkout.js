@@ -819,23 +819,17 @@ const Checkout = () => {
     }
   };
 
-  const handleCustomCitySubmit = () => {
-    if (!customCity.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter your city name",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    // Just set the location - no need to calculate delivery charge
-    // Admin will approve and set delivery charge later
-    setFormData(prev => ({ ...prev, location: customCity }));
+  const handleCustomCityModalSubmit = async (cityName) => {
+    // Set custom city and enable custom city mode
+    setCustomCity(cityName);
+    setCustomCityState(formData.state);
+    setShowCustomCityInput(true);
+    setFormData(prev => ({ ...prev, city: '', location: '' }));
+    setDeliveryCharge(0);
     
     toast({
-      title: "City Added",
-      description: `${customCity} has been added. Delivery charges will be updated within 5-10 minutes.`,
+      title: "Custom City Added",
+      description: `${cityName} has been added. Delivery charges will be calculated and updated within 5-10 minutes.`,
     });
   };
 
