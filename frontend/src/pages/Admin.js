@@ -10,11 +10,48 @@ import axios from 'axios';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
 
+// Helper function to format error messages properly
+const formatErrorMessage = (error) => {
+  if (!error.response?.data?.detail) {
+    return "An error occurred";
+  }
+  
+  const detail = error.response.data.detail;
+  
+  // If detail is an array of validation errors
+  if (Array.isArray(detail)) {
+    return detail.map(err => {
+      if (typeof err === 'object' && err.msg) {
+        return err.msg;
+      }
+      return String(err);
+    }).join(', ');
+  }
+  
+  // If detail is a string
+  if (typeof detail === 'string') {
+    return detail;
+  }
+  
+  // If detail is an object
+  if (typeof detail === 'object') {
+    return JSON.stringify(detail);
+  }
+  
+  return "An error occurred";
+};
+
 // City Suggestions Component (from homepage "Suggest a City" form)
 const CitySuggestionsSection = () => {
   const [citySuggestions, setCitySuggestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(null);
+  const [showApprovalModal, setShowApprovalModal] = useState(false);
+  const [selectedSuggestion, setSelectedSuggestion] = useState(null);
+  const [approvalData, setApprovalData] = useState({
+    deliveryCharge: '',
+    freeDeliveryThreshold: ''
+  });
 
   React.useEffect(() => {
     fetchCitySuggestions();
@@ -31,7 +68,7 @@ const CitySuggestionsSection = () => {
       console.error('Failed to fetch city suggestions:', error);
       toast({
         title: "Error",
-        description: "Failed to load city suggestions",
+        description: formatErrorMessage(error) || "Failed to load city suggestions",
         variant: "destructive"
       });
     } finally {
@@ -39,35 +76,40 @@ const CitySuggestionsSection = () => {
     }
   };
 
-  const handleApproveSuggestion = async (suggestion) => {
-    setProcessing(suggestion.id);
+  const handleOpenApprovalModal = (suggestion) => {
+    setSelectedSuggestion(suggestion);
+    setApprovalData({
+      deliveryCharge: '99',
+      freeDeliveryThreshold: '1000'
+    });
+    setShowApprovalModal(true);
+  };
+
+  const handleApproveSuggestion = async () => {
+    if (!selectedSuggestion) return;
+    
+    // Validation
+    if (!approvalData.deliveryCharge || isNaN(parseFloat(approvalData.deliveryCharge))) {
+      toast({
+        title: "Validation Error",
+        description: "Please enter a valid delivery charge",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setProcessing(selectedSuggestion.id);
     try {
       const adminToken = localStorage.getItem('token');
       
-      // Ask admin for delivery charge and threshold
-      const deliveryCharge = prompt(
-        `Set delivery charge for ${suggestion.city}, ${suggestion.state}\n\nEnter delivery charge (e.g., 99):`,
-        '99'
-      );
-
-      if (!deliveryCharge) {
-        setProcessing(null);
-        return;
-      }
-
-      const freeDeliveryThreshold = prompt(
-        `Set free delivery threshold for ${suggestion.city} (optional):\n\nLeave empty or enter amount (e.g., 1000):`,
-        ''
-      );
-
       // Add city to locations
       await axios.post(
         `${BACKEND_URL}/api/admin/locations`,
         {
-          name: suggestion.city,
-          state: suggestion.state,
-          charge: parseFloat(deliveryCharge),
-          free_delivery_threshold: freeDeliveryThreshold ? parseFloat(freeDeliveryThreshold) : null
+          name: selectedSuggestion.city,
+          state: selectedSuggestion.state,
+          charge: parseFloat(approvalData.deliveryCharge),
+          free_delivery_threshold: approvalData.freeDeliveryThreshold ? parseFloat(approvalData.freeDeliveryThreshold) : null
         },
         {
           headers: { Authorization: `Bearer ${adminToken}` }
@@ -76,7 +118,7 @@ const CitySuggestionsSection = () => {
 
       // Update suggestion status to approved
       await axios.put(
-        `${BACKEND_URL}/api/admin/city-suggestions/${suggestion.id}/status`,
+        `${BACKEND_URL}/api/admin/city-suggestions/${selectedSuggestion.id}/status`,
         { status: 'approved' },
         {
           headers: { Authorization: `Bearer ${adminToken}` }
@@ -85,16 +127,20 @@ const CitySuggestionsSection = () => {
 
       toast({
         title: "City Approved!",
-        description: `${suggestion.city} has been added to delivery locations with ₹${deliveryCharge} charge`
+        description: `${selectedSuggestion.city} has been added to delivery locations with ₹${approvalData.deliveryCharge} charge`
       });
 
+      setShowApprovalModal(false);
+      setSelectedSuggestion(null);
+      setApprovalData({ deliveryCharge: '', freeDeliveryThreshold: '' });
+      
       // Refresh the list
       fetchCitySuggestions();
     } catch (error) {
       console.error('Failed to approve city suggestion:', error);
       toast({
         title: "Error",
-        description: error.response?.data?.detail || "Failed to approve city suggestion",
+        description: formatErrorMessage(error) || "Failed to approve city suggestion",
         variant: "destructive"
       });
     } finally {
@@ -129,7 +175,7 @@ const CitySuggestionsSection = () => {
       console.error('Failed to reject city suggestion:', error);
       toast({
         title: "Error",
-        description: "Failed to reject city suggestion",
+        description: formatErrorMessage(error) || "Failed to reject city suggestion",
         variant: "destructive"
       });
     } finally {
@@ -157,64 +203,198 @@ const CitySuggestionsSection = () => {
   }
 
   return (
-    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {citySuggestions.map((suggestion) => (
-        <div key={suggestion.id} className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg p-4">
-          <div className="flex items-start justify-between mb-3">
-            <div className="flex-1">
-              <div className="flex items-center space-x-2">
-                <MapPin className="h-5 w-5 text-blue-600" />
-                <span className="font-bold text-gray-800">{suggestion.city}</span>
+    <>
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {citySuggestions.map((suggestion) => (
+          <div key={suggestion.id} className="bg-white border-2 border-orange-200 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
+            {/* Header with gradient */}
+            <div className="bg-gradient-to-r from-orange-500 to-red-500 p-4 text-white">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <MapPin className="h-6 w-6" />
+                  <div>
+                    <h3 className="font-bold text-lg">{suggestion.city}</h3>
+                    <p className="text-xs text-orange-100">{suggestion.state}</p>
+                  </div>
+                </div>
+                <span className="bg-white text-orange-600 text-xs font-bold px-3 py-1 rounded-full">
+                  NEW
+                </span>
               </div>
-              <span className="text-sm text-gray-600 ml-7">{suggestion.state}</span>
             </div>
-            <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-1 rounded">
-              NEW
-            </span>
-          </div>
-          
-          <div className="space-y-2 text-sm">
-            {suggestion.customer_name && (
-              <p className="text-gray-700">
-                👤 Customer: <span className="font-semibold">{suggestion.customer_name}</span>
-              </p>
-            )}
-            {suggestion.phone && (
-              <p className="text-gray-700">
-                📞 Phone: <span className="font-semibold">{suggestion.phone}</span>
-              </p>
-            )}
-            {suggestion.email && (
-              <p className="text-gray-700">
-                ✉️ Email: <span className="font-semibold text-xs">{suggestion.email}</span>
-              </p>
-            )}
-            {suggestion.created_at && (
-              <p className="text-xs text-gray-500">
-                Suggested: {new Date(suggestion.created_at).toLocaleDateString()} at {new Date(suggestion.created_at).toLocaleTimeString()}
-              </p>
-            )}
-          </div>
 
-          <div className="flex space-x-2 mt-4">
-            <button
-              onClick={() => handleApproveSuggestion(suggestion)}
-              disabled={processing === suggestion.id}
-              className="flex-1 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold text-sm"
-            >
-              {processing === suggestion.id ? 'Processing...' : 'Approve'}
-            </button>
-            <button
-              onClick={() => handleRejectSuggestion(suggestion.id)}
-              disabled={processing === suggestion.id}
-              className="flex-1 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold text-sm"
-            >
-              Reject
-            </button>
+            {/* Customer Details */}
+            <div className="p-4 space-y-3">
+              {suggestion.customer_name && (
+                <div className="flex items-center space-x-2 text-sm">
+                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <span className="text-blue-600 font-bold">👤</span>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">Customer</p>
+                    <p className="font-semibold text-gray-800">{suggestion.customer_name}</p>
+                  </div>
+                </div>
+              )}
+              
+              {suggestion.phone && (
+                <div className="flex items-center space-x-2 text-sm">
+                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                    <span className="text-green-600 font-bold">📞</span>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">Phone</p>
+                    <p className="font-semibold text-gray-800">{suggestion.phone}</p>
+                  </div>
+                </div>
+              )}
+              
+              {suggestion.email && (
+                <div className="flex items-center space-x-2 text-sm">
+                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                    <span className="text-purple-600 font-bold">✉️</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-gray-500">Email</p>
+                    <p className="font-semibold text-gray-800 text-xs truncate">{suggestion.email}</p>
+                  </div>
+                </div>
+              )}
+              
+              {suggestion.created_at && (
+                <div className="pt-2 border-t border-gray-200">
+                  <p className="text-xs text-gray-500">
+                    📅 Suggested on {new Date(suggestion.created_at).toLocaleDateString()} at {new Date(suggestion.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="p-4 pt-0 flex space-x-2">
+              <button
+                onClick={() => handleOpenApprovalModal(suggestion)}
+                disabled={processing === suggestion.id}
+                className="flex-1 px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed font-bold text-sm shadow-md hover:shadow-lg transform hover:scale-105"
+              >
+                {processing === suggestion.id ? (
+                  <span className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Processing...
+                  </span>
+                ) : (
+                  '✓ Approve'
+                )}
+              </button>
+              <button
+                onClick={() => handleRejectSuggestion(suggestion.id)}
+                disabled={processing === suggestion.id}
+                className="flex-1 px-4 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 transition-all duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed font-bold text-sm shadow-md hover:shadow-lg transform hover:scale-105"
+              >
+                ✗ Reject
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Approval Modal */}
+      {showApprovalModal && selectedSuggestion && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-orange-500 to-red-500 p-6 text-white">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <MapPin className="h-8 w-8" />
+                  <div>
+                    <h2 className="text-xl font-bold">Approve City</h2>
+                    <p className="text-sm text-orange-100">{selectedSuggestion.city}, {selectedSuggestion.state}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowApprovalModal(false);
+                    setSelectedSuggestion(null);
+                  }}
+                  className="text-white hover:text-gray-200 transition-colors"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Delivery Charge (₹) *
+                </label>
+                <input
+                  type="number"
+                  value={approvalData.deliveryCharge}
+                  onChange={(e) => setApprovalData({ ...approvalData, deliveryCharge: e.target.value })}
+                  placeholder="e.g., 99"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-gray-800 font-semibold"
+                />
+                <p className="text-xs text-gray-500 mt-1">Enter the delivery charge for this city</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Free Delivery Threshold (₹)
+                </label>
+                <input
+                  type="number"
+                  value={approvalData.freeDeliveryThreshold}
+                  onChange={(e) => setApprovalData({ ...approvalData, freeDeliveryThreshold: e.target.value })}
+                  placeholder="e.g., 1000 (optional)"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none text-gray-800 font-semibold"
+                />
+                <p className="text-xs text-gray-500 mt-1">Orders above this amount get free delivery (optional)</p>
+              </div>
+
+              {/* Customer Info Preview */}
+              {selectedSuggestion.customer_name && (
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <p className="text-xs text-blue-600 font-semibold mb-2">Suggested by:</p>
+                  <p className="text-sm text-gray-800"><strong>{selectedSuggestion.customer_name}</strong></p>
+                  {selectedSuggestion.phone && <p className="text-sm text-gray-600">{selectedSuggestion.phone}</p>}
+                  {selectedSuggestion.email && <p className="text-xs text-gray-600">{selectedSuggestion.email}</p>}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-6 pt-0 flex space-x-3">
+              <button
+                onClick={() => {
+                  setShowApprovalModal(false);
+                  setSelectedSuggestion(null);
+                }}
+                className="flex-1 px-4 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-semibold"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleApproveSuggestion}
+                disabled={processing}
+                className="flex-1 px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all disabled:bg-gray-400 disabled:cursor-not-allowed font-bold shadow-md"
+              >
+                {processing ? (
+                  <span className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Approving...
+                  </span>
+                ) : (
+                  '✓ Approve & Add City'
+                )}
+              </button>
+            </div>
           </div>
         </div>
-      ))}
-    </div>
+      )}
+    </>
   );
 };
 
