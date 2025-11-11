@@ -10,10 +10,22 @@ const NotificationBell = () => {
   useEffect(() => {
     // Check if user is admin - check both on mount and periodically
     const checkAdminStatus = () => {
-      const adminToken = localStorage.getItem('adminToken');
-      setIsAdmin(!!adminToken);
+      const token = localStorage.getItem('token');
+      const user = localStorage.getItem('user');
+      let isAdminUser = false;
       
-      if (adminToken) {
+      if (user) {
+        try {
+          const userData = JSON.parse(user);
+          isAdminUser = userData.is_admin === true;
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
+      }
+      
+      setIsAdmin(isAdminUser && !!token);
+      
+      if (isAdminUser && token) {
         fetchNotificationCount();
       }
     };
