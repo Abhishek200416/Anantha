@@ -8,6 +8,9 @@ const NotificationBell = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [recentNotifications, setRecentNotifications] = useState([]);
+  const [swipedNotification, setSwipedNotification] = useState(null);
+  const [swipeOffset, setSwipeOffset] = useState({});
+  const [touchStart, setTouchStart] = useState(null);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
