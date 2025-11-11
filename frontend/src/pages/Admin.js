@@ -1441,7 +1441,12 @@ const Admin = () => {
               {/* States Section */}
               <div className="border-t pt-8">
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold text-gray-800">Available States</h2>
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-800">Available States</h2>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Total States: <span className="font-bold text-blue-600">{states && states.length > 0 ? states.length : 0}</span>
+                    </p>
+                  </div>
                   <button
                     onClick={() => setShowAddState(true)}
                     className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all"
