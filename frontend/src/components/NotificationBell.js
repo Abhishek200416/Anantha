@@ -8,18 +8,23 @@ const NotificationBell = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if user is admin
-    const adminToken = localStorage.getItem('adminToken');
-    setIsAdmin(!!adminToken);
-
-    if (adminToken) {
-      fetchNotificationCount();
+    // Check if user is admin - check both on mount and periodically
+    const checkAdminStatus = () => {
+      const adminToken = localStorage.getItem('adminToken');
+      setIsAdmin(!!adminToken);
       
-      // Poll for new notifications every 30 seconds
-      const interval = setInterval(fetchNotificationCount, 30000);
-      
-      return () => clearInterval(interval);
-    }
+      if (adminToken) {
+        fetchNotificationCount();
+      }
+    };
+    
+    // Check immediately
+    checkAdminStatus();
+    
+    // Check every 2 seconds for login status changes and refresh notifications
+    const interval = setInterval(checkAdminStatus, 2000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   const fetchNotificationCount = async () => {
