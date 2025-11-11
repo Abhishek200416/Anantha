@@ -435,7 +435,7 @@ const CitySuggestionsSection = () => {
                 </div>
               ) : (
                 <button
-                  onClick={() => handleDeleteSuggestion(suggestion.id, suggestion.status)}
+                  onClick={() => openDeleteDialog(suggestion.id, `${suggestion.city}, ${suggestion.state}`, suggestion.status)}
                   disabled={processing === suggestion.id}
                   className="w-full px-4 py-3 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-lg hover:from-gray-700 hover:to-gray-800 transition-all duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed font-bold text-sm shadow-md hover:shadow-lg transform hover:scale-105"
                 >
