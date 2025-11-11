@@ -370,6 +370,27 @@ const TrackOrder = () => {
                     </p>
                   </div>
                 </div>
+                
+                {/* Pending Payment Notice */}
+                {order.payment_status === 'pending' && !order.cancelled && (
+                  <div className="mt-4 p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded-r-lg">
+                    <div className="flex items-start">
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-yellow-900 mb-2">⚠️ Payment Pending</p>
+                        <p className="text-sm text-yellow-700 mb-3">
+                          {order.custom_city_request 
+                            ? "Your order is awaiting city approval. Once approved, you can complete payment using the 'Complete Payment' button above."
+                            : "Please complete payment to confirm your order. Click the 'Complete Payment' button above to proceed."}
+                        </p>
+                        {order.custom_city_request && (
+                          <p className="text-xs text-yellow-600 italic">
+                            You'll receive an email notification once your city is approved for delivery.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Order Items */}
