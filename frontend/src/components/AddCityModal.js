@@ -214,7 +214,7 @@ const AddCityModal = ({ isOpen, onClose, preSelectedState = '' }) => {
 
               {/* Footer Message */}
               <p className="text-xs text-center text-gray-500 leading-relaxed">
-                We'll review and add your city within 5-10 minutes. Come back soon to place your order!
+                We'll review and add your city. If we need clarification about your location, we'll contact you at the provided phone or email!
               </p>
             </form>
           )}
