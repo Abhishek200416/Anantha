@@ -223,6 +223,12 @@ const Header = () => {
           )}
         </div>
       </header>
+
+      {/* Report Bug Modal */}
+      <ReportBugModal 
+        isOpen={showReportBugModal}
+        onClose={() => setShowReportBugModal(false)}
+      />
     </>
   );
 };
