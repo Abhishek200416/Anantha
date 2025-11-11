@@ -124,9 +124,18 @@ const NotificationBell = () => {
     setShowDropdown(!showDropdown);
   };
 
-  const handleNotificationClick = (tab) => {
+  const handleNotificationClick = (notification) => {
     setShowDropdown(false);
-    navigate(`/admin?tab=${tab}`);
+    // Navigate with section parameter for auto-scroll
+    if (notification.type === 'city_suggestions') {
+      navigate(`/admin?tab=delivery&section=city-suggestions`);
+    } else if (notification.type === 'bug_reports') {
+      navigate(`/admin?tab=reports`);
+    } else if (notification.type === 'new_orders') {
+      navigate(`/admin?tab=orders`);
+    } else {
+      navigate(`/admin?tab=${notification.tab}`);
+    }
   };
 
   const handleViewAll = () => {
