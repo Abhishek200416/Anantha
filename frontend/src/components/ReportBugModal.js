@@ -50,18 +50,15 @@ const ReportBugModal = ({ isOpen, onClose }) => {
     setIsSubmitting(true);
     try {
       const formDataToSend = new FormData();
-      formDataToSend.append('name', formData.name);
-      formDataToSend.append('email', formData.email);
-      formDataToSend.append('phone', formData.phone);
-      formDataToSend.append('issue_title', formData.issueTitle);
-      formDataToSend.append('description', formData.description);
-      formDataToSend.append('page', formData.page);
+      formDataToSend.append('email', formData.email || 'no-email@provided.com');
+      formDataToSend.append('mobile', formData.phone || '0000000000');
+      formDataToSend.append('issue_description', `${formData.issueTitle ? formData.issueTitle + ': ' : ''}${formData.description}`);
       
       if (selectedImage) {
-        formDataToSend.append('screenshot', selectedImage);
+        formDataToSend.append('photo', selectedImage);
       }
 
-      await axios.post(`${API}/api/report-issue`, formDataToSend, {
+      await axios.post(`${API}/api/reports`, formDataToSend, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
