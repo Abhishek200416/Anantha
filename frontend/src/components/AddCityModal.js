@@ -106,7 +106,7 @@ const AddCityModal = ({ isOpen, onClose, preSelectedState = '' }) => {
               {/* Info Message */}
               <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
                 <p className="text-sm text-blue-800 leading-relaxed">
-                  <span className="font-semibold">Can't find your city?</span> Let us know and we'll add it to our delivery locations within 5-10 minutes!
+                  <span className="font-semibold">Can't find your city?</span> Let us know with your contact details and we'll add it to our delivery locations. We may contact you to confirm the exact location!
                 </p>
               </div>
 
