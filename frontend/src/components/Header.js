@@ -188,22 +188,62 @@ const Header = () => {
           {/* Mobile Menu - User Friendly Order */}
           {mobileMenuOpen && (
             <nav className="md:hidden mt-4 pb-4 space-y-1 border-t pt-4">
+              {/* Language Selector - Mobile */}
+              <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-lg p-3 mb-3 border border-orange-200">
+                <p className="text-xs text-orange-700 font-semibold mb-2 px-1 flex items-center gap-1">
+                  <Globe className="h-4 w-4" />
+                  {t('language')}
+                </p>
+                <div className="flex items-center space-x-2 bg-white rounded-full p-1 shadow-sm">
+                  <button
+                    onClick={() => changeLanguage('en')}
+                    className={`flex-1 px-3 py-2 rounded-full text-sm font-bold transition-all ${
+                      language === 'en' 
+                        ? 'bg-orange-500 text-white shadow-md' 
+                        : 'text-gray-600 hover:text-orange-600'
+                    }`}
+                  >
+                    EN
+                  </button>
+                  <button
+                    onClick={() => changeLanguage('te')}
+                    className={`flex-1 px-3 py-2 rounded-full text-sm font-bold transition-all ${
+                      language === 'te' 
+                        ? 'bg-orange-500 text-white shadow-md' 
+                        : 'text-gray-600 hover:text-orange-600'
+                    }`}
+                  >
+                    TE
+                  </button>
+                  <button
+                    onClick={() => changeLanguage('hi')}
+                    className={`flex-1 px-3 py-2 rounded-full text-sm font-bold transition-all ${
+                      language === 'hi' 
+                        ? 'bg-orange-500 text-white shadow-md' 
+                        : 'text-gray-600 hover:text-orange-600'
+                    }`}
+                  >
+                    HI
+                  </button>
+                </div>
+              </div>
+
               {/* Primary Navigation - Most Important Links First */}
               <div className="bg-orange-50 rounded-lg p-2 mb-3">
-                <p className="text-xs text-orange-700 font-semibold mb-2 px-2">Quick Navigation</p>
+                <p className="text-xs text-orange-700 font-semibold mb-2 px-2">{t('quickLinks')}</p>
                 <Link 
                   to="/" 
                   className="block py-3 px-4 text-gray-800 hover:bg-orange-100 font-semibold rounded-lg transition-colors text-lg"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  🏠 Home
+                  🏠 {t('home')}
                 </Link>
                 <Link 
                   to="/track-order" 
                   className="block py-3 px-4 text-gray-800 hover:bg-orange-100 font-semibold rounded-lg transition-colors text-lg"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  📦 Track Order
+                  📦 {t('trackOrder')}
                 </Link>
                 {isAuthenticated && (
                   <Link 
@@ -211,14 +251,14 @@ const Header = () => {
                     className="block py-3 px-4 text-gray-800 hover:bg-orange-100 font-semibold rounded-lg transition-colors text-lg"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    📋 My Orders
+                    📋 {t('myOrders')}
                   </Link>
                 )}
               </div>
 
               {/* Contact Section */}
               <div className="space-y-1">
-                <p className="text-xs text-gray-600 font-semibold mb-2 px-2">Contact Us</p>
+                <p className="text-xs text-gray-600 font-semibold mb-2 px-2">{t('contactUs')}</p>
                 <a 
                   href="tel:9985116385" 
                   className="flex items-center space-x-3 py-2.5 px-4 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
