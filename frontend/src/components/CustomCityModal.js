@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { X, MapPin, Clock, CheckCircle } from 'lucide-react';
+import { X, MapPin, Clock, CheckCircle, Phone, Mail } from 'lucide-react';
 
 const CustomCityModal = ({ isOpen, onClose, onSubmit, selectedState }) => {
   const [cityName, setCityName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
