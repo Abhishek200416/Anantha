@@ -10,7 +10,7 @@ import sys
 from datetime import datetime
 
 # Backend URL from environment
-BACKEND_URL = "https://bugfix-response.preview.emergentagent.com/api"
+BACKEND_URL = "https://bug-report-dropdown.preview.emergentagent.com/api"
 
 def print_section(title):
     """Print a formatted section header"""
