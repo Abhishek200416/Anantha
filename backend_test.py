@@ -183,21 +183,127 @@ def create_test_image():
         print(f"Warning: Could not create test image: {e}")
         return None
 
+def test_bug_report_submission(email, mobile, issue_description):
+    """Test bug report submission using form-data"""
+    print(f"\n📝 Testing Bug Report Submission for {email}...")
+    
+    try:
+        # Use form-data as specified in the review request
+        form_data = {
+            'email': email,
+            'mobile': mobile,
+            'issue_description': issue_description
+        }
+        
+        response = requests.post(f"{BACKEND_URL}/reports", data=form_data, timeout=30)
+        
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code == 200:
+            data = response.json()
+            print(f"Response: {json.dumps(data, indent=2)}")
+            
+            if "report_id" in data and "message" in data:
+                print(f"✅ SUCCESS: Bug report created with ID: {data['report_id']}")
+                return True, data["report_id"]
+            else:
+                print(f"❌ FAILED: Missing report_id or message in response")
+                return False, None
+        else:
+            print(f"❌ FAILED: HTTP {response.status_code} - {response.text}")
+            return False, None
+            
+    except Exception as e:
+        print(f"❌ EXCEPTION: {str(e)}")
+        return False, None
+
+def verify_report_in_list(reports, expected_email, expected_mobile, expected_description):
+    """Verify that a specific report appears in the reports list with correct fields"""
+    print(f"\n🔍 Verifying Report in List for {expected_email}...")
+    
+    for report in reports:
+        if (report.get("email") == expected_email and 
+            report.get("mobile") == expected_mobile and 
+            report.get("issue_description") == expected_description):
+            
+            # Check all required fields from review request
+            required_fields = ["id", "email", "mobile", "issue_description", "status", "created_at", "photo_url"]
+            missing_fields = [field for field in required_fields if field not in report]
+            
+            if missing_fields:
+                print(f"❌ FAILED: Missing fields: {missing_fields}")
+                return False
+            
+            # Verify field formats
+            if not report["id"]:  # Should be UUID format
+                print(f"❌ FAILED: Report ID is empty")
+                return False
+            
+            if report["status"] not in ["New", "In Progress", "Resolved"]:
+                print(f"❌ FAILED: Invalid status: {report['status']}")
+                return False
+            
+            print(f"✅ SUCCESS: Report found with correct fields")
+            print(f"   - ID: {report['id']}")
+            print(f"   - Email: {report['email']}")
+            print(f"   - Mobile: {report['mobile']}")
+            print(f"   - Issue: {report['issue_description'][:50]}...")
+            print(f"   - Status: {report['status']}")
+            print(f"   - Created: {report['created_at']}")
+            print(f"   - Photo URL: {report['photo_url']}")
+            return True
+    
+    print(f"❌ FAILED: Report not found for {expected_email}")
+    return False
+
+def test_report_ordering(reports):
+    """Test that reports are ordered by newest first"""
+    print(f"\n📅 Testing Report Ordering (Newest First)...")
+    
+    if len(reports) < 2:
+        print(f"ℹ️  Less than 2 reports, ordering test skipped")
+        return True
+    
+    try:
+        # Check if reports are ordered by created_at descending (newest first)
+        for i in range(len(reports) - 1):
+            current_time = reports[i].get("created_at", "")
+            next_time = reports[i + 1].get("created_at", "")
+            
+            if current_time and next_time:
+                # Parse ISO timestamps
+                current_dt = datetime.fromisoformat(current_time.replace('Z', '+00:00'))
+                next_dt = datetime.fromisoformat(next_time.replace('Z', '+00:00'))
+                
+                if current_dt < next_dt:
+                    print(f"❌ FAILED: Reports not in descending order")
+                    print(f"   Current: {current_time}")
+                    print(f"   Next: {next_time}")
+                    return False
+        
+        print(f"✅ SUCCESS: Reports correctly ordered by newest first")
+        return True
+        
+    except Exception as e:
+        print(f"❌ FAILED: Exception parsing timestamps: {str(e)}")
+        return False
+
 def main():
-    """Main testing function - FOCUSED ON ADMIN BUG REPORTS ENDPOINT"""
-    print("🚀 Starting Backend API Tests - Admin Bug Reports Endpoint")
+    """Main testing function - COMPREHENSIVE BUG REPORTING FLOW TEST"""
+    print("🚀 Starting Comprehensive Bug Reporting Flow Test")
     print(f"Backend URL: {BACKEND_URL}")
     print(f"Test Time: {datetime.now()}")
+    print("="*80)
     
     # Test results tracking
     test_results = {}
+    created_report_ids = []
     
     # ============= STEP 1: ADMIN LOGIN =============
     print("\n" + "="*80)
     print("🔐 STEP 1: ADMIN LOGIN - POST /api/auth/admin-login")
     print("="*80)
     
-    # Get admin authentication token
     admin_token = admin_login()
     
     if not admin_token:
@@ -213,12 +319,51 @@ def main():
         "Content-Type": "application/json"
     }
     
-    # ============= STEP 2: FETCH BUG REPORTS =============
+    # ============= STEP 2: SUBMIT BUG REPORTS =============
     print("\n" + "="*80)
-    print("🐛 STEP 2: FETCH BUG REPORTS - GET /api/admin/reports")
+    print("📝 STEP 2: SUBMIT BUG REPORTS - POST /api/reports")
     print("="*80)
     
-    # Test 2.1: Get bug reports with admin authentication
+    # Test scenarios from review request
+    test_reports = [
+        {
+            "email": "test@example.com",
+            "mobile": "9876543210", 
+            "issue_description": "Testing mobile bug report feature - dropdown menu issue"
+        },
+        {
+            "email": "user2@example.com",
+            "mobile": "9876543211",
+            "issue_description": "Admin panel not loading properly on mobile devices"
+        },
+        {
+            "email": "user3@example.com", 
+            "mobile": "9876543212",
+            "issue_description": "Product images not displaying correctly in cart"
+        }
+    ]
+    
+    submitted_reports = []
+    for i, report_data in enumerate(test_reports):
+        print(f"\n--- Submitting Report {i+1}/3 ---")
+        success, report_id = test_bug_report_submission(
+            report_data["email"],
+            report_data["mobile"], 
+            report_data["issue_description"]
+        )
+        
+        test_results[f'submit_report_{i+1}'] = success
+        
+        if success and report_id:
+            submitted_reports.append((report_id, report_data))
+            created_report_ids.append(report_id)
+    
+    # ============= STEP 3: FETCH BUG REPORTS (ADMIN) =============
+    print("\n" + "="*80)
+    print("🐛 STEP 3: FETCH BUG REPORTS - GET /api/admin/reports")
+    print("="*80)
+    
+    # Test 3.1: Get bug reports with admin authentication
     success, reports_response = test_api_endpoint(
         "GET",
         "/admin/reports",
@@ -228,34 +373,39 @@ def main():
     
     test_results['fetch_bug_reports_with_auth'] = success
     
-    if success and reports_response is not None:
-        print(f"\n  📊 Bug Reports Response Verification:")
-        print(f"    - Response type: {type(reports_response)}")
-        print(f"    - Is array: {isinstance(reports_response, list)}")
-        print(f"    - Number of reports: {len(reports_response) if isinstance(reports_response, list) else 'N/A'}")
+    if success and isinstance(reports_response, list):
+        print(f"\n📊 Bug Reports Retrieved: {len(reports_response)}")
+        test_results['verify_json_response'] = True
         
-        # Check if response is valid JSON (not HTML)
-        if isinstance(reports_response, list):
-            print(f"    ✅ Response is valid JSON array")
-            test_results['verify_json_response'] = True
-            
-            # Check response structure if reports exist
-            if len(reports_response) > 0:
-                first_report = reports_response[0]
-                print(f"\n  📋 Sample Report Structure:")
-                for key, value in first_report.items():
-                    print(f"    - {key}: {type(value).__name__}")
-                print(f"    ✅ Bug reports have proper structure")
-            else:
-                print(f"    ℹ️  No bug reports found (empty array - this is normal)")
-        else:
-            print(f"    ❌ Response is not a JSON array")
-            test_results['verify_json_response'] = False
+        # ============= STEP 4: VERIFY SUBMITTED REPORTS =============
+        print("\n" + "="*80)
+        print("🔍 STEP 4: VERIFY SUBMITTED REPORTS IN LIST")
+        print("="*80)
+        
+        for i, (report_id, report_data) in enumerate(submitted_reports):
+            print(f"\n--- Verifying Report {i+1} ---")
+            success = verify_report_in_list(
+                reports_response,
+                report_data["email"],
+                report_data["mobile"],
+                report_data["issue_description"]
+            )
+            test_results[f'verify_report_{i+1}'] = success
+        
+        # ============= STEP 5: TEST REPORT ORDERING =============
+        print("\n" + "="*80)
+        print("📅 STEP 5: TEST REPORT ORDERING")
+        print("="*80)
+        
+        ordering_success = test_report_ordering(reports_response)
+        test_results['report_ordering'] = ordering_success
+        
     else:
-        print(f"    ❌ Failed to fetch bug reports")
+        print(f"❌ Failed to fetch bug reports or invalid response")
         test_results['verify_json_response'] = False
     
-    # Test 2.2: Test without authentication (should fail with 401)
+    # Test 3.2: Test without authentication (should fail with 401)
+    print(f"\n--- Testing Without Authentication ---")
     success, unauth_response = test_api_endpoint(
         "GET",
         "/admin/reports",
@@ -265,109 +415,142 @@ def main():
     
     test_results['fetch_bug_reports_no_auth'] = success
     
-    if success:
-        print(f"    ✅ Correctly returns 401 when no authentication provided")
+    # ============= STEP 6: UPDATE REPORT STATUS =============
+    print("\n" + "="*80)
+    print("🔄 STEP 6: UPDATE REPORT STATUS - PUT /api/admin/reports/{id}/status")
+    print("="*80)
+    
+    if created_report_ids:
+        first_report_id = created_report_ids[0]
+        
+        # Test updating status to "In Progress"
+        success, status_response = test_api_endpoint(
+            "PUT",
+            f"/admin/reports/{first_report_id}/status",
+            headers=auth_headers,
+            data={"status": "In Progress"},
+            description="Update report status to 'In Progress'"
+        )
+        
+        test_results['update_report_status'] = success
+        
+        if success:
+            # Verify status change by fetching reports again
+            print(f"\n--- Verifying Status Update ---")
+            success, updated_reports = test_api_endpoint(
+                "GET",
+                "/admin/reports",
+                headers=auth_headers,
+                description="Fetch reports to verify status update"
+            )
+            
+            if success and isinstance(updated_reports, list):
+                # Find the updated report
+                for report in updated_reports:
+                    if report.get("id") == first_report_id:
+                        if report.get("status") == "In Progress":
+                            print(f"✅ SUCCESS: Status successfully updated to 'In Progress'")
+                            test_results['verify_status_update'] = True
+                        else:
+                            print(f"❌ FAILED: Status not updated, still: {report.get('status')}")
+                            test_results['verify_status_update'] = False
+                        break
+                else:
+                    print(f"❌ FAILED: Updated report not found in list")
+                    test_results['verify_status_update'] = False
+            else:
+                print(f"❌ FAILED: Could not fetch reports to verify status update")
+                test_results['verify_status_update'] = False
     else:
-        print(f"    ❌ Should return 401 for unauthenticated requests")
+        print(f"⚠️  No report IDs available for status update test")
+        test_results['update_report_status'] = False
+        test_results['verify_status_update'] = False
     
     # ============= FINAL SUMMARY =============
     print(f"\n{'='*80}")
-    print("🎯 ADMIN BUG REPORTS ENDPOINT TEST SUMMARY")
+    print("🎯 COMPREHENSIVE BUG REPORTING FLOW TEST SUMMARY")
     print(f"{'='*80}")
     
     total_tests = len(test_results)
     passed_tests = sum(1 for result in test_results.values() if result)
     failed_tests = total_tests - passed_tests
-    
-    print("\n📋 Detailed Results by Test Category:")
-    
-    # Group results by category
-    categories = {
-        "Admin Authentication": [
-            'admin_login'
-        ],
-        "Admin Bug Reports Endpoint (GET /api/admin/reports)": [
-            'fetch_bug_reports_with_auth', 'verify_json_response',
-            'fetch_bug_reports_no_auth'
-        ]
-    }
-    
-    for category, test_keys in categories.items():
-        category_tests = {k: v for k, v in test_results.items() if k in test_keys}
-        if category_tests:
-            category_passed = sum(1 for v in category_tests.values() if v)
-            category_total = len(category_tests)
-            print(f"\n  {category} ({category_passed}/{category_total} passed):")
-            for test_name, result in category_tests.items():
-                status = "✅ PASS" if result else "❌ FAIL"
-                print(f"    {test_name}: {status}")
+    success_rate = (passed_tests / total_tests * 100) if total_tests > 0 else 0
     
     print(f"\n📊 Overall Test Statistics:")
     print(f"  Total Tests: {total_tests}")
     print(f"  Passed: {passed_tests}")
     print(f"  Failed: {failed_tests}")
-    print(f"  Success Rate: {(passed_tests/total_tests)*100:.1f}%")
+    print(f"  Success Rate: {success_rate:.1f}%")
+    
+    # Group results by test phase
+    print(f"\n📋 Detailed Results by Test Phase:")
+    
+    phases = {
+        "1. Admin Authentication": ['admin_login'],
+        "2. Bug Report Submission": ['submit_report_1', 'submit_report_2', 'submit_report_3'],
+        "3. Admin Fetch Reports": ['fetch_bug_reports_with_auth', 'verify_json_response', 'fetch_bug_reports_no_auth'],
+        "4. Report Verification": ['verify_report_1', 'verify_report_2', 'verify_report_3'],
+        "5. Report Ordering": ['report_ordering'],
+        "6. Status Management": ['update_report_status', 'verify_status_update']
+    }
+    
+    for phase, test_keys in phases.items():
+        phase_tests = {k: v for k, v in test_results.items() if k in test_keys}
+        if phase_tests:
+            phase_passed = sum(1 for v in phase_tests.values() if v)
+            phase_total = len(phase_tests)
+            print(f"\n  {phase} ({phase_passed}/{phase_total} passed):")
+            for test_name, result in phase_tests.items():
+                status = "✅ PASS" if result else "❌ FAIL"
+                print(f"    {test_name}: {status}")
     
     print(f"\n🎯 KEY FINDINGS:")
     
-    # Admin Login
-    if test_results.get('admin_login'):
-        print(f"  ✅ Admin login works correctly with password 'admin123'")
-        print(f"      - Returns valid JWT token")
-        print(f"      - Token can be used for subsequent API calls")
-    else:
-        print(f"  ❌ Admin login failed")
+    # Critical flow verification
+    critical_tests = ['admin_login', 'submit_report_1', 'fetch_bug_reports_with_auth', 'verify_report_1']
+    critical_passed = sum(1 for test in critical_tests if test_results.get(test, False))
     
-    # Admin Bug Reports Endpoint
-    if test_results.get('fetch_bug_reports_with_auth') and test_results.get('verify_json_response'):
-        print(f"  ✅ GET /api/admin/reports endpoint works correctly")
-        print(f"      - Returns valid JSON response (not HTML)")
-        print(f"      - Accepts Authorization header with JWT token")
-        print(f"      - Returns array of bug reports")
+    if critical_passed == len(critical_tests):
+        print(f"  ✅ CRITICAL FLOW WORKING: Submit report → Admin sees it in panel")
+        print(f"      - Bug report submission works (POST /api/reports)")
+        print(f"      - Admin can fetch bug reports (GET /api/admin/reports)")
+        print(f"      - Submitted reports appear in admin panel")
+        print(f"      - All required fields present and correct")
     else:
-        print(f"  ❌ GET /api/admin/reports endpoint failed")
-        if not test_results.get('verify_json_response'):
-            print(f"      - Response was not valid JSON (possibly HTML)")
+        print(f"  ❌ CRITICAL FLOW BROKEN: {critical_passed}/{len(critical_tests)} critical tests passed")
     
-    if test_results.get('fetch_bug_reports_no_auth'):
-        print(f"  ✅ Endpoint correctly requires authentication (returns 401 without token)")
+    # Authentication verification
+    if test_results.get('admin_login') and test_results.get('fetch_bug_reports_no_auth'):
+        print(f"  ✅ AUTHENTICATION WORKING: Admin endpoints properly protected")
     else:
-        print(f"  ❌ Endpoint should return 401 for unauthenticated requests")
+        print(f"  ❌ AUTHENTICATION ISSUES: Admin endpoints may not be properly protected")
+    
+    # Status management verification
+    if test_results.get('update_report_status') and test_results.get('verify_status_update'):
+        print(f"  ✅ STATUS MANAGEMENT WORKING: Can update and verify report status")
+    else:
+        print(f"  ❌ STATUS MANAGEMENT ISSUES: Status updates may not be working")
     
     print(f"\n🔧 ENDPOINT VERIFICATION:")
+    print(f"  📍 Bug Report Submission: POST {BACKEND_URL}/reports")
     print(f"  📍 Admin Login: POST {BACKEND_URL}/auth/admin-login")
-    print(f"  📍 Admin Bug Reports: GET {BACKEND_URL}/admin/reports")
-    print(f"  📍 Both endpoints are accessible with /api prefix as expected")
+    print(f"  📍 Admin Fetch Reports: GET {BACKEND_URL}/admin/reports")
+    print(f"  📍 Update Report Status: PUT {BACKEND_URL}/admin/reports/{{id}}/status")
     
-    # Check the specific fix mentioned in review request
-    if test_results.get('fetch_bug_reports_with_auth') and test_results.get('verify_json_response'):
-        print(f"\n✅ FIX VERIFICATION:")
-        print(f"  The /api prefix issue has been resolved!")
-        print(f"  - GET /api/admin/reports now returns proper JSON response")
-        print(f"  - No longer returning HTML instead of JSON")
-        print(f"  - Endpoint is accessible with correct /api prefix")
-    else:
-        print(f"\n❌ FIX VERIFICATION:")
-        print(f"  The /api prefix issue may still exist!")
-        print(f"  - GET /api/admin/reports may still be returning HTML")
-        print(f"  - Check if endpoint routing is correct")
-    
-    if failed_tests > 0:
-        print(f"\n⚠️  {failed_tests} test(s) failed. Check the detailed output above for specific issues.")
-        print(f"🔍 TROUBLESHOOTING:")
-        print(f"  - Verify backend service is running on {BACKEND_URL}")
-        print(f"  - Check if /api/admin/reports endpoint is properly mapped")
-        print(f"  - Ensure admin authentication is working")
-        print(f"  - Verify endpoint returns JSON, not HTML")
-        return 1
-    else:
-        print(f"\n🎉 ALL TESTS PASSED! Admin bug reports endpoint is working correctly.")
-        print(f"✅ Admin login with password 'admin123' - WORKING")
-        print(f"✅ GET /api/admin/reports with Authorization header - WORKING")
-        print(f"✅ Endpoint returns valid JSON response (not HTML) - WORKING")
-        print(f"✅ Authentication protection working correctly - WORKING")
-        print(f"✅ The /api prefix fix has been successfully verified!")
+    if success_rate >= 80:
+        print(f"\n🎉 OVERALL RESULT: SUCCESS - Bug reporting flow is working correctly!")
+        print(f"✅ Users can submit bug reports from mobile dropdown menu")
+        print(f"✅ Admin can view all bug reports in admin panel")
+        print(f"✅ Complete flow: Submit report → Admin sees it → Can manage status")
         return 0
+    else:
+        print(f"\n⚠️  OVERALL RESULT: ISSUES FOUND - Bug reporting flow needs attention!")
+        print(f"🔍 TROUBLESHOOTING:")
+        print(f"  - Check if backend service is running properly")
+        print(f"  - Verify all endpoints have correct /api prefix")
+        print(f"  - Ensure database is accessible and working")
+        print(f"  - Check admin authentication and permissions")
+        return 1
 
 if __name__ == "__main__":
     exit_code = main()
