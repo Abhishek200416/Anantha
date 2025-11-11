@@ -393,32 +393,49 @@ const CitySuggestionsSection = () => {
               )}
             </div>
 
-            {/* Action Buttons - Only show for pending suggestions */}
-            {suggestion.status === 'pending' && (
-              <div className="p-4 pt-0 flex space-x-2">
+            {/* Action Buttons */}
+            <div className="p-4 pt-0">
+              {suggestion.status === 'pending' ? (
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => handleOpenApprovalModal(suggestion)}
+                    disabled={processing === suggestion.id}
+                    className="flex-1 px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed font-bold text-sm shadow-md hover:shadow-lg transform hover:scale-105"
+                  >
+                    {processing === suggestion.id ? (
+                      <span className="flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Processing...
+                      </span>
+                    ) : (
+                      '✓ Approve'
+                    )}
+                  </button>
+                  <button
+                    onClick={() => handleRejectSuggestion(suggestion.id)}
+                    disabled={processing === suggestion.id}
+                    className="flex-1 px-4 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 transition-all duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed font-bold text-sm shadow-md hover:shadow-lg transform hover:scale-105"
+                  >
+                    ✗ Reject
+                  </button>
+                </div>
+              ) : (
                 <button
-                  onClick={() => handleOpenApprovalModal(suggestion)}
+                  onClick={() => handleDeleteSuggestion(suggestion.id, suggestion.status)}
                   disabled={processing === suggestion.id}
-                  className="flex-1 px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed font-bold text-sm shadow-md hover:shadow-lg transform hover:scale-105"
+                  className="w-full px-4 py-3 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-lg hover:from-gray-700 hover:to-gray-800 transition-all duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed font-bold text-sm shadow-md hover:shadow-lg transform hover:scale-105"
                 >
                   {processing === suggestion.id ? (
                     <span className="flex items-center justify-center">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Processing...
+                      Deleting...
                     </span>
                   ) : (
-                    '✓ Approve'
+                    '🗑️ Delete'
                   )}
                 </button>
-                <button
-                  onClick={() => handleRejectSuggestion(suggestion.id)}
-                  disabled={processing === suggestion.id}
-                  className="flex-1 px-4 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 transition-all duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed font-bold text-sm shadow-md hover:shadow-lg transform hover:scale-105"
-                >
-                  ✗ Reject
-                </button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         ))}
         </div>
