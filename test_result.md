@@ -740,7 +740,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Comprehensive Bug Reporting Flow Testing - COMPLETED"
+    - "Bug Reporting Endpoint Fix & Notification Dropdown - NEEDS TESTING"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
