@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, MapPin, Send, CheckCircle } from 'lucide-react';
+import { X, MapPin, Send, CheckCircle, Phone, Mail } from 'lucide-react';
 import axios from 'axios';
 import { toast } from '../hooks/use-toast';
 
@@ -21,10 +21,10 @@ const AddCityModal = ({ isOpen, onClose, preSelectedState = '' }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.state || !formData.city) {
+    if (!formData.state || !formData.city || !formData.phone || !formData.email) {
       toast({
         title: "Required Fields",
-        description: "Please enter state and city name",
+        description: "Please fill in all required fields including phone and email",
         variant: "destructive"
       });
       return;
