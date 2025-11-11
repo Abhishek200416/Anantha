@@ -217,9 +217,9 @@ const AdminOrders = () => {
 
       {/* Filters */}
       <div className="bg-white rounded-xl shadow-lg p-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           {/* Search */}
-          <div className="md:col-span-3 lg:col-span-2">
+          <div className="md:col-span-2 lg:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Search Orders
             </label>
@@ -287,22 +287,24 @@ const AdminOrders = () => {
           </div>
 
           {/* Date Range */}
-          <div>
+          <div className="md:col-span-2 lg:col-span-5">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Date Range
             </label>
-            <div className="flex space-x-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <input
                 type="date"
                 value={dateFilter.start}
                 onChange={(e) => setDateFilter(prev => ({ ...prev, start: e.target.value }))}
-                className="flex-1 px-2 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
+                placeholder="dd-mm-yyyy"
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
               />
               <input
                 type="date"
                 value={dateFilter.end}
                 onChange={(e) => setDateFilter(prev => ({ ...prev, end: e.target.value }))}
-                className="flex-1 px-2 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
+                placeholder="dd-mm-yyyy"
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
               />
             </div>
           </div>
