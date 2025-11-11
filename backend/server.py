@@ -159,6 +159,10 @@ class Order(BaseModel):
     payment_method: str
     payment_sub_method: Optional[str] = None
     payment_status: str = "pending"
+    is_custom_location: bool = False  # True if city is "Others"
+    custom_city: Optional[str] = None  # Custom city name entered by user
+    custom_state: Optional[str] = None  # State for custom city
+    distance_from_guntur: Optional[float] = None  # Distance in km
     order_status: str = "pending"
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     estimated_delivery: Optional[str] = None
