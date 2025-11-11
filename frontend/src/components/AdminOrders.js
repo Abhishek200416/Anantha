@@ -178,39 +178,138 @@ const AdminOrders = () => {
 
   return (
     <div className="space-y-6">
-      {/* Analytics Dashboard */}
-      {analytics && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white">
-            <div className="flex items-center justify-between mb-2">
-              <Package className="h-8 w-8 opacity-80" />
-              <span className="text-3xl font-bold">{analytics.total_orders}</span>
+      {/* Order Statistics (Based on Current Filters) - Moved to Top */}
+      {sortedOrders.length > 0 && (
+        <div className="bg-white rounded-xl shadow-lg p-6">
+          <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <Filter className="h-5 w-5 text-orange-600" />
+            Order Statistics (Based on Current Filters)
+          </h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Total Count */}
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-blue-600 font-medium mb-1">Total Orders</p>
+                  <p className="text-3xl font-bold text-blue-700">{sortedOrders.length}</p>
+                </div>
+                <Package className="h-10 w-10 text-blue-400 opacity-50" />
+              </div>
+              <p className="text-xs text-blue-600 mt-2">
+                {sortedOrders.length === orders.length ? 'All orders' : `Filtered from ${orders.length} total`}
+              </p>
             </div>
-            <p className="text-blue-100">Total Orders</p>
+
+            {/* Total Sales */}
+            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-green-600 font-medium mb-1">Total Sales</p>
+                  <p className="text-3xl font-bold text-green-700">
+                    ₹{sortedOrders.reduce((sum, order) => sum + (order.total || 0), 0).toLocaleString()}
+                  </p>
+                </div>
+                <TrendingUp className="h-10 w-10 text-green-400 opacity-50" />
+              </div>
+              <p className="text-xs text-green-600 mt-2">From filtered orders</p>
+            </div>
+
+            {/* Count by Status */}
+            <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border border-orange-200">
+              <p className="text-sm text-orange-600 font-medium mb-3">By Status</p>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-700 flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-blue-500" />
+                    Active
+                  </span>
+                  <span className="font-bold text-blue-700">
+                    {sortedOrders.filter(o => !o.cancelled && o.order_status !== 'delivered').length}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-700 flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    Delivered
+                  </span>
+                  <span className="font-bold text-green-700">
+                    {sortedOrders.filter(o => o.order_status === 'delivered').length}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-700 flex items-center gap-2">
+                    <XCircle className="h-4 w-4 text-red-500" />
+                    Cancelled
+                  </span>
+                  <span className="font-bold text-red-700">
+                    {sortedOrders.filter(o => o.cancelled).length}
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white">
-            <div className="flex items-center justify-between mb-2">
-              <TrendingUp className="h-8 w-8 opacity-80" />
-              <span className="text-3xl font-bold">₹{analytics.total_sales.toLocaleString()}</span>
+          {/* Count by State */}
+          <div className="mt-6">
+            <h4 className="text-md font-semibold text-gray-800 mb-3 flex items-center gap-2">
+              <MapPin className="h-5 w-5 text-orange-600" />
+              Orders by State
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+              {(() => {
+                const stateCounts = {};
+                sortedOrders.forEach(order => {
+                  const state = order.state || 'Unknown';
+                  stateCounts[state] = (stateCounts[state] || 0) + 1;
+                });
+                
+                return Object.entries(stateCounts)
+                  .sort((a, b) => b[1] - a[1]) // Sort by count descending
+                  .map(([state, count]) => (
+                    <div 
+                      key={state}
+                      className="bg-gradient-to-r from-orange-50 to-red-50 rounded-lg p-3 border border-orange-200 flex items-center justify-between hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                        <span className="text-sm font-medium text-gray-700">{state}</span>
+                      </div>
+                      <span className="text-lg font-bold text-orange-600">{count}</span>
+                    </div>
+                  ));
+              })()}
             </div>
-            <p className="text-green-100">Total Sales</p>
           </div>
 
-          <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-6 text-white">
-            <div className="flex items-center justify-between mb-2">
-              <Clock className="h-8 w-8 opacity-80" />
-              <span className="text-3xl font-bold">{analytics.active_orders}</span>
+          {/* Count by City */}
+          <div className="mt-6">
+            <h4 className="text-md font-semibold text-gray-800 mb-3 flex items-center gap-2">
+              <MapPin className="h-5 w-5 text-orange-600" />
+              Orders by City (Top 10)
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
+              {(() => {
+                const cityCounts = {};
+                sortedOrders.forEach(order => {
+                  const city = order.city || 'Unknown';
+                  cityCounts[city] = (cityCounts[city] || 0) + 1;
+                });
+                
+                return Object.entries(cityCounts)
+                  .sort((a, b) => b[1] - a[1]) // Sort by count descending
+                  .slice(0, 10) // Top 10 cities
+                  .map(([city, count]) => (
+                    <div 
+                      key={city}
+                      className="bg-white rounded-lg p-3 border-2 border-blue-200 flex items-center justify-between hover:border-blue-400 transition-colors"
+                    >
+                      <span className="text-sm font-medium text-gray-700 truncate">{city}</span>
+                      <span className="text-lg font-bold text-blue-600 ml-2">{count}</span>
+                    </div>
+                  ));
+              })()}
             </div>
-            <p className="text-orange-100">Active Orders</p>
-          </div>
-
-          <div className="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-6 text-white">
-            <div className="flex items-center justify-between mb-2">
-              <XCircle className="h-8 w-8 opacity-80" />
-              <span className="text-3xl font-bold">{analytics.cancelled_orders}</span>
-            </div>
-            <p className="text-red-100">Cancelled</p>
           </div>
         </div>
       )}
