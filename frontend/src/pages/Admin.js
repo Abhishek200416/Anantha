@@ -2521,6 +2521,7 @@ const Admin = () => {
                   <table className="w-full bg-white rounded-lg overflow-hidden shadow">
                     <thead className="bg-gradient-to-r from-orange-500 to-red-500 text-white">
                       <tr>
+                        <th className="px-4 py-3 text-left">Sr No</th>
                         <th className="px-4 py-3 text-left">Date</th>
                         <th className="px-4 py-3 text-left">Email</th>
                         <th className="px-4 py-3 text-left">Mobile</th>
@@ -2533,6 +2534,9 @@ const Admin = () => {
                     <tbody>
                       {bugReports.map((report, index) => (
                         <tr key={report.id} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
+                          <td className="px-4 py-3 text-sm font-semibold text-gray-700">
+                            #{index + 1}
+                          </td>
                           <td className="px-4 py-3 text-sm">
                             {new Date(report.created_at).toLocaleDateString('en-IN', { 
                               day: '2-digit', 
@@ -2590,7 +2594,7 @@ const Admin = () => {
                           </td>
                           <td className="px-4 py-3 text-sm">
                             <button
-                              onClick={() => deleteReport(report.id)}
+                              onClick={() => handleDeleteReport(report.id, report.email, index)}
                               className="text-red-600 hover:text-red-800 font-semibold"
                             >
                               Delete
