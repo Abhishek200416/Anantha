@@ -1932,26 +1932,46 @@ async def delete_city_suggestion(
 
 @api_router.get("/admin/notifications/count")
 async def get_notification_count(current_user: dict = Depends(get_current_user)):
-    """Get count of pending notifications (admin only)"""
+    """Get count of pending notifications (admin only) - excludes recently dismissed"""
     try:
         if not current_user.get("is_admin"):
             raise HTTPException(status_code=403, detail="Admin access required")
         
+        admin_id = current_user.get("id")
+        
+        # Get recent dismissals (within last 5 minutes) for each type
+        five_minutes_ago = datetime.now(timezone.utc) - timedelta(minutes=5)
+        
+        dismissed_types = set()
+        recent_dismissals = await db.dismissed_notifications.find({
+            "admin_id": admin_id,
+            "dismissed_at": {"$gte": five_minutes_ago}
+        }).to_list(100)
+        
+        for dismissal in recent_dismissals:
+            dismissed_types.add(dismissal.get("type"))
+        
         # Count pending bug reports (status = 'New' or 'In Progress')
-        bug_reports_count = await db.bug_reports.count_documents({
-            "status": {"$in": ["New", "In Progress"]}
-        })
+        bug_reports_count = 0
+        if "bug_reports" not in dismissed_types:
+            bug_reports_count = await db.bug_reports.count_documents({
+                "status": {"$in": ["New", "In Progress"]}
+            })
         
         # Count pending city suggestions
-        city_suggestions_count = await db.city_suggestions.count_documents({
-            "status": "pending"
-        })
+        city_suggestions_count = 0
+        if "city_suggestions" not in dismissed_types:
+            city_suggestions_count = await db.city_suggestions.count_documents({
+                "status": "pending"
+            })
         
         # Count orders from last 24 hours (new orders)
-        yesterday = datetime.now(timezone.utc) - timedelta(days=1)
-        new_orders_count = await db.orders.count_documents({
-            "created_at": {"$gte": yesterday}
-        })
+        new_orders_count = 0
+        if "new_orders" not in dismissed_types:
+            yesterday = datetime.now(timezone.utc) - timedelta(days=1)
+            new_orders_count = await db.orders.count_documents({
+                "created_at": {"$gte": yesterday}
+            })
         
         return {
             "bug_reports": bug_reports_count,
