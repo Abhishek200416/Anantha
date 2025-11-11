@@ -840,7 +840,7 @@ const Admin = () => {
   const updateAdminProfile = async () => {
     try {
       const backendUrl = process.env.REACT_APP_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL;
-      const response = await fetch(`${backendUrl}/admin/profile`, {
+      const response = await fetch(`${backendUrl}/api/admin/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
