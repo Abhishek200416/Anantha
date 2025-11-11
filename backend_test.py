@@ -191,21 +191,24 @@ def main():
     print("🐛 STEP 1: BUG REPORT ENDPOINT TEST - POST /api/reports")
     print("="*80)
     
-    # Test 2.1: Create bug report without photo
+    # Test 1.1: Create bug report with form-data fields as specified in review request
     bug_report_data = {
-        "email": "test@example.com",
-        "mobile": "9876543210",
-        "issue_description": "The checkout button is not working on mobile devices"
+        "issue_title": "Test Issue",
+        "description": "This is a test bug report",
+        "name": "Test User",
+        "email": "test@test.com",
+        "phone": "9876543210",
+        "page": "Home"
     }
     
     success, bug_response = test_api_endpoint_form_data(
         "POST",
         "/reports",
         form_data=bug_report_data,
-        description="Create bug report without photo (form-data)"
+        description="Create bug report with form-data fields (issue_title, description, name, email, phone, page)"
     )
     
-    test_results['create_bug_report_no_photo'] = success
+    test_results['create_bug_report_form_data'] = success
     
     report_id_1 = None
     if success and bug_response:
@@ -214,9 +217,10 @@ def main():
         print(f"    - Report ID: {report_id_1}")
         print(f"    - Has report_id: {bool(report_id_1)}")
         print(f"    - Message: {bug_response.get('message', 'N/A')}")
+        print(f"    - Response structure valid: {isinstance(bug_response, dict)}")
         
         if report_id_1:
-            print(f"    ✅ Bug report created successfully")
+            print(f"    ✅ Bug report created successfully with proper response structure")
             test_results['verify_bug_report_creation'] = True
         else:
             print(f"    ❌ Bug report created but missing report_id")
