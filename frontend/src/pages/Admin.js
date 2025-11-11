@@ -821,6 +821,26 @@ const Admin = () => {
             >
               Cities & States
             </button>
+            <button
+              onClick={() => setActiveTab('reports')}
+              className={`flex-1 py-4 px-2 font-semibold transition-colors whitespace-nowrap ${
+                activeTab === 'reports'
+                  ? 'border-b-2 border-orange-500 text-orange-600'
+                  : 'text-gray-600 hover:text-gray-800'
+              }`}
+            >
+              Reports
+            </button>
+            <button
+              onClick={() => setActiveTab('profile')}
+              className={`flex-1 py-4 px-2 font-semibold transition-colors whitespace-nowrap ${
+                activeTab === 'profile'
+                  ? 'border-b-2 border-orange-500 text-orange-600'
+                  : 'text-gray-600 hover:text-gray-800'
+              }`}
+            >
+              Profile
+            </button>
           </div>
 
           {/* Products Tab */}
