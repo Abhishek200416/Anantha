@@ -21,7 +21,7 @@ const CitySuggestionsSection = () => {
 
   const fetchCitySuggestions = async () => {
     try {
-      const adminToken = localStorage.getItem('adminToken');
+      const adminToken = localStorage.getItem('token');
       const response = await axios.get(`${BACKEND_URL}/api/admin/city-suggestions`, {
         headers: { Authorization: `Bearer ${adminToken}` }
       });
@@ -41,7 +41,7 @@ const CitySuggestionsSection = () => {
   const handleApproveSuggestion = async (suggestion) => {
     setProcessing(suggestion.id);
     try {
-      const adminToken = localStorage.getItem('adminToken');
+      const adminToken = localStorage.getItem('token');
       
       // Ask admin for delivery charge and threshold
       const deliveryCharge = prompt(
@@ -108,7 +108,7 @@ const CitySuggestionsSection = () => {
 
     setProcessing(suggestionId);
     try {
-      const adminToken = localStorage.getItem('adminToken');
+      const adminToken = localStorage.getItem('token');
       
       await axios.put(
         `${BACKEND_URL}/api/admin/city-suggestions/${suggestionId}/status`,
@@ -931,7 +931,7 @@ const Admin = () => {
       const backendUrl = process.env.REACT_APP_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL;
       const response = await fetch(`${backendUrl}/api/admin/reports`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
       
@@ -961,7 +961,7 @@ const Admin = () => {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({ status })
       });
@@ -996,7 +996,7 @@ const Admin = () => {
       const response = await fetch(`${backendUrl}/api/admin/reports/${reportId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
       
@@ -1026,7 +1026,7 @@ const Admin = () => {
       const backendUrl = process.env.REACT_APP_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL;
       const response = await fetch(`${backendUrl}/api/admin/profile`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
       
@@ -1052,7 +1052,7 @@ const Admin = () => {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify(adminProfile)
       });
@@ -1092,7 +1092,7 @@ const Admin = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({ email: otpEmail })
       });
@@ -1154,7 +1154,7 @@ const Admin = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({
           email: otpEmail,
