@@ -27,6 +27,7 @@ const Footer = () => {
             <ul className="space-y-2 text-sm">
               <li><Link to="/" className="text-gray-300 hover:text-orange-400 transition-colors">Home</Link></li>
               <li><Link to="/track-order" className="text-gray-300 hover:text-orange-400 transition-colors">Track Order</Link></li>
+              <li><Link to="/report-bug" className="text-gray-300 hover:text-orange-400 transition-colors">Report Bug</Link></li>
             </ul>
           </div>
 
