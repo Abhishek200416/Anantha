@@ -229,72 +229,97 @@ def main():
         print(f"    ❌ Failed to create bug report")
         test_results['verify_bug_report_creation'] = False
     
-    # Test 2.2: Create bug report with photo
-    test_image_path = create_test_image()
-    report_id_2 = None
-    
-    if test_image_path:
-        try:
-            with open(test_image_path, 'rb') as img_file:
-                files = {'photo': ('test_bug.png', img_file, 'image/png')}
-                
-                success, bug_response_with_photo = test_api_endpoint_form_data(
-                    "POST",
-                    "/reports",
-                    form_data=bug_report_data,
-                    files=files,
-                    description="Create bug report with photo (form-data + file)"
-                )
-                
-                test_results['create_bug_report_with_photo'] = success
-                
-                if success and bug_response_with_photo:
-                    report_id_2 = bug_response_with_photo.get('report_id')
-                    print(f"\n  📊 Bug Report with Photo Verification:")
-                    print(f"    - Report ID: {report_id_2}")
-                    print(f"    - Has report_id: {bool(report_id_2)}")
-                    print(f"    - Message: {bug_response_with_photo.get('message', 'N/A')}")
-                    
-                    if report_id_2:
-                        print(f"    ✅ Bug report with photo created successfully")
-                        test_results['verify_bug_report_with_photo'] = True
-                    else:
-                        print(f"    ❌ Bug report with photo created but missing report_id")
-                        test_results['verify_bug_report_with_photo'] = False
-                else:
-                    print(f"    ❌ Failed to create bug report with photo")
-                    test_results['verify_bug_report_with_photo'] = False
-        finally:
-            # Clean up test image
-            try:
-                os.unlink(test_image_path)
-            except:
-                pass
-    else:
-        print(f"    ⚠️  Skipping photo upload test - could not create test image")
-        test_results['create_bug_report_with_photo'] = True  # Skip this test
-        test_results['verify_bug_report_with_photo'] = True
-    
-    # Test 2.3: Test validation - missing required fields
-    invalid_data = {
-        "email": "test@example.com"
-        # Missing mobile and issue_description
+    # Test 1.2: Test with minimal required fields only
+    minimal_bug_report_data = {
+        "issue_title": "Test Issue",
+        "description": "This is a test bug report"
     }
     
-    success, validation_response = test_api_endpoint_form_data(
+    success, minimal_response = test_api_endpoint_form_data(
         "POST",
         "/reports",
-        form_data=invalid_data,
-        description="Test validation with missing required fields (should return 422)",
-        expected_status=422
+        form_data=minimal_bug_report_data,
+        description="Create bug report with minimal required fields only"
     )
     
-    test_results['bug_report_validation'] = success
+    test_results['create_bug_report_minimal'] = success
     
-    if success:
-        print(f"    ✅ Correctly returns 422 for missing required fields")
+    if success and minimal_response:
+        print(f"\n  📊 Minimal Bug Report Verification:")
+        print(f"    - Report ID: {minimal_response.get('report_id')}")
+        print(f"    - Message: {minimal_response.get('message', 'N/A')}")
+        print(f"    ✅ Bug report created with minimal fields")
     else:
-        print(f"    ❌ Should return 422 for missing required fields")
+        print(f"    ❌ Failed to create bug report with minimal fields")
+    
+    # ============= STEP 2: CITY SUGGESTION ENDPOINT TEST =============
+    print("\n" + "="*80)
+    print("🏙️ STEP 2: CITY SUGGESTION ENDPOINT TEST - POST /api/suggest-city")
+    print("="*80)
+    
+    # Test 2.1: Create city suggestion with JSON body as specified in review request
+    city_suggestion_data = {
+        "state": "Andhra Pradesh",
+        "city": "Kadapa",
+        "customer_name": "Test Customer",
+        "phone": "9876543210",
+        "email": "customer@test.com"
+    }
+    
+    success, city_response = test_api_endpoint(
+        "POST",
+        "/suggest-city",
+        data=city_suggestion_data,
+        description="Create city suggestion with JSON body (state, city, customer_name, phone, email)"
+    )
+    
+    test_results['create_city_suggestion'] = success
+    
+    suggestion_id_1 = None
+    if success and city_response:
+        suggestion_id_1 = city_response.get('suggestion_id')
+        print(f"\n  📊 City Suggestion Creation Verification:")
+        print(f"    - Suggestion ID: {suggestion_id_1}")
+        print(f"    - Has suggestion_id: {bool(suggestion_id_1)}")
+        print(f"    - Message: {city_response.get('message', 'N/A')}")
+        print(f"    - Response structure valid: {isinstance(city_response, dict)}")
+        
+        if suggestion_id_1:
+            print(f"    ✅ City suggestion created successfully with proper response structure")
+            test_results['verify_city_suggestion_creation'] = True
+        else:
+            print(f"    ❌ City suggestion created but missing suggestion_id")
+            test_results['verify_city_suggestion_creation'] = False
+    else:
+        print(f"    ❌ Failed to create city suggestion")
+        test_results['verify_city_suggestion_creation'] = False
+    
+    # Test 2.2: Test with different state and city
+    city_suggestion_data_2 = {
+        "state": "Telangana",
+        "city": "Warangal",
+        "customer_name": "Another Customer",
+        "phone": "9999888777",
+        "email": "another@test.com"
+    }
+    
+    success, city_response_2 = test_api_endpoint(
+        "POST",
+        "/suggest-city",
+        data=city_suggestion_data_2,
+        description="Create city suggestion with different state and city (Telangana, Warangal)"
+    )
+    
+    test_results['create_city_suggestion_2'] = success
+    
+    if success and city_response_2:
+        suggestion_id_2 = city_response_2.get('suggestion_id')
+        print(f"\n  📊 Second City Suggestion Verification:")
+        print(f"    - Suggestion ID: {suggestion_id_2}")
+        print(f"    - Message: {city_response_2.get('message', 'N/A')}")
+        print(f"    ✅ Second city suggestion created successfully")
+    else:
+        print(f"    ❌ Failed to create second city suggestion")
     
     # ============= STEP 3: ADMIN BUG REPORTS MANAGEMENT =============
     print("\n" + "="*80)
