@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
 Backend API Testing Script for Anantha Lakshmi Food Delivery App
-COMPREHENSIVE BUG REPORTING FLOW TEST
-Tests the complete bug reporting flow from submission to admin viewing:
-1. Bug report submission (POST /api/reports)
-2. Admin login (POST /api/auth/admin-login) 
-3. Admin fetch bug reports (GET /api/admin/reports)
-4. Update report status (PUT /api/admin/reports/{report_id}/status)
-5. Verify complete flow: Submit report → Admin sees it in panel
+COMPREHENSIVE BACKEND API TESTING
+Tests the recent fixes as requested in review:
+1. Admin Authentication: POST /api/auth/admin-login with password 'admin123'
+2. City Suggestions API: GET /api/admin/city-suggestions 
+3. Products API: GET /api/products (verify 56 products across 7 categories)
+4. Notifications Count API: GET /api/admin/notifications/count with admin token
+5. Error Handling: Test endpoints with invalid data for proper JSON responses
 """
 
 import requests
