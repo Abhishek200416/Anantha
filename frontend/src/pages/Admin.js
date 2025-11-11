@@ -925,11 +925,28 @@ const Admin = () => {
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const tabParam = searchParams.get('tab');
+    const sectionParam = searchParams.get('section');
+    
     if (tabParam) {
       // Validate tab parameter against allowed tabs
-      const allowedTabs = ['products', 'orders', 'analytics', 'bestsellers', 'festival', 'discounts', 'settings', 'reports', 'profile'];
+      const allowedTabs = ['products', 'orders', 'analytics', 'bestsellers', 'festival', 'discounts', 'settings', 'reports', 'profile', 'delivery'];
       if (allowedTabs.includes(tabParam)) {
         setActiveTab(tabParam);
+        
+        // Auto-scroll to section after tab is set
+        if (sectionParam) {
+          setTimeout(() => {
+            const sectionElement = document.getElementById(sectionParam);
+            if (sectionElement) {
+              sectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              // Add highlight effect
+              sectionElement.classList.add('ring-4', 'ring-orange-400', 'ring-opacity-50');
+              setTimeout(() => {
+                sectionElement.classList.remove('ring-4', 'ring-orange-400', 'ring-opacity-50');
+              }, 3000);
+            }
+          }, 300);
+        }
       }
     }
   }, [location.search]);
