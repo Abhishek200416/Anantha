@@ -15,7 +15,7 @@ import os
 import tempfile
 
 # Backend URL from environment
-BACKEND_URL = "https://report-submission.preview.emergentagent.com/api"
+BACKEND_URL = "https://bugfix-response.preview.emergentagent.com/api"
 
 def test_api_endpoint(method, endpoint, headers=None, data=None, description="", expected_status=None):
     """Test a single API endpoint"""
