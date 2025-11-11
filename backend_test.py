@@ -388,12 +388,12 @@ def main():
     
     # Bug Report Endpoint
     if test_results.get('create_bug_report_form_data') and test_results.get('verify_bug_report_creation'):
-        print(f"  ✅ POST /api/reports endpoint works correctly with form-data")
+        print(f"  ✅ POST /api/report-issue endpoint works correctly with form-data")
         print(f"      - Accepts issue_title, description, name, email, phone, page fields")
         print(f"      - Returns success response with report_id")
         print(f"      - Response structure is valid")
     else:
-        print(f"  ❌ POST /api/reports endpoint failed")
+        print(f"  ❌ POST /api/report-issue endpoint failed")
     
     if test_results.get('create_bug_report_minimal'):
         print(f"  ✅ Bug report endpoint works with minimal required fields")
