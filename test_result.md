@@ -743,7 +743,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Bug Reporting Endpoint Fix & Notification Dropdown - NEEDS TESTING"
+    - "Password Change with OTP APIs - COMPLETED TESTING"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
