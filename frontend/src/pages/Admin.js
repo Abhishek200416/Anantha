@@ -785,7 +785,7 @@ const Admin = () => {
     
     try {
       const backendUrl = process.env.REACT_APP_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL;
-      const response = await fetch(`${backendUrl}/admin/reports/${reportId}`, {
+      const response = await fetch(`${backendUrl}/api/admin/reports/${reportId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
