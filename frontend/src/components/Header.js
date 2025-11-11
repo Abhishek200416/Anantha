@@ -197,6 +197,21 @@ const Header = () => {
                 </a>
               </div>
 
+              {/* Report Bug Section */}
+              <div className="space-y-1 pt-2">
+                <p className="text-xs text-gray-600 font-semibold mb-2 px-2">Help & Support</p>
+                <button
+                  onClick={() => {
+                    setShowReportBugModal(true);
+                    setMobileMenuOpen(false);
+                  }}
+                  className="flex items-center space-x-3 py-2.5 px-4 text-red-600 hover:bg-red-50 rounded-lg transition-colors w-full"
+                >
+                  <AlertCircle className="h-5 w-5" />
+                  <span className="font-medium">Report a Bug</span>
+                </button>
+              </div>
+
               {/* Install App Button */}
               {showInstallButton && (
                 <div className="pt-2">
