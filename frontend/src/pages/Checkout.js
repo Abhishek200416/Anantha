@@ -837,9 +837,14 @@ const Checkout = () => {
       return;
     }
     
-    // Calculate delivery charge for custom city
-    calculateCustomCityDelivery(customCity, customCityState || formData.state);
+    // Just set the location - no need to calculate delivery charge
+    // Admin will approve and set delivery charge later
     setFormData(prev => ({ ...prev, location: customCity }));
+    
+    toast({
+      title: "City Added",
+      description: `${customCity} has been added. Delivery charges will be updated within 5-10 minutes.`,
+    });
   };
 
   const scrollToProduct = (productId) => {
