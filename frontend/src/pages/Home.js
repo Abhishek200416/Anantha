@@ -22,9 +22,12 @@ const Home = () => {
   const [selectedPopupProduct, setSelectedPopupProduct] = useState(null);
   const [allProducts, setAllProducts] = useState([]);
   const { products: contextProducts, festivalProduct, deliveryLocations } = useAdmin();
+  const { language, changeLanguage } = useLanguage();
 
   const [detectingLocation, setDetectingLocation] = useState(false);
   const [showAddCityModal, setShowAddCityModal] = useState(false);
+
+  const t = (key) => getTranslation(language, key);
 
   // Improved location detection function
   const detectLocation = async () => {
