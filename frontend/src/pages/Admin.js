@@ -102,15 +102,18 @@ const CitySuggestionsSection = () => {
     try {
       const adminToken = localStorage.getItem('token');
       
-      // Add city to locations
-      await axios.post(
-        `${BACKEND_URL}/api/admin/locations`,
-        {
-          name: selectedSuggestion.city,
-          state: selectedSuggestion.state,
-          charge: parseFloat(approvalData.deliveryCharge),
-          free_delivery_threshold: approvalData.freeDeliveryThreshold ? parseFloat(approvalData.freeDeliveryThreshold) : null
-        },
+      // Add city to locations using PUT endpoint with query parameters
+      const params = new URLSearchParams({
+        charge: approvalData.deliveryCharge
+      });
+      
+      if (approvalData.freeDeliveryThreshold && approvalData.freeDeliveryThreshold.trim() !== '') {
+        params.append('free_delivery_threshold', approvalData.freeDeliveryThreshold);
+      }
+      
+      await axios.put(
+        `${BACKEND_URL}/api/admin/locations/${encodeURIComponent(selectedSuggestion.city)}?${params.toString()}`,
+        {},
         {
           headers: { Authorization: `Bearer ${adminToken}` }
         }
