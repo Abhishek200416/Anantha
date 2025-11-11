@@ -426,7 +426,7 @@ const CitySuggestionsSection = () => {
                     )}
                   </button>
                   <button
-                    onClick={() => handleRejectSuggestion(suggestion.id)}
+                    onClick={() => openRejectDialog(suggestion.id)}
                     disabled={processing === suggestion.id}
                     className="flex-1 px-4 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 transition-all duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed font-bold text-sm shadow-md hover:shadow-lg transform hover:scale-105"
                   >
