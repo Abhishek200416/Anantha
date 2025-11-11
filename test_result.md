@@ -737,7 +737,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Bug Report and City Suggestion Endpoints Testing - COMPLETED"
+    - "Comprehensive Bug Reporting Flow Testing - COMPLETED"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
