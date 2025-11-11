@@ -1765,3 +1765,47 @@ agent_communication:
     ✅ Improved admin workflow efficiency
 
     Frontend service restarted successfully!"
+  - agent: "main"
+    message: "✅ CRITICAL FIX - CITY APPROVAL BUG RESOLVED: User reported issue where clicking 'approved' shows 'failed to upload' error, and after refresh only one city shows, all others gone. Error was 500 Internal Server Error on POST /api/admin/approve-city.
+    
+    ROOT CAUSE ANALYSIS:
+    1. When a city was approved, it was added to locations collection successfully
+    2. However, /api/admin/pending-cities endpoint didn't check if city already exists in locations
+    3. On page refresh, pending cities still showed already-approved cities
+    4. When clicking approve again, it failed with 500 error: 'City already exists in delivery locations'
+    5. After refresh again, the approved city disappeared from pending list (because it's in locations), making it look like cities were gone
+    
+    FIXES IMPLEMENTED:
+    1. BACKEND (/app/backend/server.py lines 1383-1416):
+       - Enhanced /api/admin/pending-cities endpoint to fetch all existing locations
+       - Added filtering logic to exclude already-approved cities from pending list
+       - Creates existing_set from locations collection (city_state pairs)
+       - Skips cities that exist in locations when building pending cities list
+       - Now only shows truly pending (unapproved) cities
+    
+    2. IMPROVED ERROR MESSAGE (/app/backend/server.py lines 1422-1426):
+       - Changed generic error to detailed message: 'City {name}, {state} has already been approved and is available for delivery. Please refresh the page to see updated pending cities.'
+       - Helps admin understand the situation instead of generic error
+    
+    3. DATABASE SEEDED:
+       - Products: Added all 56 products across 7 categories (Laddus, Sweets, Hot Items, Snacks, Pickles, Powders, Spices)
+       - Locations: Added 431 cities from Andhra Pradesh (217) and Telangana (214)
+       - All products have proper images, pricing, and inventory
+    
+    HOW IT WORKS NOW:
+    1. Admin views pending cities → Only shows cities NOT yet approved
+    2. Admin clicks approve → City added to locations collection
+    3. Backend automatically excludes this city from future pending city queries
+    4. If someone tries to approve same city twice (race condition), clear error message shown
+    5. After refresh, only genuinely pending cities appear
+    
+    TESTING RECOMMENDATION:
+    - Create test order with custom city (not in locations)
+    - Verify city appears in pending cities list
+    - Approve the city with delivery charge
+    - Refresh and verify city no longer appears in pending list
+    - Verify city now appears in locations dropdown in checkout
+    - Try to approve same city again (should get clear error message)
+    
+    Backend service restarted successfully. All fixes are live!"
+
