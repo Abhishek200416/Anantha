@@ -716,6 +716,292 @@ const Admin = () => {
     setSelectedBestSellers(bestSellerIds);
   }, [products]);
 
+  // Fetch bug reports
+  const fetchBugReports = async () => {
+    setReportsLoading(true);
+    try {
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL;
+      const response = await fetch(`${backendUrl}/admin/reports`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setBugReports(data);
+      } else {
+        throw new Error('Failed to fetch reports');
+      }
+    } catch (error) {
+      console.error('Error fetching reports:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch bug reports",
+        variant: "destructive"
+      });
+    } finally {
+      setReportsLoading(false);
+    }
+  };
+
+  // Update report status
+  const updateReportStatus = async (reportId, status) => {
+    try {
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL;
+      const response = await fetch(`${backendUrl}/admin/reports/${reportId}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+        },
+        body: JSON.stringify({ status })
+      });
+      
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: "Report status updated successfully"
+        });
+        fetchBugReports();
+      } else {
+        throw new Error('Failed to update status');
+      }
+    } catch (error) {
+      console.error('Error updating status:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update report status",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Delete report
+  const deleteReport = async (reportId) => {
+    if (!window.confirm('Are you sure you want to delete this report?')) {
+      return;
+    }
+    
+    try {
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL;
+      const response = await fetch(`${backendUrl}/admin/reports/${reportId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+        }
+      });
+      
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: "Report deleted successfully"
+        });
+        fetchBugReports();
+      } else {
+        throw new Error('Failed to delete report');
+      }
+    } catch (error) {
+      console.error('Error deleting report:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete report",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Fetch admin profile
+  const fetchAdminProfile = async () => {
+    setProfileLoading(true);
+    try {
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL;
+      const response = await fetch(`${backendUrl}/admin/profile`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setAdminProfile({
+          mobile: data.mobile || '',
+          email: data.email || ''
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
+  // Update admin profile
+  const updateAdminProfile = async () => {
+    try {
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL;
+      const response = await fetch(`${backendUrl}/admin/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+        },
+        body: JSON.stringify(adminProfile)
+      });
+      
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: "Profile updated successfully"
+        });
+      } else {
+        throw new Error('Failed to update profile');
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update profile",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Send OTP for password change
+  const sendOTP = async () => {
+    if (!otpEmail) {
+      toast({
+        title: "Error",
+        description: "Please enter your email address",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL;
+      const response = await fetch(`${backendUrl}/admin/profile/send-otp`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+        },
+        body: JSON.stringify({ email: otpEmail })
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        setOtpSent(true);
+        toast({
+          title: "OTP Sent",
+          description: data.message || `OTP sent to ${otpEmail}`,
+          duration: 5000
+        });
+      } else {
+        throw new Error(data.detail || 'Failed to send OTP');
+      }
+    } catch (error) {
+      console.error('Error sending OTP:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send OTP",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Verify OTP and change password
+  const verifyOTPAndChangePassword = async () => {
+    if (!otpCode || !newPassword || !confirmPassword) {
+      toast({
+        title: "Error",
+        description: "Please fill all fields",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+      toast({
+        title: "Error",
+        description: "Passwords do not match",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (newPassword.length < 6) {
+      toast({
+        title: "Error",
+        description: "Password must be at least 6 characters",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL;
+      const response = await fetch(`${backendUrl}/admin/profile/verify-otp-change-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+        },
+        body: JSON.stringify({
+          email: otpEmail,
+          otp: otpCode,
+          new_password: newPassword
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: data.message || "Password changed successfully! Please login again.",
+          duration: 7000
+        });
+        
+        // Reset form
+        setOtpEmail('');
+        setOtpCode('');
+        setNewPassword('');
+        setConfirmPassword('');
+        setOtpSent(false);
+        
+        // Logout after 3 seconds
+        setTimeout(() => {
+          handleLogout();
+        }, 3000);
+      } else {
+        throw new Error(data.detail || 'Failed to change password');
+      }
+    } catch (error) {
+      console.error('Error changing password:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to change password",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Fetch reports when reports tab is accessed
+  React.useEffect(() => {
+    if (activeTab === 'reports' && isAuthenticated) {
+      fetchBugReports();
+    }
+  }, [activeTab, isAuthenticated]);
+
+  // Fetch profile when profile tab is accessed
+  React.useEffect(() => {
+    if (activeTab === 'profile' && isAuthenticated) {
+      fetchAdminProfile();
+    }
+  }, [activeTab, isAuthenticated]);
+
   // Fetch states when delivery tab is accessed
   React.useEffect(() => {
     if (activeTab === 'delivery' && isAuthenticated) {
