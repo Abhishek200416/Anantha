@@ -13,6 +13,10 @@ ANDHRA_PRADESH_CITIES = [
     "Markapur", "Vinukonda", "Guntakal", "Srikalahasti", "Repalle", "Amalapuram",
     "Bobbili", "Samalkot", "Tanuku", "Narasapuram", "Mangalagiri", "Ponnur",
     
+    # Cities near Guntur
+    "Nambur", "Pedakakani", "Kollipara", "Duggirala", "Gurazala", "Macherla", "Amaravathi",
+    "Prathipadu", "Phirangipuram", "Medikonduru", "Rentachintala", "Piduguralla",
+    
     # Additional Cities and Towns
     "Naidupeta", "Sullurpeta", "Nagari", "Rayachoti", "Jammalamadugu", "Atmakur",
     "Kandukur", "Venkatagiri", "Gudur", "Sullurupeta", "Srikalahasti", "Pileru",
