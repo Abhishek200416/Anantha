@@ -217,9 +217,9 @@ const AdminOrders = () => {
 
       {/* Filters */}
       <div className="bg-white rounded-xl shadow-lg p-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {/* Search */}
-          <div className="md:col-span-2">
+          <div className="md:col-span-3 lg:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Search Orders
             </label>
@@ -245,10 +245,44 @@ const AdminOrders = () => {
               onChange={(e) => setStatusFilter(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
             >
-              <option value="all">All Orders</option>
+              <option value="all">All Status</option>
               <option value="active">Active</option>
               <option value="delivered">Delivered</option>
               <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+
+          {/* State Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              State
+            </label>
+            <select
+              value={stateFilter}
+              onChange={(e) => setStateFilter(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+            >
+              <option value="all">All States</option>
+              {[...new Set(orders.map(o => o.state).filter(Boolean))].sort().map(state => (
+                <option key={state} value={state}>{state}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* City Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              City
+            </label>
+            <select
+              value={cityFilter}
+              onChange={(e) => setCityFilter(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+            >
+              <option value="all">All Cities</option>
+              {[...new Set(orders.map(o => o.city).filter(Boolean))].sort().map(city => (
+                <option key={city} value={city}>{city}</option>
+              ))}
             </select>
           </div>
 
@@ -277,12 +311,14 @@ const AdminOrders = () => {
         {/* Filter Summary */}
         <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
           <span>Showing {sortedOrders.length} of {orders.length} orders</span>
-          {(searchTerm || statusFilter !== 'all' || dateFilter.start || dateFilter.end) && (
+          {(searchTerm || statusFilter !== 'all' || dateFilter.start || dateFilter.end || cityFilter !== 'all' || stateFilter !== 'all') && (
             <button
               onClick={() => {
                 setSearchTerm('');
                 setStatusFilter('all');
                 setDateFilter({ start: '', end: '' });
+                setCityFilter('all');
+                setStateFilter('all');
               }}
               className="text-orange-600 hover:text-orange-700 font-medium"
             >
