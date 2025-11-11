@@ -130,6 +130,10 @@ class OrderCreate(BaseModel):
     total: float
     payment_method: str = "online"
     payment_sub_method: Optional[str] = None
+    is_custom_location: bool = False  # True if city is "Others"
+    custom_city: Optional[str] = None  # Custom city name entered by user
+    custom_state: Optional[str] = None  # State for custom city
+    distance_from_guntur: Optional[float] = None  # Distance in km
 
 class Order(BaseModel):
     model_config = ConfigDict(extra="ignore")
