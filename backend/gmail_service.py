@@ -389,3 +389,165 @@ async def send_city_rejection_email(to_email: str, city_data: dict, has_payment:
         logger.error(f"Failed to send city rejection email via Gmail: {str(e)}")
         return False
 
+
+async def send_order_cancellation_email(to_email: str, order_data: dict, cancellation_fee: float = 20.0):
+    """Send email notification when an order is cancelled"""
+    try:
+        if not GMAIL_EMAIL or not GMAIL_APP_PASSWORD:
+            logger.warning("Gmail credentials not configured. Email not sent.")
+            return False
+            
+        # Create message
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = f'Order Cancelled - #{order_data["order_id"]}'
+        msg['From'] = f'Anantha Home Foods <{GMAIL_EMAIL}>'
+        msg['To'] = to_email
+        
+        # Calculate refund amount
+        refund_amount = order_data.get("total", 0) - cancellation_fee if order_data.get("payment_status") == "completed" else 0
+        
+        html_content = f'''
+        <html>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+                <h2 style="color: #dc2626; text-align: center;">Order Cancelled</h2>
+                <p>Dear {order_data.get("customer_name", "Valued Customer")},</p>
+                <p>Your order <strong>#{order_data["order_id"]}</strong> has been successfully cancelled.</p>
+                
+                <div style="background-color: #fef2f2; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                    <h3 style="color: #dc2626; margin: 0;">Order Details</h3>
+                    <p style="margin-top: 15px;">
+                        <strong>Order ID:</strong> {order_data["order_id"]}<br>
+                        <strong>Tracking Code:</strong> {order_data.get("tracking_code", "N/A")}<br>
+                        <strong>Total Amount:</strong> ₹{order_data.get("total", 0)}
+                    </p>
+                </div>
+                
+                {"" if order_data.get("payment_status") != "completed" else f'''
+                <div style="background-color: #fff7ed; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                    <h3 style="color: #ea580c; margin: 0;">💰 Refund Information</h3>
+                    <p style="margin-top: 15px;">
+                        <strong>Order Total:</strong> ₹{order_data.get("total", 0)}<br>
+                        <strong>Cancellation Fee:</strong> ₹{cancellation_fee}<br>
+                        <strong>Refund Amount:</strong> ₹{refund_amount}
+                    </p>
+                    <p style="margin-top: 10px; font-style: italic;">
+                        Your refund will be processed within 2-3 business days to the original payment method.
+                    </p>
+                </div>
+                '''}
+                
+                <div style="background-color: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                    <h4 style="margin-top: 0;">📞 Need Help?</h4>
+                    <p>If you have any questions about this cancellation or would like to place a new order, please contact us:</p>
+                    <p><strong>Phone:</strong> 9985116385</p>
+                </div>
+                
+                <p style="margin-top: 30px; text-align: center;">
+                    We hope to serve you again soon!
+                </p>
+                
+                <p style="text-align: center; color: #666; margin-top: 30px; font-size: 12px;">
+                    Thank you for your understanding<br>
+                    Anantha Home Foods 💚
+                </p>
+            </div>
+        </body>
+        </html>
+        '''
+        
+        # Attach HTML content
+        html_part = MIMEText(html_content, 'html')
+        msg.attach(html_part)
+        
+        # Send email using Gmail SMTP
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+            server.login(GMAIL_EMAIL, GMAIL_APP_PASSWORD)
+            server.send_message(msg)
+        
+        logger.info(f"Order cancellation email sent successfully to {to_email} via Gmail")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Failed to send order cancellation email via Gmail: {str(e)}")
+        return False
+
+
+async def send_payment_completion_email(to_email: str, order_data: dict):
+    """Send email notification when payment is completed for a pending order"""
+    try:
+        if not GMAIL_EMAIL or not GMAIL_APP_PASSWORD:
+            logger.warning("Gmail credentials not configured. Email not sent.")
+            return False
+            
+        # Create message
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = f'Payment Received - Order #{order_data["order_id"]}'
+        msg['From'] = f'Anantha Home Foods <{GMAIL_EMAIL}>'
+        msg['To'] = to_email
+        
+        html_content = f'''
+        <html>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+                <h2 style="color: #16a34a; text-align: center;">✅ Payment Confirmed!</h2>
+                <p>Dear {order_data.get("customer_name", "Valued Customer")},</p>
+                <p>We have successfully received your payment for order <strong>#{order_data["order_id"]}</strong>.</p>
+                
+                <div style="background-color: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center;">
+                    <h3 style="color: #16a34a; margin: 0; font-size: 24px;">
+                        ✅ Payment Complete
+                    </h3>
+                    <p style="margin-top: 15px; font-size: 18px; color: #166534;">
+                        <strong>₹{order_data.get("total", 0)}</strong>
+                    </p>
+                </div>
+                
+                <div style="background-color: #fff7ed; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                    <h3 style="color: #ea580c; margin: 0;">📦 Order Status</h3>
+                    <p style="margin-top: 15px;">
+                        <strong>Order ID:</strong> {order_data["order_id"]}<br>
+                        <strong>Tracking Code:</strong> {order_data.get("tracking_code", "N/A")}<br>
+                        <strong>Status:</strong> Confirmed
+                    </p>
+                    <p style="margin-top: 10px; color: #9a3412;">
+                        Your order is now confirmed and will be processed for delivery!
+                    </p>
+                </div>
+                
+                <div style="background-color: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                    <h4 style="margin-top: 0;">📍 Track Your Order</h4>
+                    <p>You can track your order anytime using:</p>
+                    <ul>
+                        <li>Your phone number: {order_data.get("phone", "")}</li>
+                        <li>Tracking code: {order_data.get("tracking_code", "N/A")}</li>
+                    </ul>
+                </div>
+                
+                <p style="margin-top: 20px;">If you have any questions, feel free to contact us at <strong>9985116385</strong></p>
+                
+                <p style="text-align: center; color: #666; margin-top: 30px; font-size: 12px;">
+                    Thank you for your order!<br>
+                    Anantha Home Foods 💚
+                </p>
+            </div>
+        </body>
+        </html>
+        '''
+        
+        # Attach HTML content
+        html_part = MIMEText(html_content, 'html')
+        msg.attach(html_part)
+        
+        # Send email using Gmail SMTP
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+            server.login(GMAIL_EMAIL, GMAIL_APP_PASSWORD)
+            server.send_message(msg)
+        
+        logger.info(f"Payment completion email sent successfully to {to_email} via Gmail")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Failed to send payment completion email via Gmail: {str(e)}")
+        return False
+
