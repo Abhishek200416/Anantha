@@ -1160,6 +1160,128 @@ async def cancel_order(order_id: str, data: dict, current_user: dict = Depends(g
     
     return {"message": "Order cancelled successfully"}
 
+@api_router.post("/orders/{order_id}/cancel-customer")
+async def cancel_order_customer(order_id: str, data: dict):
+    """Cancel order by customer (20-minute window, ₹20 fee)"""
+    try:
+        # Get the order
+        order = await db.orders.find_one({"order_id": order_id}, {"_id": 0})
+        if not order:
+            raise HTTPException(status_code=404, detail="Order not found")
+        
+        # Check if already cancelled
+        if order.get("cancelled", False):
+            raise HTTPException(status_code=400, detail="Order is already cancelled")
+        
+        # Check if order status allows cancellation
+        if order.get("order_status") in ["delivered", "shipped"]:
+            raise HTTPException(status_code=400, detail="Cannot cancel order that is already delivered or shipped")
+        
+        # Check 20-minute window
+        created_at = order.get("created_at")
+        if isinstance(created_at, str):
+            created_at = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+        
+        time_diff = datetime.now(timezone.utc) - created_at
+        minutes_passed = time_diff.total_seconds() / 60
+        
+        if minutes_passed > 20:
+            raise HTTPException(
+                status_code=400, 
+                detail="Cancellation window expired. Orders can only be cancelled within 20 minutes of placement."
+            )
+        
+        cancel_reason = data.get("cancel_reason", "Customer requested cancellation")
+        
+        # Update order with cancellation info
+        result = await db.orders.update_one(
+            {"order_id": order_id},
+            {"$set": {
+                "cancelled": True,
+                "cancelled_at": datetime.now(timezone.utc),
+                "cancel_reason": cancel_reason,
+                "order_status": "cancelled",
+                "cancellation_fee": 20.0
+            }}
+        )
+        
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Order not found")
+        
+        # Send cancellation email
+        if order.get("email"):
+            try:
+                # Import email function if needed
+                from gmail_service import send_order_cancellation_email
+                await send_order_cancellation_email(order["email"], order, cancellation_fee=20.0)
+            except Exception as e:
+                logger.error(f"Failed to send cancellation email: {str(e)}")
+        
+        return {
+            "message": "Order cancelled successfully",
+            "cancellation_fee": 20.0,
+            "refund_amount": order.get("total", 0) - 20.0 if order.get("payment_status") == "completed" else 0
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error cancelling order: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to cancel order: {str(e)}")
+
+@api_router.post("/orders/{order_id}/complete-payment")
+async def complete_payment(order_id: str, data: dict):
+    """Complete payment for pending orders (for custom city requests after approval)"""
+    try:
+        # Get the order
+        order = await db.orders.find_one({"order_id": order_id}, {"_id": 0})
+        if not order:
+            raise HTTPException(status_code=404, detail="Order not found")
+        
+        # Check if order is cancelled
+        if order.get("cancelled", False):
+            raise HTTPException(status_code=400, detail="Cannot complete payment for cancelled order")
+        
+        # Check if payment is already completed
+        if order.get("payment_status") == "completed":
+            raise HTTPException(status_code=400, detail="Payment is already completed")
+        
+        # Get payment details from request
+        payment_method = data.get("payment_method", order.get("payment_method", "online"))
+        payment_sub_method = data.get("payment_sub_method", order.get("payment_sub_method"))
+        
+        # Update order with payment completion
+        result = await db.orders.update_one(
+            {"order_id": order_id},
+            {"$set": {
+                "payment_status": "completed",
+                "payment_method": payment_method,
+                "payment_sub_method": payment_sub_method,
+                "order_status": "confirmed"
+            }}
+        )
+        
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Order not found")
+        
+        # Send payment confirmation email
+        if order.get("email"):
+            try:
+                from gmail_service import send_payment_completion_email
+                await send_payment_completion_email(order["email"], order)
+            except Exception as e:
+                logger.error(f"Failed to send payment completion email: {str(e)}")
+        
+        return {
+            "message": "Payment completed successfully",
+            "order_status": "confirmed",
+            "tracking_code": order.get("tracking_code")
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error completing payment: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to complete payment: {str(e)}")
+
 @api_router.put("/orders/{order_id}/admin-update")
 async def update_order_admin_fields(order_id: str, data: dict, current_user: dict = Depends(get_current_user)):
     """Update admin fields like notes and delivery days"""
