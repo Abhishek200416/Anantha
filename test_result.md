@@ -894,6 +894,80 @@ agent_communication:
     
     CONCLUSION: Bug reporting system is fully functional and production-ready. Both user issues have been resolved - mobile menu now has 'Report a Bug' option and admin panel correctly displays all submitted bug reports."
   - agent: "main"
+    message: "✅ CRITICAL FIXES - BUG REPORTS NOT SHOWING & NOTIFICATION DROPDOWN IMPLEMENTATION:
+    
+    USER ISSUES REPORTED:
+    1. Bug reports submitted from mobile/desktop not appearing in Admin Reports tab
+    2. Notification bell icon should show a dropdown menu with all notifications, but just redirects to admin
+    
+    ROOT CAUSE ANALYSIS:
+    1. BUG REPORTS ENDPOINT MISMATCH:
+       - ReportBugModal.js was submitting to /api/report-issue endpoint (line 64)
+       - This endpoint saves to 'db.issue_reports' collection (server.py line 2065)
+       - Admin panel fetches from /api/admin/reports endpoint
+       - This endpoint reads from 'db.bug_reports' collection (server.py line 1594)
+       - Result: Reports going to WRONG database collection, admin couldn't see them!
+    
+    2. NOTIFICATION BELL MISSING DROPDOWN:
+       - NotificationBell.js only had redirect functionality (navigate to /admin)
+       - No dropdown UI component existed to show notifications
+       - User expected popup menu with notification details
+    
+    FIXES IMPLEMENTED:
+    
+    1. FIXED BUG REPORT SUBMISSION (/app/frontend/src/components/ReportBugModal.js lines 52-68):
+       ✅ Changed endpoint from /api/report-issue to /api/reports
+       ✅ Updated form data to match /api/reports expected fields:
+          - email (required, fallback: 'no-email@provided.com')
+          - mobile (required, fallback: '0000000000')
+          - issue_description (combines issueTitle + description)
+       ✅ Changed photo field name from 'screenshot' to 'photo' to match backend
+       ✅ Now saves to correct 'bug_reports' collection that admin panel reads from
+    
+    2. IMPLEMENTED NOTIFICATION DROPDOWN (/app/frontend/src/components/NotificationBell.js):
+       ✅ Added dropdown state and UI component (lines 13-14)
+       ✅ Created beautiful dropdown with:
+          - Header with close button
+          - Categorized notifications (Bug Reports, City Suggestions, New Orders)
+          - Each notification shows icon, count badge, and description
+          - Color-coded by type (red for bugs, blue for cities, green for orders)
+          - Click notification to navigate to specific admin tab
+          - 'View All' button at bottom
+          - Click outside to close (useRef + event listener)
+       ✅ Notifications update every 5 seconds automatically
+       ✅ Dropdown positioned absolutely below bell icon
+       ✅ Shows 'No new notifications' when empty
+       ✅ Responsive design with proper sizing (w-80 md:w-96)
+    
+    HOW IT WORKS NOW:
+    
+    USER SUBMITS BUG REPORT:
+    1. Clicks 'Report a Bug' from mobile menu or desktop button
+    2. Fills form: Email, Mobile, Issue Description, Optional Photo
+    3. Submits → Goes to /api/reports → Saved to bug_reports collection
+    4. Status automatically set to 'New'
+    
+    ADMIN VIEWS NOTIFICATIONS:
+    1. Bell icon shows red badge with count when new notifications exist
+    2. Clicks bell icon → Dropdown menu appears
+    3. Sees categorized notifications:
+       - '5 new bug reports to review' (red, with bug icon)
+       - '3 new city suggestions' (blue, with map icon)
+       - '12 new orders to process' (green, with shopping bag icon)
+    4. Clicks any notification → Navigates to relevant admin tab
+    5. Or clicks 'View All in Admin Panel' → Goes to admin home
+    
+    ADMIN VIEWS BUG REPORTS:
+    1. Goes to Admin Panel → Reports tab
+    2. Sees table with ALL submitted bug reports including:
+       - Date/Time, Email, Mobile, Issue Description
+       - Photo link (if uploaded)
+       - Status dropdown (New/In Progress/Resolved)
+       - Delete button
+    3. Can update status, delete resolved reports, refresh list
+    
+    Both services restarted successfully. Bug reporting flow now works end-to-end!"
+  - agent: "main"
     message: "🔧 FIXED ADMIN ORDERS ISSUE & DUPLICATE KEY WARNINGS: User reported orders not showing in admin panel after placing orders + console errors. Root Causes Identified: 1) ADMIN LOGIN: AdminContext login function was only checking password locally without calling backend /api/auth/admin-login to get JWT token. This caused 502/401 errors when AdminOrders component tried to fetch orders because no valid token was present. 2) NO ORDERS IN DATABASE: Database check confirmed 0 orders exist, so admin panel correctly shows empty state. 3) DUPLICATE REACT KEYS: Cities with same names in different states (e.g., Amalapuram in both AP and Telangana) were causing duplicate key warnings in Checkout.js line 545. FIXES APPLIED: 1) Updated AdminContext login() to call backend API and store JWT token properly, 2) Updated Admin.js handleLogin() to use the context login function which now handles backend authentication, 3) Updated logout() to clear all auth tokens, 4) Fixed duplicate keys in Checkout.js by using unique key format: `${state}-${city}-${index}`. Ready for testing: User needs to login as admin (password: admin123), place an order through checkout, then verify it appears in admin orders tab."
   - agent: "main"
     message: "✅ FIXED DISCOUNT/INVENTORY 404 ERRORS: User reported errors when trying to add discounts (404 for product ID '2'). Root cause: AdminContext was falling back to mock products with numeric IDs (1, 2, 3) when database was empty. These mock IDs don't exist in backend, causing 404 errors. Fixed: Removed fallback to mock products in AdminContext.js fetchProducts() function. Now admin panel only shows real products from database. Since database is currently empty, admin panel will show 'No products available' until user adds new products. New products will have proper UUID format (product_xxxxx) and will work correctly with all backend APIs (discounts, inventory, etc.)."
