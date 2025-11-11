@@ -133,10 +133,10 @@ const Header = () => {
                 <button
                   onClick={handleInstallClick}
                   className="hidden md:flex items-center space-x-2 bg-purple-500 text-white px-3 py-2 rounded-full hover:bg-purple-600 transition-colors"
-                  title="Install App"
+                  title={t('install')}
                 >
                   <Download className="h-4 w-4" />
-                  <span className="text-sm font-medium">Install</span>
+                  <span className="text-sm font-medium">{t('install')}</span>
                 </button>
               )}
 
