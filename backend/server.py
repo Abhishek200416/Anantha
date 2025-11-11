@@ -444,8 +444,8 @@ async def get_saved_user_details(identifier: str):
 # ============= PRODUCTS APIS =============
 
 @api_router.get("/products")
-async def get_products(city: Optional[str] = None):
-    """Get all products with discount calculation, optionally filtered by city availability"""
+async def get_products(city: Optional[str] = None, state: Optional[str] = None):
+    """Get all products with discount calculation, optionally filtered by city/state availability"""
     # Build query filter
     query_filter = {}
     if city:
@@ -455,6 +455,17 @@ async def get_products(city: Optional[str] = None):
                 {"available_cities": None},
                 {"available_cities": []},
                 {"available_cities": city}
+            ]
+        }
+    elif state:
+        # Filter products by state - get all cities in that state and filter
+        state_cities = await db.locations.find({"state": state}, {"name": 1, "_id": 0}).to_list(1000)
+        city_names = [city_doc["name"] for city_doc in state_cities]
+        query_filter = {
+            "$or": [
+                {"available_cities": None},
+                {"available_cities": []},
+                {"available_cities": {"$in": city_names}}
             ]
         }
     
