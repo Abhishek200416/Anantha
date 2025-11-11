@@ -202,6 +202,50 @@ const CitySuggestionsSection = () => {
     }
   };
 
+  const handleDeleteSuggestion = async (suggestionId, suggestionStatus) => {
+    // Only allow deleting approved or rejected suggestions (not pending)
+    if (suggestionStatus === 'pending') {
+      toast({
+        title: "Cannot Delete",
+        description: "Please approve or reject the suggestion first before deleting",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!window.confirm('Are you sure you want to delete this city suggestion? This action cannot be undone.')) {
+      return;
+    }
+
+    setProcessing(suggestionId);
+    try {
+      const adminToken = localStorage.getItem('token');
+      
+      await axios.delete(
+        `${BACKEND_URL}/api/admin/city-suggestions/${suggestionId}`,
+        {
+          headers: { Authorization: `Bearer ${adminToken}` }
+        }
+      );
+
+      toast({
+        title: "Deleted",
+        description: "City suggestion deleted successfully"
+      });
+
+      fetchCitySuggestions();
+    } catch (error) {
+      console.error('Failed to delete city suggestion:', error);
+      toast({
+        title: "Error",
+        description: formatErrorMessage(error) || "Failed to delete city suggestion",
+        variant: "destructive"
+      });
+    } finally {
+      setProcessing(null);
+    }
+  };
+
   // Status badge color helper
   const getStatusBadgeClass = (status) => {
     switch(status) {
