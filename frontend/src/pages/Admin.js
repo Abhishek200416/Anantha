@@ -1348,29 +1348,30 @@ const Admin = () => {
         })
       });
       
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to change password');
+      }
+      
       const data = await response.json();
       
-      if (response.ok) {
-        toast({
-          title: "Success",
-          description: data.message || "Password changed successfully! Please login again.",
-          duration: 7000
-        });
-        
-        // Reset form
-        setOtpEmail('');
-        setOtpCode('');
-        setNewPassword('');
-        setConfirmPassword('');
-        setOtpSent(false);
-        
-        // Logout after 3 seconds
-        setTimeout(() => {
-          handleLogout();
-        }, 3000);
-      } else {
-        throw new Error(data.detail || 'Failed to change password');
-      }
+      toast({
+        title: "Success",
+        description: data.message || "Password changed successfully! Please login again.",
+        duration: 7000
+      });
+      
+      // Reset form
+      setOtpEmail('');
+      setOtpCode('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setOtpSent(false);
+      
+      // Logout after 3 seconds
+      setTimeout(() => {
+        handleLogout();
+      }, 3000);
     } catch (error) {
       console.error('Error changing password:', error);
       toast({
