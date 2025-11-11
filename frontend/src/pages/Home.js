@@ -222,12 +222,48 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-red-50">
       {/* Hero Section */}
-      <section className="relative py-20 px-4 overflow-hidden">
+      <section className="relative py-8 md:py-20 px-4 overflow-hidden">
         <div className="container mx-auto text-center">
-          <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent mb-6" style={{ fontFamily: "'Poppins', sans-serif" }}>
-            Welcome to Anantha Home Foods
+          {/* Language Selector - Mobile Only (Above Hero Title) */}
+          <div className="md:hidden flex justify-end mb-6">
+            <div className="inline-flex items-center space-x-2 bg-white rounded-full p-1 shadow-lg border-2 border-orange-200">
+              <button
+                onClick={() => changeLanguage('en')}
+                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                  language === 'en' 
+                    ? 'bg-orange-500 text-white shadow-md' 
+                    : 'text-gray-600'
+                }`}
+              >
+                EN
+              </button>
+              <button
+                onClick={() => changeLanguage('te')}
+                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                  language === 'te' 
+                    ? 'bg-orange-500 text-white shadow-md' 
+                    : 'text-gray-600'
+                }`}
+              >
+                TE
+              </button>
+              <button
+                onClick={() => changeLanguage('hi')}
+                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                  language === 'hi' 
+                    ? 'bg-orange-500 text-white shadow-md' 
+                    : 'text-gray-600'
+                }`}
+              >
+                HI
+              </button>
+            </div>
+          </div>
+
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent mb-6" style={{ fontFamily: "'Poppins', sans-serif" }}>
+            {t('heroTitle')}
           </h1>
-          <p className="text-xl text-gray-600 mb-8">Discover premium quality products delivered to your doorstep</p>
+          <p className="text-lg md:text-xl text-gray-600 mb-8">{t('heroSubtitle')}</p>
         </div>
       </section>
 
