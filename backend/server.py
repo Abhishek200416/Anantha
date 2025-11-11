@@ -1783,14 +1783,22 @@ async def delete_report(
 # ============= CITY SUGGESTION ENDPOINTS =============
 
 @api_router.get("/admin/city-suggestions")
-async def get_city_suggestions(current_user: dict = Depends(get_current_user)):
-    """Get all pending city suggestions (admin only)"""
+async def get_city_suggestions(
+    status: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get city suggestions with optional status filter (admin only)"""
     try:
         if not current_user.get("is_admin"):
             raise HTTPException(status_code=403, detail="Admin access required")
         
+        # Build query filter
+        query = {}
+        if status and status in ["pending", "approved", "rejected"]:
+            query["status"] = status
+        
         suggestions = await db.city_suggestions.find(
-            {"status": "pending"}, 
+            query, 
             {"_id": 0}
         ).sort("created_at", -1).to_list(length=None)
         
@@ -1798,6 +1806,8 @@ async def get_city_suggestions(current_user: dict = Depends(get_current_user)):
         for suggestion in suggestions:
             if isinstance(suggestion.get("created_at"), datetime):
                 suggestion["created_at"] = suggestion["created_at"].isoformat()
+            if isinstance(suggestion.get("updated_at"), datetime):
+                suggestion["updated_at"] = suggestion["updated_at"].isoformat()
         
         return suggestions
     except HTTPException:
