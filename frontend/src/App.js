@@ -40,6 +40,7 @@ function App() {
                 <Route path="/track-order" element={<TrackOrder />} />
                 <Route path="/order-confirmation/:orderId" element={<OrderConfirmation />} />
                 <Route path="/admin" element={<Admin />} />
+                <Route path="/report-bug" element={<ReportBug />} />
               </Routes>
               <Footer />
               <Toaster />
