@@ -202,6 +202,20 @@ const CitySuggestionsSection = () => {
     }
   };
 
+  // Status badge color helper
+  const getStatusBadgeClass = (status) => {
+    switch(status) {
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+      case 'approved':
+        return 'bg-green-100 text-green-800 border-green-300';
+      case 'rejected':
+        return 'bg-red-100 text-red-800 border-red-300';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-300';
+    }
+  };
+
   if (loading) {
     return (
       <div className="text-center py-8">
@@ -211,33 +225,79 @@ const CitySuggestionsSection = () => {
     );
   }
 
-  if (citySuggestions.length === 0) {
-    return (
-      <div className="text-center py-8 text-gray-500">
-        <MapPin className="h-12 w-12 mx-auto mb-3 opacity-50" />
-        <p className="font-semibold">No Pending City Suggestions</p>
-        <p className="text-sm mt-2">When customers suggest new cities, they'll appear here for review</p>
-      </div>
-    );
-  }
-
   return (
     <>
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {citySuggestions.map((suggestion) => (
-          <div key={suggestion.id} className="bg-white border-2 border-orange-200 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
-            {/* Header with gradient */}
-            <div className="bg-gradient-to-r from-orange-500 to-red-500 p-4 text-white">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <MapPin className="h-6 w-6" />
-                  <div>
-                    <h3 className="font-bold text-lg">{suggestion.city}</h3>
-                    <p className="text-xs text-orange-100">{suggestion.state}</p>
+      {/* Filter Buttons */}
+      <div className="mb-6 flex flex-wrap gap-3">
+        <button
+          onClick={() => setStatusFilter('all')}
+          className={`px-4 py-2 rounded-lg font-medium transition-all ${
+            statusFilter === 'all' 
+              ? 'bg-orange-600 text-white shadow-md' 
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          All ({citySuggestions.length})
+        </button>
+        <button
+          onClick={() => setStatusFilter('pending')}
+          className={`px-4 py-2 rounded-lg font-medium transition-all ${
+            statusFilter === 'pending' 
+              ? 'bg-yellow-500 text-white shadow-md' 
+              : 'bg-yellow-50 text-yellow-700 hover:bg-yellow-100'
+          }`}
+        >
+          Pending
+        </button>
+        <button
+          onClick={() => setStatusFilter('approved')}
+          className={`px-4 py-2 rounded-lg font-medium transition-all ${
+            statusFilter === 'approved' 
+              ? 'bg-green-600 text-white shadow-md' 
+              : 'bg-green-50 text-green-700 hover:bg-green-100'
+          }`}
+        >
+          Approved
+        </button>
+        <button
+          onClick={() => setStatusFilter('rejected')}
+          className={`px-4 py-2 rounded-lg font-medium transition-all ${
+            statusFilter === 'rejected' 
+              ? 'bg-red-600 text-white shadow-md' 
+              : 'bg-red-50 text-red-700 hover:bg-red-100'
+          }`}
+        >
+          Rejected
+        </button>
+      </div>
+
+      {citySuggestions.length === 0 ? (
+        <div className="text-center py-8 text-gray-500">
+          <MapPin className="h-12 w-12 mx-auto mb-3 opacity-50" />
+          <p className="font-semibold">No City Suggestions Found</p>
+          <p className="text-sm mt-2">
+            {statusFilter === 'all' 
+              ? "When customers suggest new cities, they'll appear here for review"
+              : `No ${statusFilter} city suggestions at the moment`
+            }
+          </p>
+        </div>
+      ) : (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {citySuggestions.map((suggestion) => (
+            <div key={suggestion.id} className="bg-white border-2 border-orange-200 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
+              {/* Header with gradient */}
+              <div className="bg-gradient-to-r from-orange-500 to-red-500 p-4 text-white">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <MapPin className="h-6 w-6" />
+                    <div>
+                      <h3 className="font-bold text-lg">{suggestion.city}</h3>
+                      <p className="text-xs text-orange-100">{suggestion.state}</p>
+                    </div>
                   </div>
-                </div>
-                <span className="bg-white text-orange-600 text-xs font-bold px-3 py-1 rounded-full">
-                  NEW
+                  <span className={`text-xs font-bold px-3 py-1 rounded-full border ${getStatusBadgeClass(suggestion.status)}`}>
+                    {suggestion.status ? suggestion.status.toUpperCase() : 'PENDING'}
                 </span>
               </div>
             </div>
