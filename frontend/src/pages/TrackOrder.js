@@ -99,14 +99,16 @@ const TrackOrder = () => {
 
   const handleCancelOrder = async (cancelReason) => {
     try {
-      await axios.put(
-        `${API}/orders/${order.order_id}/cancel`,
+      // Use customer cancellation endpoint
+      await axios.post(
+        `${API}/orders/${order.order_id}/cancel-customer`,
         { cancel_reason: cancelReason }
       );
 
       toast({
-        title: "Cancellation Request Submitted",
-        description: "Your order cancellation request has been submitted successfully. We'll process it shortly.",
+        title: "Order Cancelled Successfully",
+        description: "Your order has been cancelled. Cancellation fee of ₹20 will be deducted if payment was made. Refund will be processed within 2-3 business days.",
+        duration: 8000
       });
 
       // Refresh order data
@@ -115,17 +117,75 @@ const TrackOrder = () => {
     } catch (error) {
       console.error('Cancel order error:', error);
       toast({
-        title: "Error",
-        description: error.response?.data?.detail || "Failed to cancel order. Please try again.",
-        variant: "destructive"
+        title: "Cancellation Failed",
+        description: error.response?.data?.detail || "Failed to cancel order. Please try again or contact support.",
+        variant: "destructive",
+        duration: 6000
       });
     }
   };
 
   const canCancelOrder = (order) => {
     if (!order) return false;
+    if (order.cancelled) return false;
+    
+    // Check if order is within 20-minute cancellation window
+    const orderTime = new Date(order.created_at);
+    const now = new Date();
+    const minutesPassed = (now - orderTime) / (1000 * 60);
+    
     const cancelableStatuses = ['confirmed', 'pending'];
-    return !order.cancelled && cancelableStatuses.includes(order.status?.toLowerCase());
+    return minutesPassed <= 20 && cancelableStatuses.includes(order.order_status?.toLowerCase());
+  };
+
+  const getRemainingCancellationTime = (order) => {
+    if (!order) return null;
+    const orderTime = new Date(order.created_at);
+    const now = new Date();
+    const minutesPassed = (now - orderTime) / (1000 * 60);
+    const minutesRemaining = Math.max(0, 20 - minutesPassed);
+    return Math.ceil(minutesRemaining);
+  };
+
+  const canCompletePayment = (order) => {
+    if (!order) return false;
+    return order.payment_status === 'pending' && 
+           order.order_status === 'confirmed' && 
+           !order.cancelled;
+  };
+
+  const handleCompletePayment = async () => {
+    try {
+      // Show payment method selection (in a real app, this would open payment gateway)
+      const paymentMethod = 'online';
+      const paymentSubMethod = 'upi'; // Default to UPI
+      
+      const response = await axios.post(
+        `${API}/orders/${order.order_id}/complete-payment`,
+        { 
+          payment_method: paymentMethod,
+          payment_sub_method: paymentSubMethod
+        }
+      );
+
+      toast({
+        title: "Payment Completed",
+        description: "Your payment has been recorded successfully! Your order is now confirmed.",
+        duration: 6000
+      });
+
+      // Refresh order data
+      const updatedOrder = await axios.get(`${API}/orders/track/${searchTerm.trim()}`);
+      setOrder(updatedOrder.data);
+    } catch (error) {
+      console.error('Payment error:', error);
+      toast({
+        title: "Payment Failed",
+        description: error.response?.data?.detail || "Failed to complete payment. Please try again.",
+        variant: "destructive",
+        duration: 6000
+      });
+    }
   };
 
   return (
