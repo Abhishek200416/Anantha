@@ -284,16 +284,31 @@ const NotificationBell = () => {
                       <div
                         style={{
                           transform: `translateX(${offset}px)`,
-                          transition: touchStart ? 'none' : 'transform 0.3s ease'
+                          transition: touchStart ? 'none' : 'transform 0.3s ease',
+                          cursor: 'grab'
                         }}
-                        onTouchStart={(e) => handleTouchStart(e, notification.type)}
-                        onTouchMove={(e) => handleTouchMove(e, notification.type)}
-                        onTouchEnd={() => handleTouchEnd(notification)}
-                        className="relative bg-white"
+                        onTouchStart={(e) => {
+                          e.stopPropagation();
+                          handleTouchStart(e, notification.type);
+                        }}
+                        onTouchMove={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          handleTouchMove(e, notification.type);
+                        }}
+                        onTouchEnd={(e) => {
+                          e.stopPropagation();
+                          handleTouchEnd(notification);
+                        }}
+                        onClick={(e) => {
+                          // Only navigate if not swiping
+                          if (Math.abs(offset) < 5) {
+                            handleNotificationClick(notification);
+                          }
+                        }}
+                        className="relative bg-white touch-pan-y"
                       >
-                        <button
-                          onClick={() => handleNotificationClick(notification)}
-                          className="w-full p-4 hover:bg-gray-50 transition-colors text-left"
+                        <div className="w-full p-4 hover:bg-gray-50 transition-colors text-left"
                         >
                           <div className="flex items-start gap-3">
                             <div className={`flex-shrink-0 ${notification.bgColor} rounded-full p-2`}>
