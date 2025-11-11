@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { toast } from '../hooks/use-toast';
 import axios from 'axios';
+import CancelOrderModal from './CancelOrderModal';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
 const API = `${BACKEND_URL}/api`;
@@ -25,6 +26,8 @@ const AdminOrders = () => {
   const [editingOrder, setEditingOrder] = useState(null);
   const [editData, setEditData] = useState({});
   const [loading, setLoading] = useState(true);
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [orderToCancel, setOrderToCancel] = useState(null);
 
   useEffect(() => {
     fetchOrders();
