@@ -1659,3 +1659,109 @@ agent_communication:
     6. Verify count updates immediately
 
     All services restarted successfully!"
+  - agent: "main"
+    message: "✅ PENDING CITIES APPROVAL MODAL - BEAUTIFUL UI IMPLEMENTED:
+
+    USER REQUIREMENT:
+    Replace the basic prompt() dialogs in 'Pending Cities from Orders' section with a professional, responsive modal that shows:
+    1. City and State information
+    2. Delivery charge input field
+    3. Free delivery threshold input field
+    4. Must work on both PC and mobile
+    5. Should look neat and professional
+
+    IMPLEMENTATION (/app/frontend/src/pages/Admin.js - PendingCitiesSection):
+
+    1. **MODAL STATE MANAGEMENT**:
+       - Added showApproveModal state to control modal visibility
+       - Added selectedCity state to store city being approved
+       - Added approvalForm state with deliveryCharge and freeDeliveryThreshold fields
+       - Created openApprovalModal() function to open modal with pre-filled data
+       - Created closeApprovalModal() function to reset and close modal
+
+    2. **BEAUTIFUL MODAL DESIGN**:
+       - **Header Section**: 
+         * Gradient background (orange to red)
+         * City name and 'Set delivery charges' subtitle
+         * Close button (X) in top right corner
+       
+       - **City Information Card**:
+         * Gradient background (orange-50 to yellow-50)
+         * Orange circular icon with MapPin
+         * City name in large bold text
+         * State name below city
+         * Grid layout showing:
+           - Distance (km from Guntur)
+           - Number of orders
+           - Suggested charge (highlighted in orange)
+       
+       - **Delivery Charge Input**:
+         * Label with required asterisk (*)
+         * Input field with ₹ prefix icon
+         * Large, easy-to-read text
+         * Focus states with orange border
+         * Helper text showing suggested charge
+       
+       - **Free Delivery Threshold Input**:
+         * Label with (Optional) tag
+         * Input field with ₹ prefix icon
+         * Helper text explaining purpose
+         * Step value of 100 for easy increments
+       
+       - **Preview Card**:
+         * Shows when delivery charge is entered
+         * Blue background for differentiation
+         * Displays: 'Delivery to {City}: ₹{charge}'
+         * Shows free delivery threshold if set
+       
+       - **Footer Buttons**:
+         * Cancel button: Gray border, hover effect
+         * Approve button: Gradient (orange to red), shadow
+         * Responsive: Stack vertically on mobile, side-by-side on desktop
+         * Disabled states when submitting
+
+    3. **VALIDATION & UX**:
+       - Delivery charge is required (validated before submission)
+       - Free delivery threshold is optional
+       - Shows loading state 'Approving...' during submission
+       - Toast notifications for success/error
+       - Modal closes automatically on success
+       - Refreshes pending cities list after approval
+
+    4. **RESPONSIVE DESIGN**:
+       - Modal: max-w-md (medium width) on desktop
+       - Full width with padding on mobile
+       - max-h-[90vh] to prevent overflow on small screens
+       - Scrollable content area if needed
+       - Grid layouts adapt to screen size
+       - Buttons stack vertically on mobile (flex-col sm:flex-row)
+       - Input fields take full width on all devices
+
+    5. **VISUAL ENHANCEMENTS**:
+       - Gradient backgrounds (orange/yellow/red themes)
+       - Rounded corners (rounded-2xl for modern look)
+       - Shadow effects (shadow-2xl on modal)
+       - Transition animations on all interactive elements
+       - Icon integration (MapPin with colored backgrounds)
+       - Color-coded sections (orange for charges, blue for preview)
+       - Emoji icons for better visual communication
+
+    TECHNICAL DETAILS:
+    - Fixed overlay with z-50 to ensure modal appears on top
+    - Black background with 50% opacity for focus
+    - Center alignment with flexbox (items-center justify-center)
+    - Proper form state management with controlled inputs
+    - Input type='number' with min/max/step attributes
+    - Disabled state handling for buttons during submission
+    - Auto-focus on delivery charge input when modal opens
+
+    BENEFITS:
+    ✅ Professional, modern UI matching app design
+    ✅ Clear visual hierarchy and information display
+    ✅ Easy to use on both desktop and mobile
+    ✅ No more ugly browser prompt() dialogs
+    ✅ Better validation and error handling
+    ✅ Live preview of settings before approval
+    ✅ Improved admin workflow efficiency
+
+    Frontend service restarted successfully!"
