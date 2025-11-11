@@ -65,7 +65,7 @@ const CustomCityModal = ({ isOpen, onClose, onSubmit, selectedState }) => {
         </div>
 
         {/* Body */}
-        <div className="p-6 space-y-5">
+        <div className="p-6 space-y-5 overflow-y-auto">
           {/* Info Card */}
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-4 space-y-3">
             <div className="flex items-start gap-3">
