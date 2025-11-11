@@ -44,7 +44,7 @@ const NotificationBell = () => {
       const backendUrl = process.env.REACT_APP_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL;
       const response = await fetch(`${backendUrl}/api/admin/notifications/count`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
       
