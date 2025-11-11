@@ -1172,6 +1172,13 @@ async def update_order_admin_fields(order_id: str, data: dict, current_user: dic
     if not update_fields:
         raise HTTPException(status_code=400, detail="No fields to update")
     
+    # Get the order before updating to get old status and email
+    order = await db.orders.find_one({"order_id": order_id}, {"_id": 0})
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    old_status = order.get("order_status", "")
+    
     result = await db.orders.update_one(
         {"order_id": order_id},
         {"$set": update_fields}
@@ -1179,6 +1186,16 @@ async def update_order_admin_fields(order_id: str, data: dict, current_user: dic
     
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Order not found")
+    
+    # Send email notification if order status was changed and email exists
+    if "order_status" in update_fields and old_status != update_fields["order_status"] and order.get("email"):
+        try:
+            # Update order data with new status for email
+            order["order_status"] = update_fields["order_status"]
+            await send_order_status_update_email(order["email"], order, old_status, update_fields["order_status"])
+        except Exception as e:
+            logger.error(f"Failed to send order status update email: {str(e)}")
+            # Don't fail the request if email fails
     
     return {"message": "Order updated successfully"}
 
