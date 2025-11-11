@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Phone, ShoppingCart, Menu, X, Download } from 'lucide-react';
+import { Phone, ShoppingCart, Menu, X, Download, AlertCircle } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { Link } from 'react-router-dom';
+import ReportBugModal from './ReportBugModal';
 
 const Header = () => {
   const { getCartCount, setIsOpen } = useCart();
@@ -10,6 +11,7 @@ const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showInstallButton, setShowInstallButton] = useState(false);
+  const [showReportBugModal, setShowReportBugModal] = useState(false);
 
   useEffect(() => {
     const handler = (e) => {
