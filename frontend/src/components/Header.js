@@ -4,6 +4,7 @@ import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import ReportBugModal from './ReportBugModal';
+import NotificationBell from './NotificationBell';
 
 const Header = () => {
   const { getCartCount, setIsOpen } = useCart();
