@@ -95,10 +95,10 @@ const AddCityModal = ({ isOpen, onClose, preSelectedState = '' }) => {
               <CheckCircle className="h-16 w-16 text-green-500 mx-auto" />
               <h3 className="text-2xl font-bold text-gray-800">Thank You!</h3>
               <p className="text-gray-600 leading-relaxed">
-                Your city suggestion has been received. We'll update the delivery locations within <span className="font-semibold text-orange-600">5-10 minutes</span>.
+                Your city suggestion has been received with your contact details. We'll review and add it to our delivery locations.
               </p>
               <p className="text-sm text-blue-600 font-medium">
-                Please check back after 5-10 minutes!
+                We'll contact you at <span className="font-semibold">{formData.phone}</span> or <span className="font-semibold">{formData.email}</span> if we need to confirm your exact location!
               </p>
             </div>
           ) : (
