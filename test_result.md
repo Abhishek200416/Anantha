@@ -1228,3 +1228,122 @@ agent_communication:
     message: "✅ CITY-BASED PRODUCT AVAILABILITY FEATURE TESTING COMPLETED - ALL TESTS PASSED (20/20 - 100% SUCCESS): Comprehensive testing of the new city-based product availability feature has been completed successfully. TESTED SCENARIOS: 1) Admin product city management - Admin can restrict products to specific cities using PUT /api/admin/products/{id}/available-cities, 2) City-filtered product listings - GET /api/products?city=X correctly filters products based on availability, 3) Order validation - POST /api/orders properly validates city availability and rejects orders with unavailable products, 4) Unrestricted products behavior - Products with null/empty available_cities appear in all city searches. TECHNICAL VALIDATION: All backend APIs responding correctly, database updates persisting properly, city filtering logic working as expected, order validation preventing invalid deliveries, admin authentication protecting management endpoints, error messages providing clear feedback. CONCLUSION: Feature is fully functional and production-ready. Merchants can now control which products are available for delivery in specific cities, with proper validation and clear error messages for customers."
   - agent: "testing"
     message: "✅ STATE MANAGEMENT APIS TESTING COMPLETED - ALL TESTS PASSED (11/11 - 100% SUCCESS): Comprehensive testing of state management APIs completed successfully to verify the fixes for extra states removal. TESTED ENDPOINTS: 1) GET /api/states (public) - Successfully returns only Andhra Pradesh and Telangana with enabled: true, no extra states found, 2) GET /api/admin/states (admin auth) - Successfully returns same 2 states with proper authentication required (401 without token), 3) Admin authentication - Password 'admin123' works correctly and generates proper JWT token. VERIFICATION RESULTS: ✅ Exactly 2 states returned (not more), ✅ Both states are Andhra Pradesh and Telangana as expected, ✅ Both states have enabled: true, ✅ No unwanted states (Karnataka, Tamil Nadu, Maharashtra) found, ✅ Admin and public APIs return consistent data, ✅ Database appears clean with only AP and Telangana states, ✅ Admin authentication properly protects admin endpoints. CONCLUSION: The state management fix has been successfully verified. The system now correctly returns only Andhra Pradesh and Telangana states, both enabled, with no extra states in the database. All APIs are working correctly and the database cleanup was successful."
+
+backend:
+  - task: "Bug Report APIs"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented bug reporting system. APIs: POST /api/reports (create bug report with email, mobile, issue_description, photo upload), GET /api/admin/reports (get all reports - admin only), PUT /api/admin/reports/{id}/status (update status to New/In Progress/Resolved - admin only), DELETE /api/admin/reports/{id} (delete report - admin only). Photo uploads stored in /app/frontend/public/uploads/. Status field defaults to 'New'."
+
+  - task: "Admin Profile APIs"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented admin profile management. APIs: GET /api/admin/profile (get profile with mobile/email), PUT /api/admin/profile (update mobile/email), POST /api/admin/profile/send-otp (send 6-digit OTP to email for password change, expires in 10 minutes), POST /api/admin/profile/verify-otp-change-password (verify OTP and change password). Gmail SMTP configured with app password: vmazujyhgggxbjzf. OTP verification stores in otp_verifications collection."
+
+frontend:
+  - task: "Report Bug Page"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/ReportBug.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created dedicated /report-bug page. Form includes: Email (with validation), Mobile (10-digit validation), Issue Description (textarea), Optional Photo Upload (max 5MB, image preview). Added 'Report Bug' link to Header (desktop & mobile menu) and Footer. Route added to App.js. Beautiful gradient design matching app theme."
+
+  - task: "Admin Reports Tab"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/Admin.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added 'Reports' tab in admin panel. Features: Table view showing all bug reports with Date, Email (clickable mailto), Mobile (clickable tel), Issue Description (truncated with line-clamp), Photo link (if available), Status dropdown (New/In Progress/Resolved - updates on change), Delete button. Refresh button to reload reports. Fetches reports automatically when tab is accessed."
+
+  - task: "Admin Profile Tab"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/Admin.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added 'Profile' tab in admin panel. Two sections: 1) Profile Information - Update mobile and email fields with Update button, 2) Change Password - Email field with 'Send OTP' button, OTP input field (shows after sending), New Password and Confirm Password fields, 'Verify OTP & Change Password' button. Auto-logout after successful password change. Form validation for password match and minimum 6 characters."
+
+metadata:
+  created_by: "main_agent"
+  version: "2.0"
+  test_sequence: 5
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "Bug Report APIs"
+    - "Admin Profile APIs"
+    - "Report Bug Page"
+    - "Admin Reports Tab"
+    - "Admin Profile Tab"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "main"
+    message: "✅ IMPLEMENTED BUG REPORTING & ADMIN PROFILE FEATURES:
+    
+    USER REQUIREMENTS:
+    1. Bug reporting system with email, mobile, issue description, and photo upload
+    2. Admin panel Reports tab to view all bug reports with status management (New/In Progress/Resolved) and delete option
+    3. Admin panel Profile tab to update mobile/email and change password with OTP verification
+    
+    BACKEND IMPLEMENTATION:
+    1. BUG REPORT APIs:
+       - POST /api/reports - Create bug report (public, supports form-data with photo upload)
+       - GET /api/admin/reports - List all reports (admin only)
+       - PUT /api/admin/reports/{id}/status - Update status (admin only)
+       - DELETE /api/admin/reports/{id} - Delete report (admin only)
+    
+    2. ADMIN PROFILE APIs:
+       - GET /api/admin/profile - Get profile
+       - PUT /api/admin/profile - Update mobile/email
+       - POST /api/admin/profile/send-otp - Send 6-digit OTP via Gmail (expires in 10 min)
+       - POST /api/admin/profile/verify-otp-change-password - Verify OTP and change password
+    
+    3. Gmail SMTP configured with app password: vmazujyhgggxbjzf
+    
+    FRONTEND IMPLEMENTATION:
+    1. Created /report-bug page with form validation and photo upload
+    2. Added 'Report Bug' links to Header (desktop & mobile) and Footer
+    3. Added 'Reports' tab in Admin panel with status dropdown and delete functionality
+    4. Added 'Profile' tab in Admin panel with profile update and password change with OTP
+    
+    TESTING NEEDED:
+    - Test bug report submission with and without photo
+    - Test admin viewing reports and changing status
+    - Test admin deleting reports
+    - Test admin profile update (mobile/email)
+    - Test OTP sending and password change flow
+    - Verify email delivery with configured Gmail credentials
+    
+    Ready for backend testing!"
