@@ -97,6 +97,37 @@ const TrackOrder = () => {
     return <p>{order.address}</p>;
   };
 
+  const handleCancelOrder = async (cancelReason) => {
+    try {
+      await axios.put(
+        `${API}/orders/${order.order_id}/cancel`,
+        { cancel_reason: cancelReason }
+      );
+
+      toast({
+        title: "Cancellation Request Submitted",
+        description: "Your order cancellation request has been submitted successfully. We'll process it shortly.",
+      });
+
+      // Refresh order data
+      const response = await axios.get(`${API}/orders/track/${searchTerm.trim()}`);
+      setOrder(response.data);
+    } catch (error) {
+      console.error('Cancel order error:', error);
+      toast({
+        title: "Error",
+        description: error.response?.data?.detail || "Failed to cancel order. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const canCancelOrder = (order) => {
+    if (!order) return false;
+    const cancelableStatuses = ['confirmed', 'pending'];
+    return !order.cancelled && cancelableStatuses.includes(order.status?.toLowerCase());
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-red-50 py-12">
       <div className="container mx-auto px-4">
