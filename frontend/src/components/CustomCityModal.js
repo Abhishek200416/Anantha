@@ -186,7 +186,7 @@ const CustomCityModal = ({ isOpen, onClose, onSubmit, selectedState }) => {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes fadeIn {
           from {
             opacity: 0;
