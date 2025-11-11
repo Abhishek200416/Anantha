@@ -1488,6 +1488,32 @@ async def approve_custom_city(data: dict, current_user: dict = Depends(get_curre
     
     await db.locations.insert_one(city_data)
     
+    # Check if there's a matching city suggestion and update its status + send email
+    try:
+        suggestion = await db.city_suggestions.find_one({
+            "city": city_name,
+            "state": state_name,
+            "status": "pending"
+        }, {"_id": 0})
+        
+        if suggestion:
+            # Update suggestion status to approved
+            await db.city_suggestions.update_one(
+                {"id": suggestion["id"]},
+                {"$set": {"status": "approved", "updated_at": datetime.now(timezone.utc)}}
+            )
+            
+            # Send approval email if customer provided email
+            if suggestion.get("email"):
+                try:
+                    await send_city_approval_email(suggestion["email"], suggestion)
+                    logger.info(f"City approval email sent to {suggestion['email']} for {city_name}, {state_name}")
+                except Exception as e:
+                    logger.error(f"Failed to send city approval email: {str(e)}")
+    except Exception as e:
+        logger.error(f"Error updating city suggestion: {str(e)}")
+        # Don't fail the approval if email/suggestion update fails
+    
     return {
         "message": f"City '{city_name}, {state_name}' approved and added to delivery locations",
         "city_data": city_data
