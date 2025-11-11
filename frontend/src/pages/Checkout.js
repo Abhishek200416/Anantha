@@ -735,35 +735,79 @@ const Checkout = () => {
     }
   };
 
+  const calculateCustomCityDelivery = async (cityName, stateName) => {
+    setCalculatingCustomCity(true);
+    try {
+      const response = await axios.post(`${API}/calculate-custom-city-delivery`, {
+        city_name: cityName,
+        state_name: stateName
+      });
+      
+      setCustomCityDeliveryCharge(response.data.delivery_charge);
+      setCustomCityDistance(response.data.distance_from_guntur_km);
+      setDeliveryCharge(response.data.delivery_charge);
+      
+      toast({
+        title: "Delivery Charge Calculated",
+        description: response.data.distance_from_guntur_km 
+          ? `₹${response.data.delivery_charge} for ${cityName} (${response.data.distance_from_guntur_km}km from Guntur)`
+          : `₹${response.data.delivery_charge} for ${cityName}`
+      });
+    } catch (error) {
+      console.error('Failed to calculate custom city delivery:', error);
+      setCustomCityDeliveryCharge(199);
+      setDeliveryCharge(199);
+      toast({
+        title: "Using Default Charge",
+        description: `₹199 delivery charge for ${cityName}`,
+        variant: "default"
+      });
+    } finally {
+      setCalculatingCustomCity(false);
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     
     if (name === 'state') {
       setFormData(prev => ({ ...prev, [name]: value, city: '' }));
       setDeliveryCharge(0);
+      setShowCustomCityInput(false);
+      setCustomCity('');
       if (errors.city) {
         setErrors(prev => ({ ...prev, city: '' }));
       }
     } else if (name === 'city') {
-      setFormData(prev => ({ ...prev, [name]: value, location: value }));
-      
-      // Find location with matching city name and state
-      const currentState = formData.state;
-      const selectedLocation = deliveryLocations.find(loc => 
-        loc.name === value && loc.state === currentState
-      );
-      
-      console.log('🏙️ City selected:', value, 'State:', currentState);
-      console.log('📍 All locations:', deliveryLocations.length);
-      console.log('📍 Found location:', selectedLocation);
-      
-      if (selectedLocation && selectedLocation.charge !== undefined) {
-        const charge = Number(selectedLocation.charge);
-        console.log('💰 Setting delivery charge:', charge);
-        setDeliveryCharge(charge);
+      // Check if "Others" is selected
+      if (value === 'Others') {
+        setShowCustomCityInput(true);
+        setCustomCityState(formData.state);
+        setFormData(prev => ({ ...prev, [name]: value, location: '' }));
+        setDeliveryCharge(199); // Default charge until calculated
       } else {
-        console.log('⚠️ Location not found or no charge, using default: 99');
-        setDeliveryCharge(99);
+        setShowCustomCityInput(false);
+        setCustomCity('');
+        setFormData(prev => ({ ...prev, [name]: value, location: value }));
+        
+        // Find location with matching city name and state
+        const currentState = formData.state;
+        const selectedLocation = deliveryLocations.find(loc => 
+          loc.name === value && loc.state === currentState
+        );
+        
+        console.log('🏙️ City selected:', value, 'State:', currentState);
+        console.log('📍 All locations:', deliveryLocations.length);
+        console.log('📍 Found location:', selectedLocation);
+        
+        if (selectedLocation && selectedLocation.charge !== undefined) {
+          const charge = Number(selectedLocation.charge);
+          console.log('💰 Setting delivery charge:', charge);
+          setDeliveryCharge(charge);
+        } else {
+          console.log('⚠️ Location not found or no charge, using default: 99');
+          setDeliveryCharge(99);
+        }
       }
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
@@ -772,6 +816,21 @@ const Checkout = () => {
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
+  };
+
+  const handleCustomCitySubmit = () => {
+    if (!customCity.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter your city name",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Calculate delivery charge for custom city
+    calculateCustomCityDelivery(customCity, customCityState || formData.state);
+    setFormData(prev => ({ ...prev, location: customCity }));
   };
 
   const scrollToProduct = (productId) => {
