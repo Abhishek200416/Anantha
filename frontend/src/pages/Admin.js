@@ -1247,19 +1247,37 @@ const Admin = () => {
                   </button>
                 </div>
                 
-                {/* State Filter */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Filter by State</label>
-                  <select
-                    value={stateFilter}
-                    onChange={(e) => setStateFilter(e.target.value)}
-                    className="w-full md:w-64 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">All States</option>
-                    {states && states.length > 0 && states.map(state => (
-                      <option key={state.name} value={state.name}>{state.name}</option>
-                    ))}
-                  </select>
+                {/* Filters */}
+                <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* State Filter */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Filter by State</label>
+                    <select
+                      value={stateFilter}
+                      onChange={(e) => setStateFilter(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">All States</option>
+                      {states && states.length > 0 && states.map(state => (
+                        <option key={state.name} value={state.name}>{state.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Search Field */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Search Cities</label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={citySearchEdit}
+                        onChange={(e) => setCitySearchEdit(e.target.value)}
+                        placeholder="Search by city name..."
+                        className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    </div>
+                  </div>
                 </div>
 
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
