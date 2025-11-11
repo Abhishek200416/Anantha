@@ -764,6 +764,33 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ NOTIFICATIONS COUNT API TESTING COMPLETED - PERFECT SUCCESS: GET /api/admin/notifications/count with admin token successfully returns proper JSON structure with all required fields (bug_reports: 0, city_suggestions: 0, new_orders: 0, total: 0). All fields are numbers as expected, total calculation is correct (sum of individual counts), admin authentication required and working properly. API provides accurate notification counts for admin dashboard and is production-ready."
+      - working: "NA"
+        agent: "main"
+        comment: "✅ ENHANCED NOTIFICATION SYSTEM WITH READ/UNREAD TRACKING: User reported issue where clicking notification doesn't decrease count. IMPLEMENTED: 1) Notification Dismissal System - When user clicks on a notification, it gets dismissed for 5 minutes (prevents showing same notification repeatedly), POST /api/admin/notifications/dismiss-all endpoint to dismiss all notifications of a type, Enhanced GET /api/admin/notifications/count to exclude recently dismissed notifications (within 5 minutes), 2) Frontend Integration - NotificationBell.js updated to call dismiss API when notification is clicked, Local state updates immediately for better UX (count decreases right away), Notification removed from dropdown after clicking, 3) Swipe to Dismiss - Mobile users can swipe notification left/right to dismiss it. Now when admin clicks a notification, the count properly decreases and notification disappears for 5 minutes!"
+
+  - task: "City Approval Email Notifications (Approval & Rejection)"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/gmail_service.py, /app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "✅ COMPLETE CITY APPROVAL/REJECTION EMAIL SYSTEM IMPLEMENTED: User requested email notifications when cities are approved or rejected. FEATURES IMPLEMENTED: 1) CITY APPROVAL EMAILS - Already working from previous implementation, Sends when admin approves city suggestion (PUT /api/admin/city-suggestions/{id}/status with status='approved'), Also sends when using direct approve endpoint (POST /api/admin/approve-city), Beautiful HTML email template with celebration theme, Includes city name, state, delivery information, product categories showcase, 2) CITY REJECTION EMAILS - NEW: Created send_city_rejection_email() function in gmail_service.py, Sends when admin rejects city suggestion (PUT /api/admin/city-suggestions/{id}/status with status='rejected'), Professional HTML email explaining rejection, Includes suggestions for alternatives (nearby cities, bulk orders, etc.), Promises to keep request on file for future consideration, 3) ENHANCED WORKFLOW - POST /api/admin/approve-city now checks for matching city suggestions and updates their status + sends email, PUT /api/admin/city-suggestions/{id}/status now adds city to locations when approved (with delivery charge from request), Both approval paths work seamlessly and send proper emails. Customers now receive email notifications whether their city suggestion is approved or rejected!"
+
+  - task: "City Approval Adds to Locations"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "✅ CITY APPROVAL NOW PROPERLY ADDS TO DELIVERY LOCATIONS: User reported that approved cities don't appear in cities list. ROOT CAUSE: There were two separate systems - city suggestions and pending cities from orders. Approving a suggestion didn't add it to locations. FIXES IMPLEMENTED: 1) Enhanced PUT /api/admin/city-suggestions/{id}/status endpoint - When status='approved' AND delivery_charge is provided in request, city is automatically added to locations collection, Checks if city already exists before adding to prevent duplicates, Logs successful addition with charge information, 2) Enhanced POST /api/admin/approve-city endpoint - Now checks for matching city suggestions after adding to locations, Updates suggestion status to 'approved' if found, Sends approval email to customer if email exists, Works seamlessly with both workflows. Now when admin approves a city through either method, it appears in the delivery locations list AND customer gets email notification!"
 
 metadata:
   created_by: "main_agent"
