@@ -219,57 +219,92 @@ const Home = () => {
         
         {/* City Filter with Auto-detect button */}
         <div className="mb-6 bg-gradient-to-r from-orange-50 to-red-50 rounded-xl shadow-md border-2 border-orange-200 p-4">
-          <div className="flex flex-col gap-3">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-              <div className="flex items-center space-x-2 text-gray-700 min-w-fit">
-                <MapPin className="h-5 w-5 text-orange-600" />
-                <span className="font-semibold">Delivery Location:</span>
-              </div>
-              <select
-                value={selectedCity}
-                onChange={(e) => setSelectedCity(e.target.value)}
-                className="flex-1 px-4 py-2.5 border-2 border-orange-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white font-medium"
-              >
-                <option value="">All Cities (Show All Products)</option>
-                {deliveryLocations && deliveryLocations.map((location) => (
-                  <option key={location.name} value={location.name}>
-                    {location.name}, {location.state}
-                  </option>
-                ))}
-              </select>
-              <button
-                onClick={detectLocation}
-                disabled={detectingLocation}
-                className="px-6 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-semibold shadow-md flex items-center justify-center space-x-2 whitespace-nowrap"
-              >
-                <MapPin className="h-4 w-4" />
-                <span>{detectingLocation ? 'Detecting...' : 'Detect My Location'}</span>
-              </button>
+          <div className="flex flex-col space-y-4">
+            {/* Header */}
+            <div className="flex items-center space-x-2 text-gray-700">
+              <MapPin className="h-5 w-5 text-orange-600" />
+              <span className="font-semibold">Filter by Location:</span>
             </div>
-            {autoDetectedCity && (
-              <div className="flex items-center space-x-2 text-sm text-green-700 bg-green-100 px-3 py-2 rounded-lg border border-green-300">
-                <span className="font-semibold">✓ Auto-detected:</span>
-                <span>{autoDetectedCity}</span>
+
+            {/* Filters Row */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+              {/* State Filter */}
+              <div className="flex flex-col">
+                <label className="text-sm font-medium text-gray-600 mb-1">State</label>
+                <select
+                  value={selectedState}
+                  onChange={(e) => {
+                    setSelectedState(e.target.value);
+                    setSelectedCity(''); // Reset city when state changes
+                  }}
+                  className="px-4 py-2.5 border-2 border-orange-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white font-medium"
+                >
+                  <option value="all">All States</option>
+                  {[...new Set(deliveryLocations.map(l => l.state))].sort().map((state) => (
+                    <option key={state} value={state}>{state}</option>
+                  ))}
+                </select>
               </div>
-            )}
-            {selectedCity && (
-              <div className="text-sm text-orange-700 bg-orange-100 px-3 py-2 rounded-lg border border-orange-300">
-                <span className="font-semibold">📍 Showing products available in: {selectedCity}</span>
+
+              {/* City Filter */}
+              <div className="flex flex-col">
+                <label className="text-sm font-medium text-gray-600 mb-1">City</label>
+                <select
+                  value={selectedCity}
+                  onChange={(e) => setSelectedCity(e.target.value)}
+                  className="px-4 py-2.5 border-2 border-orange-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white font-medium"
+                >
+                  <option value="">All Cities</option>
+                  {deliveryLocations
+                    .filter(location => selectedState === 'all' || location.state === selectedState)
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .map((location) => (
+                      <option key={location.name} value={location.name}>
+                        {location.name}
+                      </option>
+                    ))}
+                </select>
               </div>
-            )}
+
+              {/* OR text */}
+              <div className="flex items-end justify-center pb-2">
+                <span className="text-gray-500 font-medium">OR</span>
+              </div>
+
+              {/* Detect Location Button */}
+              <div className="flex flex-col">
+                <label className="text-sm font-medium text-gray-600 mb-1 invisible">Action</label>
+                <button
+                  onClick={detectLocation}
+                  disabled={detectingLocation}
+                  className="px-6 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-semibold shadow-md flex items-center justify-center space-x-2 whitespace-nowrap"
+                >
+                  <MapPin className="h-4 w-4" />
+                  <span>{detectingLocation ? 'Detecting...' : 'Detect Location'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Status Messages */}
+            <div className="flex flex-col space-y-2">
+              {autoDetectedCity && (
+                <div className="flex items-center space-x-2 text-sm text-green-700 bg-green-100 px-3 py-2 rounded-lg border border-green-300">
+                  <span className="font-semibold">✓ Auto-detected:</span>
+                  <span>{autoDetectedCity}</span>
+                </div>
+              )}
+              {selectedCity && (
+                <div className="text-sm text-orange-700 bg-orange-100 px-3 py-2 rounded-lg border border-orange-300">
+                  <span className="font-semibold">📍 Showing products available in: {selectedCity}</span>
+                </div>
+              )}
+              {(selectedState !== 'all' && !selectedCity) && (
+                <div className="text-sm text-blue-700 bg-blue-100 px-3 py-2 rounded-lg border border-blue-300">
+                  <span className="font-semibold">📍 Showing products available in: {selectedState}</span>
+                </div>
+              )}
+            </div>
           </div>
-          {autoDetectedCity && (
-            <p className="mt-2 text-sm text-green-600 flex items-center space-x-1">
-              <span>📍 Auto-detected your location:</span>
-              <span className="font-semibold">{autoDetectedCity}</span>
-            </p>
-          )}
-          {selectedCity && (
-            <p className="mt-2 text-sm text-gray-600 flex items-center space-x-1">
-              <span>Showing products available for delivery to</span>
-              <span className="font-semibold text-orange-600">{selectedCity}</span>
-            </p>
-          )}
         </div>
         
         <CategoryFilter selectedCategory={selectedCategory} onSelectCategory={setSelectedCategory} />
