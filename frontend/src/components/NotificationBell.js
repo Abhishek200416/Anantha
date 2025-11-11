@@ -263,31 +263,62 @@ const NotificationBell = () => {
               <>
                 {recentNotifications.map((notification, index) => {
                   const IconComponent = notification.icon;
+                  const offset = swipeOffset[notification.type] || 0;
+                  const isSwipedFar = Math.abs(offset) > 100;
+                  
                   return (
-                    <button
+                    <div 
                       key={index}
-                      onClick={() => handleNotificationClick(notification.tab)}
-                      className="w-full p-4 hover:bg-gray-50 transition-colors text-left"
+                      className="relative overflow-hidden"
                     >
-                      <div className="flex items-start gap-3">
-                        <div className={`flex-shrink-0 ${notification.bgColor} rounded-full p-2`}>
-                          <IconComponent className={`h-5 w-5 ${notification.color}`} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between mb-1">
-                            <p className="font-semibold text-gray-900 text-sm">
-                              {notification.title}
-                            </p>
-                            <span className={`${notification.bgColor} ${notification.color} text-xs font-bold px-2 py-1 rounded-full`}>
-                              {notification.count}
-                            </span>
-                          </div>
-                          <p className="text-sm text-gray-600">
-                            {notification.message}
-                          </p>
-                        </div>
+                      {/* Delete Background */}
+                      <div className={`absolute inset-0 flex items-center justify-between px-6 ${
+                        offset < 0 ? 'bg-red-500' : 'bg-red-500'
+                      } transition-opacity ${Math.abs(offset) > 20 ? 'opacity-100' : 'opacity-0'}`}>
+                        <X className="h-6 w-6 text-white" />
+                        <span className="text-white font-bold">Delete</span>
+                        <X className="h-6 w-6 text-white" />
                       </div>
-                    </button>
+                      
+                      {/* Notification Content */}
+                      <div
+                        style={{
+                          transform: `translateX(${offset}px)`,
+                          transition: touchStart ? 'none' : 'transform 0.3s ease'
+                        }}
+                        onTouchStart={(e) => handleTouchStart(e, notification.type)}
+                        onTouchMove={(e) => handleTouchMove(e, notification.type)}
+                        onTouchEnd={() => handleTouchEnd(notification)}
+                        className="relative bg-white"
+                      >
+                        <button
+                          onClick={() => handleNotificationClick(notification)}
+                          className="w-full p-4 hover:bg-gray-50 transition-colors text-left"
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className={`flex-shrink-0 ${notification.bgColor} rounded-full p-2`}>
+                              <IconComponent className={`h-5 w-5 ${notification.color}`} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between mb-1">
+                                <p className="font-semibold text-gray-900 text-sm">
+                                  {notification.title}
+                                </p>
+                                <span className={`${notification.bgColor} ${notification.color} text-xs font-bold px-2 py-1 rounded-full`}>
+                                  {notification.count}
+                                </span>
+                              </div>
+                              <p className="text-sm text-gray-600">
+                                {notification.message}
+                              </p>
+                              <p className="text-xs text-gray-400 mt-1">
+                                ← Swipe to delete
+                              </p>
+                            </div>
+                          </div>
+                        </button>
+                      </div>
+                    </div>
                   );
                 })}
               </>
