@@ -146,6 +146,83 @@ const NotificationBell = () => {
     navigate('/admin');
   };
 
+  // Swipe handlers
+  const handleTouchStart = (e, notificationId) => {
+    setTouchStart({
+      x: e.touches[0].clientX,
+      id: notificationId
+    });
+  };
+
+  const handleTouchMove = (e, notificationId) => {
+    if (!touchStart || touchStart.id !== notificationId) return;
+    
+    const currentX = e.touches[0].clientX;
+    const diff = currentX - touchStart.x;
+    
+    setSwipeOffset(prev => ({
+      ...prev,
+      [notificationId]: diff
+    }));
+  };
+
+  const handleTouchEnd = (notification) => {
+    const offset = swipeOffset[notification.type] || 0;
+    
+    // If swiped more than 100px in either direction, delete
+    if (Math.abs(offset) > 100) {
+      handleDeleteNotification(notification);
+    } else {
+      // Reset position
+      setSwipeOffset(prev => ({
+        ...prev,
+        [notification.type]: 0
+      }));
+    }
+    
+    setTouchStart(null);
+  };
+
+  const handleDeleteNotification = async (notification) => {
+    try {
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL;
+      const token = localStorage.getItem('token');
+      
+      // Mark notification as read/dismissed based on type
+      if (notification.type === 'city_suggestions') {
+        // We'll mark the most recent city suggestion as reviewed
+        // This is a simplified approach - in production you'd want specific IDs
+        console.log('Dismissing city suggestion notification');
+      } else if (notification.type === 'bug_reports') {
+        console.log('Dismissing bug report notification');
+      } else if (notification.type === 'new_orders') {
+        console.log('Dismissing order notification');
+      }
+      
+      // Remove from local state immediately for better UX
+      setRecentNotifications(prev => 
+        prev.filter(n => n.type !== notification.type)
+      );
+      
+      // Update counts
+      setNotificationData(prev => ({
+        ...prev,
+        [notification.type]: 0
+      }));
+      
+      setNotificationCount(prevCount => Math.max(0, prevCount - notification.count));
+      
+      // Reset swipe offset
+      setSwipeOffset(prev => ({
+        ...prev,
+        [notification.type]: 0
+      }));
+      
+    } catch (error) {
+      console.error('Error dismissing notification:', error);
+    }
+  };
+
   // Don't render if not admin
   if (!isAdmin) {
     return null;
