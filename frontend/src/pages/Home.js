@@ -98,8 +98,12 @@ const Home = () => {
           }
           
           if (matchedCity) {
+            const matchedLocation = deliveryLocations.find(loc => loc.name === matchedCity);
             setAutoDetectedCity(matchedCity);
             setSelectedCity(matchedCity);
+            if (matchedLocation) {
+              setSelectedState(matchedLocation.state);
+            }
             alert(`📍 Location detected: ${matchedCity}!\n\nNow showing products available in ${matchedCity}.`);
           } else {
             const nearestCity = possibleCities[0] || 'your area';
