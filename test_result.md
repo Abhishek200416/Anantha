@@ -800,7 +800,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Recent Backend API Fixes - COMPLETED TESTING"
+    - "City Approval Email Notifications (Approval & Rejection)"
+    - "City Approval Adds to Locations"
+    - "Notification System with Read/Unread Tracking"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
