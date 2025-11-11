@@ -2208,7 +2208,7 @@ const Admin = () => {
               </div>
 
               {/* City Suggestions Section (from homepage form) */}
-              <div className="border-t pt-8">
+              <div id="city-suggestions" className="border-t pt-8 transition-all duration-300 rounded-lg">
                 <div className="flex justify-between items-center mb-6">
                   <div>
                     <h2 className="text-2xl font-bold text-gray-800">📍 City Suggestions from Customers</h2>
