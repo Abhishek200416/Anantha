@@ -190,18 +190,36 @@ const TrackOrder = () => {
 
               {/* Status Badge */}
               <div className="p-6 border-b">
-                <div className="flex items-center justify-between">
-                  <div>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex-1">
                     <p className="text-gray-600 text-sm mb-1">Current Status</p>
                     <span className={`inline-block px-4 py-2 rounded-full font-semibold text-lg ${getStatusColor(order.order_status)}`}>
                       {order.order_status?.toUpperCase()}
+                      {order.cancelled && <span className="ml-2">(CANCELLED)</span>}
                     </span>
                   </div>
-                  <div className="text-right">
-                    <p className="text-gray-600 text-sm mb-1">Order Date</p>
-                    <p className="font-semibold">{new Date(order.created_at).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                  <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center w-full sm:w-auto">
+                    <div className="text-left sm:text-right">
+                      <p className="text-gray-600 text-sm mb-1">Order Date</p>
+                      <p className="font-semibold">{new Date(order.created_at).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                    </div>
+                    {canCancelOrder(order) && (
+                      <button
+                        onClick={() => setShowCancelModal(true)}
+                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-lg transition-all font-medium shadow-md text-sm whitespace-nowrap"
+                      >
+                        <XCircle className="h-4 w-4" />
+                        Cancel Order
+                      </button>
+                    )}
                   </div>
                 </div>
+                {order.cancelled && order.cancel_reason && (
+                  <div className="mt-4 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-lg">
+                    <p className="text-sm font-semibold text-red-900 mb-1">Cancellation Reason:</p>
+                    <p className="text-sm text-red-700">{order.cancel_reason}</p>
+                  </div>
+                )}
               </div>
 
               {/* Customer & Delivery Info - Enhanced */}
