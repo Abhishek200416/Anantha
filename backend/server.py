@@ -922,7 +922,11 @@ async def create_order(order_data: OrderCreate, current_user: dict = Depends(get
             "admin_notes": None,
             "delivery_days": None,
             "cancelled": False,
-            "cancel_reason": None
+            "cancel_reason": None,
+            "is_custom_location": is_custom_location,
+            "custom_city": custom_city,
+            "custom_state": custom_state,
+            "distance_from_guntur": order_data.distance_from_guntur if hasattr(order_data, 'distance_from_guntur') else None
         }
         
         await db.orders.insert_one(order)
