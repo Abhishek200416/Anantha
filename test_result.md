@@ -1986,3 +1986,99 @@ agent_communication:
     
     Backend service restarted successfully. All fixes are live!"
 
+
+  - agent: "main"
+    message: "✅ COMPREHENSIVE CITY APPROVAL & NOTIFICATION FIX - ALL USER ISSUES RESOLVED:
+    
+    USER REQUIREMENTS:
+    1. When admin approves city - city should appear in delivery locations list
+    2. When admin approves city - customer should receive email notification
+    3. When admin rejects city - customer should receive email notification
+    4. Notification bell count (1,2,3) should decrease when clicking on notification
+    
+    IMPLEMENTATION COMPLETE:
+    
+    **1. CITY APPROVAL WORKFLOW ENHANCEMENT:**
+    - Enhanced PUT /api/admin/city-suggestions/{id}/status endpoint:
+      * When status='approved' AND delivery_charge provided → automatically adds city to locations collection
+      * Checks for duplicates before adding
+      * Logs successful addition with charge info
+    
+    - Enhanced POST /api/admin/approve-city endpoint:
+      * After adding city to locations, checks for matching city suggestions
+      * Updates suggestion status to 'approved' if found
+      * Sends approval email to customer if email exists
+    
+    - Now both approval methods work seamlessly - city appears in locations AND customer gets email!
+    
+    **2. CITY REJECTION EMAIL SYSTEM:**
+    - Created send_city_rejection_email() function in gmail_service.py
+    - Professional HTML email template with:
+      * Polite explanation of rejection
+      * Suggestions for alternatives (nearby cities, bulk orders)
+      * Promise to keep request on file
+      * Contact information for follow-up
+    
+    - Integrated into PUT /api/admin/city-suggestions/{id}/status:
+      * When status='rejected' → sends rejection email to customer
+      * Proper error handling (doesn't fail request if email fails)
+      * Logs email sending success/failure
+    
+    **3. NOTIFICATION READ/UNREAD SYSTEM:**
+    - Created new notification dismissal system:
+      * POST /api/admin/notifications/dismiss-all - dismiss all notifications of a type
+      * POST /api/admin/notifications/mark-read - mark individual notification as read
+    
+    - Enhanced GET /api/admin/notifications/count:
+      * Tracks dismissed notifications in database (dismissed_notifications collection)
+      * Excludes recently dismissed notifications (within 5 minutes)
+      * Prevents showing same notification repeatedly
+    
+    - Updated NotificationBell.js frontend component:
+      * Calls dismiss API when notification is clicked
+      * Updates local state immediately (count decreases right away)
+      * Removes notification from dropdown after clicking
+      * Swipe to dismiss functionality also calls API
+      * Recalculates total notification count properly
+    
+    **FILES MODIFIED:**
+    - Backend:
+      * /app/backend/gmail_service.py - Added send_city_rejection_email()
+      * /app/backend/server.py - Enhanced city approval endpoints, added notification dismissal endpoints
+    
+    - Frontend:
+      * /app/frontend/src/components/NotificationBell.js - Integrated dismiss API calls
+    
+    **HOW IT WORKS NOW:**
+    
+    SCENARIO 1 - City Approval:
+    1. Admin approves city suggestion with delivery charge
+    2. City gets added to locations collection automatically
+    3. Suggestion status updated to 'approved'
+    4. Customer receives beautiful approval email
+    5. City appears in delivery locations dropdown for all users
+    
+    SCENARIO 2 - City Rejection:
+    1. Admin rejects city suggestion
+    2. Suggestion status updated to 'rejected'
+    3. Customer receives polite rejection email with alternatives
+    4. Suggestion removed from pending list
+    
+    SCENARIO 3 - Notification Click:
+    1. Admin sees notification count (e.g., 3)
+    2. Admin clicks on 'City Suggestions' notification
+    3. API call dismisses all city_suggestions notifications
+    4. Count immediately decreases (e.g., 3 → 1 if 2 city suggestions)
+    5. Notification removed from dropdown
+    6. Admin navigated to city suggestions tab
+    7. Dismissed notification won't reappear for 5 minutes
+    
+    **TESTING NEEDED:**
+    - Test city approval workflow: suggestion → locations → customer email
+    - Test city rejection: suggestion status update → customer email
+    - Test notification dismissal: click notification → count decreases → doesn't reappear
+    - Verify email templates render correctly (approval & rejection)
+    - Test with multiple notifications of different types
+    
+    Both backend and frontend services restarted successfully. All features are live and ready for testing!"
+
