@@ -1111,6 +1111,13 @@ async def update_order_status(order_id: str, data: dict, current_user: dict = De
     if not status:
         raise HTTPException(status_code=400, detail="Status is required")
     
+    # Get the order before updating to get old status and email
+    order = await db.orders.find_one({"order_id": order_id}, {"_id": 0})
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    old_status = order.get("order_status", "")
+    
     result = await db.orders.update_one(
         {"order_id": order_id},
         {"$set": {"order_status": status}}
@@ -1118,6 +1125,16 @@ async def update_order_status(order_id: str, data: dict, current_user: dict = De
     
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Order not found")
+    
+    # Send email notification if status changed and email exists
+    if old_status != status and order.get("email"):
+        try:
+            # Update order data with new status for email
+            order["order_status"] = status
+            await send_order_status_update_email(order["email"], order, old_status, status)
+        except Exception as e:
+            logger.error(f"Failed to send order status update email: {str(e)}")
+            # Don't fail the request if email fails
     
     return {"message": "Order status updated successfully"}
 
