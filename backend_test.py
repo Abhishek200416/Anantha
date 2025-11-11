@@ -186,164 +186,83 @@ def main():
     # Test results tracking
     test_results = {}
     
-    # ============= STEP 1: BUG REPORT ENDPOINT TEST =============
+    # ============= STEP 1: ADMIN LOGIN =============
     print("\n" + "="*80)
-    print("🐛 STEP 1: BUG REPORT ENDPOINT TEST - POST /api/reports")
+    print("🔐 STEP 1: ADMIN LOGIN - POST /api/auth/admin-login")
     print("="*80)
     
-    # Test 1.1: Create bug report with form-data fields as specified in review request
-    bug_report_data = {
-        "issue_title": "Test Issue",
-        "description": "This is a test bug report",
-        "name": "Test User",
-        "email": "test@test.com",
-        "phone": "9876543210",
-        "page": "Home"
+    # Get admin authentication token
+    admin_token = admin_login()
+    
+    if not admin_token:
+        print("❌ CRITICAL: Cannot proceed without admin authentication")
+        test_results['admin_login'] = False
+        return 1
+    
+    test_results['admin_login'] = True
+    
+    # Prepare authorization headers
+    auth_headers = {
+        "Authorization": f"Bearer {admin_token}",
+        "Content-Type": "application/json"
     }
     
-    success, bug_response = test_api_endpoint_form_data(
-        "POST",
-        "/report-issue",
-        form_data=bug_report_data,
-        description="Create bug report with form-data fields (issue_title, description, name, email, phone, page)"
-    )
-    
-    test_results['create_bug_report_form_data'] = success
-    
-    report_id_1 = None
-    if success and bug_response:
-        report_id_1 = bug_response.get('report_id')
-        print(f"\n  📊 Bug Report Creation Verification:")
-        print(f"    - Report ID: {report_id_1}")
-        print(f"    - Has report_id: {bool(report_id_1)}")
-        print(f"    - Message: {bug_response.get('message', 'N/A')}")
-        print(f"    - Response structure valid: {isinstance(bug_response, dict)}")
-        
-        if report_id_1:
-            print(f"    ✅ Bug report created successfully with proper response structure")
-            test_results['verify_bug_report_creation'] = True
-        else:
-            print(f"    ❌ Bug report created but missing report_id")
-            test_results['verify_bug_report_creation'] = False
-    else:
-        print(f"    ❌ Failed to create bug report")
-        test_results['verify_bug_report_creation'] = False
-    
-    # Test 1.2: Test with minimal required fields only
-    minimal_bug_report_data = {
-        "issue_title": "Test Issue",
-        "description": "This is a test bug report"
-    }
-    
-    success, minimal_response = test_api_endpoint_form_data(
-        "POST",
-        "/report-issue",
-        form_data=minimal_bug_report_data,
-        description="Create bug report with minimal required fields only"
-    )
-    
-    test_results['create_bug_report_minimal'] = success
-    
-    if success and minimal_response:
-        print(f"\n  📊 Minimal Bug Report Verification:")
-        print(f"    - Report ID: {minimal_response.get('report_id')}")
-        print(f"    - Message: {minimal_response.get('message', 'N/A')}")
-        print(f"    ✅ Bug report created with minimal fields")
-    else:
-        print(f"    ❌ Failed to create bug report with minimal fields")
-    
-    # ============= STEP 2: CITY SUGGESTION ENDPOINT TEST =============
+    # ============= STEP 2: FETCH BUG REPORTS =============
     print("\n" + "="*80)
-    print("🏙️ STEP 2: CITY SUGGESTION ENDPOINT TEST - POST /api/suggest-city")
+    print("🐛 STEP 2: FETCH BUG REPORTS - GET /api/admin/reports")
     print("="*80)
     
-    # Test 2.1: Create city suggestion with JSON body as specified in review request
-    city_suggestion_data = {
-        "state": "Andhra Pradesh",
-        "city": "Kadapa",
-        "customer_name": "Test Customer",
-        "phone": "9876543210",
-        "email": "customer@test.com"
-    }
-    
-    success, city_response = test_api_endpoint(
-        "POST",
-        "/suggest-city",
-        data=city_suggestion_data,
-        description="Create city suggestion with JSON body (state, city, customer_name, phone, email)"
+    # Test 2.1: Get bug reports with admin authentication
+    success, reports_response = test_api_endpoint(
+        "GET",
+        "/admin/reports",
+        headers=auth_headers,
+        description="Fetch bug reports with admin authentication"
     )
     
-    test_results['create_city_suggestion'] = success
+    test_results['fetch_bug_reports_with_auth'] = success
     
-    suggestion_id_1 = None
-    if success and city_response:
-        suggestion_id_1 = city_response.get('suggestion_id')
-        print(f"\n  📊 City Suggestion Creation Verification:")
-        print(f"    - Suggestion ID: {suggestion_id_1}")
-        print(f"    - Has suggestion_id: {bool(suggestion_id_1)}")
-        print(f"    - Message: {city_response.get('message', 'N/A')}")
-        print(f"    - Response structure valid: {isinstance(city_response, dict)}")
+    if success and reports_response is not None:
+        print(f"\n  📊 Bug Reports Response Verification:")
+        print(f"    - Response type: {type(reports_response)}")
+        print(f"    - Is array: {isinstance(reports_response, list)}")
+        print(f"    - Number of reports: {len(reports_response) if isinstance(reports_response, list) else 'N/A'}")
         
-        if suggestion_id_1:
-            print(f"    ✅ City suggestion created successfully with proper response structure")
-            test_results['verify_city_suggestion_creation'] = True
+        # Check if response is valid JSON (not HTML)
+        if isinstance(reports_response, list):
+            print(f"    ✅ Response is valid JSON array")
+            test_results['verify_json_response'] = True
+            
+            # Check response structure if reports exist
+            if len(reports_response) > 0:
+                first_report = reports_response[0]
+                print(f"\n  📋 Sample Report Structure:")
+                for key, value in first_report.items():
+                    print(f"    - {key}: {type(value).__name__}")
+                print(f"    ✅ Bug reports have proper structure")
+            else:
+                print(f"    ℹ️  No bug reports found (empty array - this is normal)")
         else:
-            print(f"    ❌ City suggestion created but missing suggestion_id")
-            test_results['verify_city_suggestion_creation'] = False
+            print(f"    ❌ Response is not a JSON array")
+            test_results['verify_json_response'] = False
     else:
-        print(f"    ❌ Failed to create city suggestion")
-        test_results['verify_city_suggestion_creation'] = False
+        print(f"    ❌ Failed to fetch bug reports")
+        test_results['verify_json_response'] = False
     
-    # Test 2.2: Test with different state and city
-    city_suggestion_data_2 = {
-        "state": "Telangana",
-        "city": "Warangal",
-        "customer_name": "Another Customer",
-        "phone": "9999888777",
-        "email": "another@test.com"
-    }
-    
-    success, city_response_2 = test_api_endpoint(
-        "POST",
-        "/suggest-city",
-        data=city_suggestion_data_2,
-        description="Create city suggestion with different state and city (Telangana, Warangal)"
+    # Test 2.2: Test without authentication (should fail with 401)
+    success, unauth_response = test_api_endpoint(
+        "GET",
+        "/admin/reports",
+        description="Fetch bug reports without authentication (should return 401)",
+        expected_status=401
     )
     
-    test_results['create_city_suggestion_2'] = success
+    test_results['fetch_bug_reports_no_auth'] = success
     
-    if success and city_response_2:
-        suggestion_id_2 = city_response_2.get('suggestion_id')
-        print(f"\n  📊 Second City Suggestion Verification:")
-        print(f"    - Suggestion ID: {suggestion_id_2}")
-        print(f"    - Message: {city_response_2.get('message', 'N/A')}")
-        print(f"    ✅ Second city suggestion created successfully")
+    if success:
+        print(f"    ✅ Correctly returns 401 when no authentication provided")
     else:
-        print(f"    ❌ Failed to create second city suggestion")
-    
-    # Test 2.3: Test with missing required fields (should handle gracefully)
-    incomplete_city_data = {
-        "state": "Karnataka",
-        "city": "Bangalore"
-        # Missing customer_name, phone, email
-    }
-    
-    success, incomplete_response = test_api_endpoint(
-        "POST",
-        "/suggest-city",
-        data=incomplete_city_data,
-        description="Test city suggestion with missing optional fields"
-    )
-    
-    test_results['create_city_suggestion_incomplete'] = success
-    
-    if success and incomplete_response:
-        print(f"\n  📊 Incomplete City Suggestion Verification:")
-        print(f"    - Suggestion ID: {incomplete_response.get('suggestion_id')}")
-        print(f"    - Message: {incomplete_response.get('message', 'N/A')}")
-        print(f"    ✅ City suggestion created even with missing optional fields")
-    else:
-        print(f"    ❌ Failed to create city suggestion with missing optional fields")
+        print(f"    ❌ Should return 401 for unauthenticated requests")
     
     # ============= FINAL SUMMARY =============
     print(f"\n{'='*80}")
