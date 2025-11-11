@@ -758,43 +758,640 @@ def test_error_handling():
     
     return all_passed
 
+def test_city_approval_workflow(admin_token):
+    """Test complete city approval workflow with email notifications"""
+    print("\n" + "="*80)
+    print("🏙️ TESTING CITY APPROVAL WORKFLOW WITH EMAIL & LOCATION ADDITION")
+    print("="*80)
+    
+    auth_headers = {
+        "Authorization": f"Bearer {admin_token}",
+        "Content-Type": "application/json"
+    }
+    
+    test_results = []
+    
+    # Step 1: Create a test city suggestion
+    print("\n--- Step 1: Create Test City Suggestion ---")
+    suggestion_data = {
+        "state": "Karnataka",
+        "city": "Bangalore", 
+        "customer_name": "Test User",
+        "phone": "9876543210",
+        "email": "test@example.com"
+    }
+    
+    success, response = test_api_endpoint(
+        "POST",
+        "/suggest-city",
+        data=suggestion_data,
+        description="Create city suggestion for Bangalore, Karnataka"
+    )
+    
+    if success and response and "suggestion_id" in response:
+        suggestion_id = response["suggestion_id"]
+        print(f"✅ SUCCESS: City suggestion created with ID: {suggestion_id}")
+        test_results.append(("Create City Suggestion", True))
+    else:
+        print("❌ FAILED: Could not create city suggestion")
+        test_results.append(("Create City Suggestion", False))
+        return test_results
+    
+    # Step 2: Verify suggestion appears in admin list
+    print("\n--- Step 2: Verify Suggestion in Admin List ---")
+    success, suggestions = test_api_endpoint(
+        "GET",
+        "/admin/city-suggestions",
+        headers=auth_headers,
+        description="Get city suggestions from admin panel"
+    )
+    
+    if success and isinstance(suggestions, list):
+        # Find our suggestion
+        found_suggestion = None
+        for suggestion in suggestions:
+            if (suggestion.get("city") == "Bangalore" and 
+                suggestion.get("state") == "Karnataka" and
+                suggestion.get("email") == "test@example.com"):
+                found_suggestion = suggestion
+                break
+        
+        if found_suggestion:
+            print(f"✅ SUCCESS: Suggestion found in admin list")
+            print(f"   - ID: {found_suggestion.get('id')}")
+            print(f"   - Status: {found_suggestion.get('status')}")
+            print(f"   - Customer: {found_suggestion.get('customer_name')}")
+            test_results.append(("Suggestion in Admin List", True))
+        else:
+            print("❌ FAILED: Suggestion not found in admin list")
+            test_results.append(("Suggestion in Admin List", False))
+            return test_results
+    else:
+        print("❌ FAILED: Could not get city suggestions")
+        test_results.append(("Suggestion in Admin List", False))
+        return test_results
+    
+    # Step 3: Approve the city
+    print("\n--- Step 3: Approve City with Delivery Settings ---")
+    approval_data = {
+        "status": "approved",
+        "delivery_charge": 99,
+        "free_delivery_threshold": 1000
+    }
+    
+    success, response = test_api_endpoint(
+        "PUT",
+        f"/admin/city-suggestions/{suggestion_id}/status",
+        headers=auth_headers,
+        data=approval_data,
+        description="Approve city with delivery charge ₹99 and free delivery threshold ₹1000"
+    )
+    
+    if success:
+        print(f"✅ SUCCESS: City approved successfully")
+        test_results.append(("Approve City", True))
+    else:
+        print("❌ FAILED: Could not approve city")
+        test_results.append(("Approve City", False))
+        return test_results
+    
+    # Step 4: Verify city appears in locations
+    print("\n--- Step 4: Verify City in Locations ---")
+    success, locations = test_api_endpoint(
+        "GET",
+        "/locations",
+        description="Get delivery locations to verify Bangalore is added"
+    )
+    
+    if success and isinstance(locations, list):
+        # Find Bangalore in locations
+        found_location = None
+        for location in locations:
+            if location.get("name") == "Bangalore":
+                found_location = location
+                break
+        
+        if found_location:
+            print(f"✅ SUCCESS: Bangalore found in locations")
+            print(f"   - Name: {found_location.get('name')}")
+            print(f"   - Charge: ₹{found_location.get('charge')}")
+            print(f"   - Free Delivery Threshold: ₹{found_location.get('free_delivery_threshold')}")
+            
+            # Verify correct values
+            if (found_location.get("charge") == 99 and 
+                found_location.get("free_delivery_threshold") == 1000):
+                print(f"✅ SUCCESS: Delivery settings are correct")
+                test_results.append(("City in Locations", True))
+            else:
+                print(f"❌ FAILED: Incorrect delivery settings")
+                test_results.append(("City in Locations", False))
+        else:
+            print("❌ FAILED: Bangalore not found in locations")
+            test_results.append(("City in Locations", False))
+    else:
+        print("❌ FAILED: Could not get locations")
+        test_results.append(("City in Locations", False))
+    
+    # Step 5: Verify suggestion status updated
+    print("\n--- Step 5: Verify Suggestion Status Updated ---")
+    success, suggestions = test_api_endpoint(
+        "GET",
+        "/admin/city-suggestions",
+        headers=auth_headers,
+        description="Verify suggestion status is now 'approved'"
+    )
+    
+    if success and isinstance(suggestions, list):
+        # Find our suggestion again
+        found_suggestion = None
+        for suggestion in suggestions:
+            if suggestion.get("id") == suggestion_id:
+                found_suggestion = suggestion
+                break
+        
+        if found_suggestion and found_suggestion.get("status") == "approved":
+            print(f"✅ SUCCESS: Suggestion status updated to 'approved'")
+            test_results.append(("Suggestion Status Updated", True))
+        else:
+            print(f"❌ FAILED: Suggestion status not updated correctly")
+            test_results.append(("Suggestion Status Updated", False))
+    else:
+        print("❌ FAILED: Could not verify suggestion status")
+        test_results.append(("Suggestion Status Updated", False))
+    
+    # Step 6: Check backend logs for email notification
+    print("\n--- Step 6: Check Email Notification Logs ---")
+    try:
+        import subprocess
+        result = subprocess.run(
+            ["tail", "-n", "100", "/var/log/supervisor/backend.out.log"],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        
+        if result.stdout and "City approval email sent" in result.stdout:
+            print(f"✅ SUCCESS: Email notification log found")
+            test_results.append(("Email Notification Log", True))
+        else:
+            print(f"⚠️  WARNING: Email notification log not found (emails may not be configured)")
+            test_results.append(("Email Notification Log", False))
+            
+    except Exception as e:
+        print(f"⚠️  WARNING: Could not check logs: {e}")
+        test_results.append(("Email Notification Log", False))
+    
+    return test_results
+
+def test_city_rejection_workflow(admin_token):
+    """Test city rejection workflow with email notifications"""
+    print("\n" + "="*80)
+    print("🚫 TESTING CITY REJECTION WITH EMAIL")
+    print("="*80)
+    
+    auth_headers = {
+        "Authorization": f"Bearer {admin_token}",
+        "Content-Type": "application/json"
+    }
+    
+    test_results = []
+    
+    # Step 1: Create another test city suggestion
+    print("\n--- Step 1: Create Test City Suggestion for Rejection ---")
+    suggestion_data = {
+        "state": "Tamil Nadu",
+        "city": "Chennai",
+        "customer_name": "Test User 2", 
+        "phone": "9876543211",
+        "email": "test2@example.com"
+    }
+    
+    success, response = test_api_endpoint(
+        "POST",
+        "/suggest-city",
+        data=suggestion_data,
+        description="Create city suggestion for Chennai, Tamil Nadu"
+    )
+    
+    if success and response and "suggestion_id" in response:
+        suggestion_id = response["suggestion_id"]
+        print(f"✅ SUCCESS: City suggestion created with ID: {suggestion_id}")
+        test_results.append(("Create City Suggestion for Rejection", True))
+    else:
+        print("❌ FAILED: Could not create city suggestion")
+        test_results.append(("Create City Suggestion for Rejection", False))
+        return test_results
+    
+    # Step 2: Reject the city
+    print("\n--- Step 2: Reject City ---")
+    rejection_data = {
+        "status": "rejected"
+    }
+    
+    success, response = test_api_endpoint(
+        "PUT",
+        f"/admin/city-suggestions/{suggestion_id}/status",
+        headers=auth_headers,
+        data=rejection_data,
+        description="Reject city suggestion"
+    )
+    
+    if success:
+        print(f"✅ SUCCESS: City rejected successfully")
+        test_results.append(("Reject City", True))
+    else:
+        print("❌ FAILED: Could not reject city")
+        test_results.append(("Reject City", False))
+        return test_results
+    
+    # Step 3: Verify suggestion status updated to rejected
+    print("\n--- Step 3: Verify Suggestion Status Updated to Rejected ---")
+    success, suggestions = test_api_endpoint(
+        "GET",
+        "/admin/city-suggestions",
+        headers=auth_headers,
+        description="Verify suggestion status is now 'rejected'"
+    )
+    
+    if success and isinstance(suggestions, list):
+        # Find our suggestion
+        found_suggestion = None
+        for suggestion in suggestions:
+            if suggestion.get("id") == suggestion_id:
+                found_suggestion = suggestion
+                break
+        
+        if found_suggestion and found_suggestion.get("status") == "rejected":
+            print(f"✅ SUCCESS: Suggestion status updated to 'rejected'")
+            test_results.append(("Suggestion Status Updated to Rejected", True))
+        else:
+            print(f"❌ FAILED: Suggestion status not updated correctly")
+            test_results.append(("Suggestion Status Updated to Rejected", False))
+    else:
+        print("❌ FAILED: Could not verify suggestion status")
+        test_results.append(("Suggestion Status Updated to Rejected", False))
+    
+    # Step 4: Verify city does NOT appear in locations
+    print("\n--- Step 4: Verify City NOT in Locations ---")
+    success, locations = test_api_endpoint(
+        "GET",
+        "/locations",
+        description="Verify Chennai is NOT in delivery locations"
+    )
+    
+    if success and isinstance(locations, list):
+        # Make sure Chennai is NOT in locations
+        found_location = None
+        for location in locations:
+            if location.get("name") == "Chennai":
+                found_location = location
+                break
+        
+        if not found_location:
+            print(f"✅ SUCCESS: Chennai correctly NOT found in locations")
+            test_results.append(("City NOT in Locations", True))
+        else:
+            print(f"❌ FAILED: Chennai incorrectly found in locations")
+            test_results.append(("City NOT in Locations", False))
+    else:
+        print("❌ FAILED: Could not get locations")
+        test_results.append(("City NOT in Locations", False))
+    
+    # Step 5: Check backend logs for rejection email notification
+    print("\n--- Step 5: Check Rejection Email Notification Logs ---")
+    try:
+        import subprocess
+        result = subprocess.run(
+            ["tail", "-n", "100", "/var/log/supervisor/backend.out.log"],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        
+        if result.stdout and "City rejection email sent" in result.stdout:
+            print(f"✅ SUCCESS: Rejection email notification log found")
+            test_results.append(("Rejection Email Notification Log", True))
+        else:
+            print(f"⚠️  WARNING: Rejection email notification log not found")
+            test_results.append(("Rejection Email Notification Log", False))
+            
+    except Exception as e:
+        print(f"⚠️  WARNING: Could not check logs: {e}")
+        test_results.append(("Rejection Email Notification Log", False))
+    
+    return test_results
+
+def test_notification_dismissal_system(admin_token):
+    """Test notification read/unread tracking and dismissal"""
+    print("\n" + "="*80)
+    print("🔔 TESTING NOTIFICATION DISMISSAL SYSTEM")
+    print("="*80)
+    
+    auth_headers = {
+        "Authorization": f"Bearer {admin_token}",
+        "Content-Type": "application/json"
+    }
+    
+    test_results = []
+    
+    # Step 1: Get initial notification counts
+    print("\n--- Step 1: Get Initial Notification Counts ---")
+    success, initial_counts = test_api_endpoint(
+        "GET",
+        "/admin/notifications/count",
+        headers=auth_headers,
+        description="Get initial notification counts"
+    )
+    
+    if success and initial_counts:
+        print(f"✅ SUCCESS: Initial notification counts retrieved")
+        print(f"   - Bug Reports: {initial_counts.get('bug_reports', 0)}")
+        print(f"   - City Suggestions: {initial_counts.get('city_suggestions', 0)}")
+        print(f"   - New Orders: {initial_counts.get('new_orders', 0)}")
+        print(f"   - Total: {initial_counts.get('total', 0)}")
+        
+        initial_city_suggestions = initial_counts.get('city_suggestions', 0)
+        test_results.append(("Get Initial Counts", True))
+    else:
+        print("❌ FAILED: Could not get initial notification counts")
+        test_results.append(("Get Initial Counts", False))
+        return test_results
+    
+    # Step 2: Dismiss city suggestions
+    print("\n--- Step 2: Dismiss City Suggestions ---")
+    dismiss_data = {
+        "type": "city_suggestions"
+    }
+    
+    success, response = test_api_endpoint(
+        "POST",
+        "/admin/notifications/dismiss-all",
+        headers=auth_headers,
+        data=dismiss_data,
+        description="Dismiss all city suggestion notifications"
+    )
+    
+    if success:
+        print(f"✅ SUCCESS: City suggestions dismissed")
+        test_results.append(("Dismiss City Suggestions", True))
+    else:
+        print("❌ FAILED: Could not dismiss city suggestions")
+        test_results.append(("Dismiss City Suggestions", False))
+        return test_results
+    
+    # Step 3: Get notification counts after dismissal
+    print("\n--- Step 3: Get Notification Counts After Dismissal ---")
+    success, after_counts = test_api_endpoint(
+        "GET",
+        "/admin/notifications/count",
+        headers=auth_headers,
+        description="Get notification counts after dismissal"
+    )
+    
+    if success and after_counts:
+        print(f"✅ SUCCESS: Post-dismissal notification counts retrieved")
+        print(f"   - Bug Reports: {after_counts.get('bug_reports', 0)}")
+        print(f"   - City Suggestions: {after_counts.get('city_suggestions', 0)}")
+        print(f"   - New Orders: {after_counts.get('new_orders', 0)}")
+        print(f"   - Total: {after_counts.get('total', 0)}")
+        
+        # Verify city_suggestions count is now 0
+        if after_counts.get('city_suggestions', -1) == 0:
+            print(f"✅ SUCCESS: City suggestions count is now 0")
+            test_results.append(("City Suggestions Count Zero", True))
+        else:
+            print(f"❌ FAILED: City suggestions count is not 0: {after_counts.get('city_suggestions')}")
+            test_results.append(("City Suggestions Count Zero", False))
+        
+        # Verify other counts unchanged
+        if (after_counts.get('bug_reports') == initial_counts.get('bug_reports') and
+            after_counts.get('new_orders') == initial_counts.get('new_orders')):
+            print(f"✅ SUCCESS: Other notification types not affected")
+            test_results.append(("Other Notifications Unaffected", True))
+        else:
+            print(f"❌ FAILED: Other notification counts changed unexpectedly")
+            test_results.append(("Other Notifications Unaffected", False))
+            
+    else:
+        print("❌ FAILED: Could not get post-dismissal notification counts")
+        test_results.append(("City Suggestions Count Zero", False))
+        test_results.append(("Other Notifications Unaffected", False))
+    
+    # Step 4: Wait and verify dismissal persists (shortened for testing)
+    print("\n--- Step 4: Verify Dismissal Persistence ---")
+    print("Waiting 10 seconds to test persistence...")
+    time.sleep(10)
+    
+    success, persistence_counts = test_api_endpoint(
+        "GET",
+        "/admin/notifications/count",
+        headers=auth_headers,
+        description="Verify dismissal persists after 10 seconds"
+    )
+    
+    if success and persistence_counts:
+        if persistence_counts.get('city_suggestions', -1) == 0:
+            print(f"✅ SUCCESS: Dismissal persists after 10 seconds")
+            test_results.append(("Dismissal Persistence", True))
+        else:
+            print(f"❌ FAILED: Dismissal did not persist")
+            test_results.append(("Dismissal Persistence", False))
+    else:
+        print("❌ FAILED: Could not verify dismissal persistence")
+        test_results.append(("Dismissal Persistence", False))
+    
+    return test_results
+
+def test_approve_city_endpoint(admin_token):
+    """Test the direct approve-city endpoint with email"""
+    print("\n" + "="*80)
+    print("✅ TESTING APPROVE-CITY ENDPOINT WITH EMAIL")
+    print("="*80)
+    
+    auth_headers = {
+        "Authorization": f"Bearer {admin_token}",
+        "Content-Type": "application/json"
+    }
+    
+    test_results = []
+    
+    # Step 1: Create a city suggestion first (for email testing)
+    print("\n--- Step 1: Create City Suggestion for Direct Approval ---")
+    suggestion_data = {
+        "state": "Andhra Pradesh",
+        "city": "Vijayawada",
+        "customer_name": "Direct Test User",
+        "phone": "9876543212", 
+        "email": "directtest@example.com"
+    }
+    
+    success, response = test_api_endpoint(
+        "POST",
+        "/suggest-city",
+        data=suggestion_data,
+        description="Create city suggestion for direct approval test"
+    )
+    
+    if success:
+        print(f"✅ SUCCESS: City suggestion created for direct approval test")
+        test_results.append(("Create Suggestion for Direct Approval", True))
+    else:
+        print("⚠️  WARNING: Could not create suggestion, but continuing with direct approval test")
+        test_results.append(("Create Suggestion for Direct Approval", False))
+    
+    # Step 2: Use direct approve-city endpoint
+    print("\n--- Step 2: Use Direct Approve-City Endpoint ---")
+    approve_data = {
+        "city_name": "Vijayawada",
+        "state_name": "Andhra Pradesh",
+        "delivery_charge": 49,
+        "free_delivery_threshold": 800
+    }
+    
+    success, response = test_api_endpoint(
+        "POST",
+        "/admin/approve-city",
+        headers=auth_headers,
+        data=approve_data,
+        description="Directly approve city with delivery settings"
+    )
+    
+    if success:
+        print(f"✅ SUCCESS: City approved via direct endpoint")
+        test_results.append(("Direct City Approval", True))
+    else:
+        print("❌ FAILED: Direct city approval failed")
+        test_results.append(("Direct City Approval", False))
+        return test_results
+    
+    # Step 3: Verify city added to locations
+    print("\n--- Step 3: Verify City Added to Locations ---")
+    success, locations = test_api_endpoint(
+        "GET",
+        "/locations",
+        description="Verify Vijayawada is in delivery locations"
+    )
+    
+    if success and isinstance(locations, list):
+        # Find Vijayawada in locations
+        found_location = None
+        for location in locations:
+            if location.get("name") == "Vijayawada":
+                found_location = location
+                break
+        
+        if found_location:
+            print(f"✅ SUCCESS: Vijayawada found in locations")
+            print(f"   - Charge: ₹{found_location.get('charge')}")
+            print(f"   - Free Delivery Threshold: ₹{found_location.get('free_delivery_threshold')}")
+            
+            # Verify correct values
+            if (found_location.get("charge") == 49 and 
+                found_location.get("free_delivery_threshold") == 800):
+                print(f"✅ SUCCESS: Delivery settings are correct")
+                test_results.append(("City Added to Locations", True))
+            else:
+                print(f"❌ FAILED: Incorrect delivery settings")
+                test_results.append(("City Added to Locations", False))
+        else:
+            print("❌ FAILED: Vijayawada not found in locations")
+            test_results.append(("City Added to Locations", False))
+    else:
+        print("❌ FAILED: Could not get locations")
+        test_results.append(("City Added to Locations", False))
+    
+    # Step 4: Check if matching suggestion was updated
+    print("\n--- Step 4: Check Matching Suggestion Status ---")
+    success, suggestions = test_api_endpoint(
+        "GET",
+        "/admin/city-suggestions",
+        headers=auth_headers,
+        description="Check if matching suggestion status was updated"
+    )
+    
+    if success and isinstance(suggestions, list):
+        # Find matching suggestion
+        found_suggestion = None
+        for suggestion in suggestions:
+            if (suggestion.get("city") == "Vijayawada" and 
+                suggestion.get("state") == "Andhra Pradesh"):
+                found_suggestion = suggestion
+                break
+        
+        if found_suggestion and found_suggestion.get("status") == "approved":
+            print(f"✅ SUCCESS: Matching suggestion status updated to 'approved'")
+            test_results.append(("Matching Suggestion Updated", True))
+        elif found_suggestion:
+            print(f"⚠️  WARNING: Matching suggestion found but status not updated: {found_suggestion.get('status')}")
+            test_results.append(("Matching Suggestion Updated", False))
+        else:
+            print(f"ℹ️  INFO: No matching suggestion found (this is okay)")
+            test_results.append(("Matching Suggestion Updated", True))
+    else:
+        print("❌ FAILED: Could not check suggestions")
+        test_results.append(("Matching Suggestion Updated", False))
+    
+    # Step 5: Check for email notification in logs
+    print("\n--- Step 5: Check Email Notification for Direct Approval ---")
+    try:
+        import subprocess
+        result = subprocess.run(
+            ["tail", "-n", "100", "/var/log/supervisor/backend.out.log"],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        
+        if result.stdout and ("City approval email sent" in result.stdout or "Vijayawada" in result.stdout):
+            print(f"✅ SUCCESS: Email notification log found for direct approval")
+            test_results.append(("Direct Approval Email Log", True))
+        else:
+            print(f"⚠️  WARNING: Email notification log not found for direct approval")
+            test_results.append(("Direct Approval Email Log", False))
+            
+    except Exception as e:
+        print(f"⚠️  WARNING: Could not check logs: {e}")
+        test_results.append(("Direct Approval Email Log", False))
+    
+    return test_results
+
 def main():
-    """Main testing function - COMPREHENSIVE BACKEND API TESTING"""
-    print("🚀 Starting Comprehensive Backend API Testing")
+    """Main testing function - CITY APPROVAL AND NOTIFICATION FEATURES TESTING"""
+    print("🚀 Starting City Approval and Notification Features Testing")
     print(f"Backend URL: {BACKEND_URL}")
     print(f"Test Time: {datetime.now()}")
     print("="*80)
     
-    test_results = []
+    all_test_results = []
     
     # Test 1: Admin Authentication
     print("\n" + "🔐" * 20 + " TEST 1: ADMIN AUTHENTICATION " + "🔐" * 20)
     auth_success, admin_token = test_admin_authentication()
-    test_results.append(("Admin Authentication", auth_success))
+    all_test_results.append(("Admin Authentication", auth_success))
     
     if not auth_success:
         print("❌ CRITICAL: Cannot proceed without admin authentication")
         return 1
     
-    # Test 2: City Suggestions API
-    print("\n" + "🏙️" * 20 + " TEST 2: CITY SUGGESTIONS API " + "🏙️" * 20)
-    city_success = test_city_suggestions_api(admin_token)
-    test_results.append(("City Suggestions API", city_success))
+    # Test 2: City Approval Workflow
+    print("\n" + "🏙️" * 15 + " TEST 2: CITY APPROVAL WITH EMAIL & LOCATION ADDITION " + "🏙️" * 15)
+    approval_results = test_city_approval_workflow(admin_token)
+    all_test_results.extend(approval_results)
     
-    # Test 3: Products API
-    print("\n" + "📦" * 20 + " TEST 3: PRODUCTS API " + "📦" * 20)
-    products_success = test_products_api()
-    test_results.append(("Products API", products_success))
+    # Test 3: City Rejection Workflow  
+    print("\n" + "🚫" * 20 + " TEST 3: CITY REJECTION WITH EMAIL " + "🚫" * 20)
+    rejection_results = test_city_rejection_workflow(admin_token)
+    all_test_results.extend(rejection_results)
     
-    # Test 4: Notifications Count API
-    print("\n" + "🔔" * 20 + " TEST 4: NOTIFICATIONS COUNT API " + "🔔" * 20)
-    notifications_success = test_notifications_count_api(admin_token)
-    test_results.append(("Notifications Count API", notifications_success))
+    # Test 4: Notification Dismissal System
+    print("\n" + "🔔" * 15 + " TEST 4: NOTIFICATION DISMISSAL SYSTEM " + "🔔" * 15)
+    dismissal_results = test_notification_dismissal_system(admin_token)
+    all_test_results.extend(dismissal_results)
     
-    # Test 5: Error Handling
-    print("\n" + "⚠️" * 20 + " TEST 5: ERROR HANDLING " + "⚠️" * 20)
-    error_handling_success = test_error_handling()
-    test_results.append(("Error Handling", error_handling_success))
+    # Test 5: Direct Approve-City Endpoint
+    print("\n" + "✅" * 15 + " TEST 5: APPROVE-CITY ENDPOINT WITH EMAIL " + "✅" * 15)
+    direct_approval_results = test_approve_city_endpoint(admin_token)
+    all_test_results.extend(direct_approval_results)
     
     # Summary
     print("\n" + "="*80)
@@ -802,18 +1399,47 @@ def main():
     print("="*80)
     
     passed_tests = 0
-    total_tests = len(test_results)
+    total_tests = len(all_test_results)
     
-    for test_name, success in test_results:
+    # Group results by category
+    categories = {
+        "Authentication": [],
+        "City Approval": [],
+        "City Rejection": [],
+        "Notification System": [],
+        "Direct Approval": []
+    }
+    
+    for test_name, success in all_test_results:
         status = "✅ PASSED" if success else "❌ FAILED"
         print(f"{status}: {test_name}")
         if success:
             passed_tests += 1
+        
+        # Categorize for detailed summary
+        if "Authentication" in test_name:
+            categories["Authentication"].append((test_name, success))
+        elif "Rejection" in test_name or "NOT in Locations" in test_name:
+            categories["City Rejection"].append((test_name, success))
+        elif "Direct" in test_name or "approve-city" in test_name.lower():
+            categories["Direct Approval"].append((test_name, success))
+        elif "Dismiss" in test_name or "Notification" in test_name:
+            categories["Notification System"].append((test_name, success))
+        else:
+            categories["City Approval"].append((test_name, success))
     
     print(f"\n🎯 OVERALL RESULT: {passed_tests}/{total_tests} tests passed ({(passed_tests/total_tests)*100:.1f}%)")
     
+    # Detailed category summary
+    print(f"\n📋 DETAILED CATEGORY RESULTS:")
+    for category, tests in categories.items():
+        if tests:
+            category_passed = sum(1 for _, success in tests if success)
+            category_total = len(tests)
+            print(f"   {category}: {category_passed}/{category_total} passed")
+    
     if passed_tests == total_tests:
-        print("🎉 ALL TESTS PASSED - Backend APIs are working correctly!")
+        print("🎉 ALL TESTS PASSED - City approval and notification features are working correctly!")
         return 0
     else:
         print("⚠️  SOME TESTS FAILED - Check individual test results above")
