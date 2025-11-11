@@ -96,7 +96,7 @@ const Footer = () => {
               rel="noopener noreferrer"
               className="inline-block bg-orange-500 text-white px-3 py-1 rounded-md font-semibold hover:bg-orange-600 transition-colors"
             >
-              PROMPT FORGE
+              PROMPT FORGE IN
             </a>
           </p>
         </div>
