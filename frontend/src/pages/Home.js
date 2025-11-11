@@ -143,13 +143,23 @@ const Home = () => {
     }
   }, [deliveryLocations]);
 
-  // Fetch products based on selected city
+  // Fetch products based on selected city and state
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const url = selectedCity 
-          ? `${API}/products?city=${encodeURIComponent(selectedCity)}`
-          : `${API}/products`;
+        let url = `${API}/products`;
+        const params = new URLSearchParams();
+        
+        if (selectedCity) {
+          params.append('city', selectedCity);
+        } else if (selectedState && selectedState !== 'all') {
+          params.append('state', selectedState);
+        }
+        
+        if (params.toString()) {
+          url += `?${params.toString()}`;
+        }
+        
         const response = await axios.get(url);
         setAllProducts(response.data || []);
       } catch (error) {
@@ -158,7 +168,7 @@ const Home = () => {
       }
     };
     fetchProducts();
-  }, [selectedCity, contextProducts]);
+  }, [selectedCity, selectedState, contextProducts]);
 
   // Use allProducts instead of contextProducts
   const products = allProducts.length > 0 ? allProducts : contextProducts;
