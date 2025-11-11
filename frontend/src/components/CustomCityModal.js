@@ -167,7 +167,7 @@ const CustomCityModal = ({ isOpen, onClose, onSubmit, selectedState }) => {
             </button>
             <button
               onClick={handleSubmit}
-              disabled={!cityName.trim() || isSubmitting}
+              disabled={!cityName.trim() || !phone.trim() || !email.trim() || isSubmitting}
               className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold rounded-lg transition-all shadow-lg disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
