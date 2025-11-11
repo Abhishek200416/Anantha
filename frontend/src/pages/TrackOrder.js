@@ -263,14 +263,28 @@ const TrackOrder = () => {
                       <p className="text-gray-600 text-sm mb-1">Order Date</p>
                       <p className="font-semibold">{new Date(order.created_at).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
                     </div>
-                    {canCancelOrder(order) && (
+                    {canCompletePayment(order) && (
                       <button
-                        onClick={() => setShowCancelModal(true)}
-                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-lg transition-all font-medium shadow-md text-sm whitespace-nowrap"
+                        onClick={handleCompletePayment}
+                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg transition-all font-medium shadow-md text-sm whitespace-nowrap"
                       >
-                        <XCircle className="h-4 w-4" />
-                        Cancel Order
+                        <CreditCard className="h-4 w-4" />
+                        Complete Payment
                       </button>
+                    )}
+                    {canCancelOrder(order) && (
+                      <div className="flex flex-col gap-2">
+                        <button
+                          onClick={() => setShowCancelModal(true)}
+                          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-lg transition-all font-medium shadow-md text-sm whitespace-nowrap"
+                        >
+                          <XCircle className="h-4 w-4" />
+                          Cancel Order
+                        </button>
+                        <p className="text-xs text-orange-600 font-medium">
+                          ⏱️ {getRemainingCancellationTime(order)} min left • ₹20 fee applies
+                        </p>
+                      </div>
                     )}
                   </div>
                 </div>
