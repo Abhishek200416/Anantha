@@ -1190,6 +1190,21 @@ const Checkout = () => {
                         </p>
                       </div>
                     )}
+
+                    {/* Add City Help Button */}
+                    <div className="mt-3">
+                      <button
+                        type="button"
+                        onClick={() => setShowAddCityModal(true)}
+                        className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all font-medium shadow-md text-sm"
+                      >
+                        <Plus className="h-4 w-4" />
+                        <span>City Not in List? Add Here</span>
+                      </button>
+                      <p className="text-xs text-gray-500 mt-2 text-center sm:text-left">
+                        💡 We'll add your city within 5-10 minutes. Check back soon!
+                      </p>
+                    </div>
                   </div>
                 </div>
 
