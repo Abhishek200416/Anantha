@@ -48,7 +48,7 @@ const Header = () => {
     <>
       {/* Top Banner */}
       <div className="bg-gradient-to-r from-orange-400 to-orange-500 text-white py-2 px-4 text-center text-sm md:text-base font-medium">
-        All types of traditional sweets and snacks available for festivals and functions!
+        {t('bannerText')}
       </div>
 
       {/* Main Header */}
