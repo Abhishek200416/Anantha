@@ -49,6 +49,7 @@ const Checkout = () => {
   const [customCityDeliveryCharge, setCustomCityDeliveryCharge] = useState(199);
   const [customCityDistance, setCustomCityDistance] = useState(null);
   const [calculatingCustomCity, setCalculatingCustomCity] = useState(false);
+  const [showAddCityModal, setShowAddCityModal] = useState(false);
 
   useEffect(() => {
     fetchDeliveryLocations();
