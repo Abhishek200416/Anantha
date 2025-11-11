@@ -1332,7 +1332,21 @@ const Admin = () => {
               {/* Cities Section */}
               <div className="mb-8">
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold text-gray-800">Delivery Cities & Charges</h2>
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-800">Delivery Cities & Charges</h2>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {stateFilter ? (
+                        <>
+                          Showing <span className="font-bold text-orange-600">{deliveryLocations.filter(location => location.state === stateFilter && (!citySearchEdit || location.name.toLowerCase().includes(citySearchEdit.toLowerCase()))).length}</span> cities in {stateFilter}
+                        </>
+                      ) : (
+                        <>
+                          Total Cities: <span className="font-bold text-orange-600">{deliveryLocations.filter(location => !citySearchEdit || location.name.toLowerCase().includes(citySearchEdit.toLowerCase())).length}</span>
+                          {citySearchEdit && <span> (filtered from {deliveryLocations.length})</span>}
+                        </>
+                      )}
+                    </p>
+                  </div>
                   <button
                     onClick={() => setShowAddLocation(true)}
                     className="flex items-center space-x-2 bg-gradient-to-r from-green-600 to-green-700 text-white px-4 py-2 rounded-lg hover:from-green-700 hover:to-green-800 transition-all"
