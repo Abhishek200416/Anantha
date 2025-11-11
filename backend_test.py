@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Backend API Testing Script for Anantha Lakshmi Food Delivery App
-FOCUSED TEST: State Management APIs
-Tests: GET /api/states, GET /api/admin/states (with admin auth), Database verification
+FOCUSED TEST: Bug Reporting and Admin Profile Features
+Tests: Bug Report APIs, Admin Profile Management, OTP Password Change
 """
 
 import requests
@@ -11,6 +11,8 @@ import sys
 from datetime import datetime, timedelta, timezone
 import time
 import random
+import os
+import tempfile
 
 # Backend URL from environment
 BACKEND_URL = "https://report-tracker-23.preview.emergentagent.com/api"
