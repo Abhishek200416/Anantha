@@ -40,7 +40,7 @@ const Footer = () => {
               </li>
               <li className="flex items-center space-x-2 text-gray-300">
                 <Mail className="h-4 w-4" />
-                <span>contact@ananthalakshmi.com</span>
+                <a href="mailto:contact.ananthahomefoods@gmail.com" className="hover:text-orange-400 transition-colors">contact.ananthahomefoods@gmail.com</a>
               </li>
               <li className="flex items-start space-x-2 text-gray-300">
                 <MapPin className="h-4 w-4 mt-1" />
