@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import CategoryFilter from '../components/CategoryFilter';
 import ProductCard from '../components/ProductCard';
 import ProductDetailModal from '../components/ProductDetailModal';
+import AddCityModal from '../components/AddCityModal';
 import { useAdmin } from '../contexts/AdminContext';
-import { Sparkles, X, ArrowRight, MapPin } from 'lucide-react';
+import { Sparkles, X, ArrowRight, MapPin, Plus } from 'lucide-react';
 import axios from 'axios';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -21,6 +22,7 @@ const Home = () => {
   const { products: contextProducts, festivalProduct, deliveryLocations } = useAdmin();
 
   const [detectingLocation, setDetectingLocation] = useState(false);
+  const [showAddCityModal, setShowAddCityModal] = useState(false);
 
   // Improved location detection function
   const detectLocation = async () => {
