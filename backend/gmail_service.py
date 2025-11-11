@@ -103,3 +103,187 @@ async def send_order_confirmation_email_gmail(to_email: str, order_data: dict):
     except Exception as e:
         logger.error(f"Failed to send email via Gmail: {str(e)}")
         return False
+
+
+async def send_order_status_update_email(to_email: str, order_data: dict, old_status: str, new_status: str):
+    """Send email notification when order status is updated"""
+    try:
+        if not GMAIL_EMAIL or not GMAIL_APP_PASSWORD:
+            logger.warning("Gmail credentials not configured. Email not sent.")
+            return False
+            
+        # Create message
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = f'Order Status Update - #{order_data["order_id"]}'
+        msg['From'] = f'Anantha Home Foods <{GMAIL_EMAIL}>'
+        msg['To'] = to_email
+        
+        # Status display names with emojis
+        status_display = {
+            'confirmed': '✅ Confirmed',
+            'processing': '🔄 Processing',
+            'shipped': '🚚 Shipped',
+            'delivered': '📦 Delivered',
+            'cancelled': '❌ Cancelled'
+        }
+        
+        # Status color mapping
+        status_colors = {
+            'confirmed': '#16a34a',
+            'processing': '#2563eb',
+            'shipped': '#f59e0b',
+            'delivered': '#059669',
+            'cancelled': '#dc2626'
+        }
+        
+        new_status_display = status_display.get(new_status, new_status.title())
+        status_color = status_colors.get(new_status, '#666')
+        
+        # Format address
+        if order_data.get("doorNo"):
+            address_html = f'''
+            {order_data.get("doorNo", "")}, {order_data.get("building", "")}<br>
+            {order_data.get("street", "")}<br>
+            {order_data.get("city", "")}, {order_data.get("state", "")} - {order_data.get("pincode", "")}
+            '''
+        else:
+            address_html = f'{order_data.get("address", "")}'
+        
+        html_content = f'''
+        <html>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+                <h2 style="color: #f97316; text-align: center;">📬 Order Status Update</h2>
+                <p>Dear {order_data.get("customer_name", "Customer")},</p>
+                <p>Your order status has been updated!</p>
+                
+                <div style="background-color: #fff7ed; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center;">
+                    <h3 style="color: {status_color}; margin: 0; font-size: 24px;">
+                        {new_status_display}
+                    </h3>
+                    <p style="margin-top: 10px; color: #666;">Order ID: <strong>{order_data["order_id"]}</strong></p>
+                    <p style="color: #666;">Tracking Code: <strong>{order_data.get("tracking_code", "")}</strong></p>
+                </div>
+                
+                <div style="background-color: #f0fdf4; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                    <h3 style="color: #16a34a; margin-top: 0;">Delivery Details</h3>
+                    <p><strong>Address:</strong><br>{address_html}<br>
+                    {order_data.get("location", "")}</p>
+                    <p><strong>Phone:</strong> {order_data.get("phone", "")}</p>
+                    <p><strong>Total Amount:</strong> ₹{order_data.get("total", 0)}</p>
+                </div>
+                
+                <div style="background-color: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                    <h4 style="margin-top: 0;">📦 Track Your Order</h4>
+                    <p>You can track your order anytime using your Order ID or Tracking Code on our website.</p>
+                    <p>Visit our Track Order page and enter your details to get real-time updates!</p>
+                </div>
+                
+                <p style="margin-top: 30px;">If you have any questions, feel free to contact us at <strong>9985116385</strong></p>
+                
+                <p style="text-align: center; color: #666; margin-top: 30px; font-size: 12px;">
+                    Thank you for choosing Anantha Home Foods!<br>
+                    Handcrafted with love and tradition 💚
+                </p>
+            </div>
+        </body>
+        </html>
+        '''
+        
+        # Attach HTML content
+        html_part = MIMEText(html_content, 'html')
+        msg.attach(html_part)
+        
+        # Send email using Gmail SMTP
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+            server.login(GMAIL_EMAIL, GMAIL_APP_PASSWORD)
+            server.send_message(msg)
+        
+        logger.info(f"Order status update email sent successfully to {to_email} via Gmail")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Failed to send order status update email via Gmail: {str(e)}")
+        return False
+
+
+async def send_city_approval_email(to_email: str, city_data: dict):
+    """Send email notification when a city suggestion is approved"""
+    try:
+        if not GMAIL_EMAIL or not GMAIL_APP_PASSWORD:
+            logger.warning("Gmail credentials not configured. Email not sent.")
+            return False
+            
+        # Create message
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = f'Great News! We now deliver to {city_data["city"]}! 🎉'
+        msg['From'] = f'Anantha Home Foods <{GMAIL_EMAIL}>'
+        msg['To'] = to_email
+        
+        html_content = f'''
+        <html>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+                <h2 style="color: #16a34a; text-align: center;">🎉 Exciting News!</h2>
+                <p>Dear {city_data.get("customer_name", "Valued Customer")},</p>
+                <p>We're thrilled to inform you that we now deliver to <strong>{city_data["city"]}, {city_data["state"]}</strong>!</p>
+                
+                <div style="background-color: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center;">
+                    <h3 style="color: #16a34a; margin: 0; font-size: 24px;">
+                        ✅ City Added
+                    </h3>
+                    <p style="margin-top: 15px; font-size: 18px; color: #166534;">
+                        <strong>{city_data["city"]}, {city_data["state"]}</strong>
+                    </p>
+                </div>
+                
+                <div style="background-color: #fff7ed; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                    <h3 style="color: #ea580c; margin-top: 0;">📍 Delivery Information</h3>
+                    <p>Thanks to your suggestion, we've added {city_data["city"]} to our delivery locations!</p>
+                    <p>You can now enjoy our delicious traditional foods delivered right to your doorstep.</p>
+                </div>
+                
+                <div style="background-color: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                    <h4 style="margin-top: 0;">🛍️ Start Shopping!</h4>
+                    <p>Visit our website to browse our complete collection of:</p>
+                    <ul style="margin: 10px 0;">
+                        <li>Traditional Laddus & Chikkis</li>
+                        <li>Authentic Sweets</li>
+                        <li>Hot Snacks & Items</li>
+                        <li>Homemade Pickles</li>
+                        <li>Fresh Powders & Spices</li>
+                    </ul>
+                    <p>All made with authentic ingredients and traditional recipes!</p>
+                </div>
+                
+                <p style="margin-top: 30px; text-align: center;">
+                    <strong>Ready to place your first order?</strong><br>
+                    Visit our website and start shopping today!
+                </p>
+                
+                <p style="margin-top: 20px;">If you have any questions, feel free to contact us at <strong>9985116385</strong></p>
+                
+                <p style="text-align: center; color: #666; margin-top: 30px; font-size: 12px;">
+                    Thank you for choosing Anantha Home Foods!<br>
+                    Handcrafted with love and tradition 💚
+                </p>
+            </div>
+        </body>
+        </html>
+        '''
+        
+        # Attach HTML content
+        html_part = MIMEText(html_content, 'html')
+        msg.attach(html_part)
+        
+        # Send email using Gmail SMTP
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+            server.login(GMAIL_EMAIL, GMAIL_APP_PASSWORD)
+            server.send_message(msg)
+        
+        logger.info(f"City approval email sent successfully to {to_email} via Gmail")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Failed to send city approval email via Gmail: {str(e)}")
+        return False
