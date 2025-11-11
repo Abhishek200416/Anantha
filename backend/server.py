@@ -1296,6 +1296,91 @@ async def delete_location(city_name: str, current_user: dict = Depends(get_curre
     
     return {"message": f"Location '{city_name}' deleted successfully"}
 
+# ============= CUSTOM CITY API =============
+
+@api_router.post("/calculate-custom-city-delivery")
+async def calculate_custom_city_delivery(data: dict):
+    """Calculate delivery charge for a custom city not in the delivery list"""
+    from distance_calculator import calculate_delivery_charge_for_custom_city
+    
+    city_name = data.get("city_name")
+    state_name = data.get("state_name")
+    
+    if not city_name or not state_name:
+        raise HTTPException(status_code=400, detail="City name and state name are required")
+    
+    # Calculate delivery charge and distance
+    charge, distance, coords = calculate_delivery_charge_for_custom_city(city_name, state_name)
+    
+    return {
+        "city_name": city_name,
+        "state_name": state_name,
+        "delivery_charge": charge,
+        "distance_from_guntur_km": distance,
+        "coordinates": coords,
+        "message": f"Estimated delivery charge based on {distance}km distance from Guntur" if distance else "Unable to calculate distance, using default charge"
+    }
+
+@api_router.get("/admin/pending-cities")
+async def get_pending_cities(current_user: dict = Depends(get_current_user)):
+    """Get all custom cities from orders that need admin approval"""
+    # Find all orders with custom locations
+    orders = await db.orders.find(
+        {"is_custom_location": True},
+        {"_id": 0, "custom_city": 1, "custom_state": 1, "distance_from_guntur": 1, "delivery_charge": 1, "created_at": 1}
+    ).to_list(1000)
+    
+    # Group by city and state to remove duplicates
+    cities_dict = {}
+    for order in orders:
+        city_key = f"{order.get('custom_city', '')}_{order.get('custom_state', '')}"
+        if city_key not in cities_dict:
+            cities_dict[city_key] = {
+                "city_name": order.get("custom_city"),
+                "state_name": order.get("custom_state"),
+                "distance_km": order.get("distance_from_guntur"),
+                "suggested_charge": order.get("delivery_charge"),
+                "first_order_date": order.get("created_at"),
+                "order_count": 1
+            }
+        else:
+            cities_dict[city_key]["order_count"] += 1
+    
+    return list(cities_dict.values())
+
+@api_router.post("/admin/approve-city")
+async def approve_custom_city(data: dict, current_user: dict = Depends(get_current_user)):
+    """Approve a custom city and add it to delivery locations with admin-set charge"""
+    city_name = data.get("city_name")
+    state_name = data.get("state_name")
+    delivery_charge = data.get("delivery_charge")
+    free_delivery_threshold = data.get("free_delivery_threshold")
+    
+    if not city_name or not state_name or delivery_charge is None:
+        raise HTTPException(status_code=400, detail="City name, state name, and delivery charge are required")
+    
+    # Check if city already exists
+    existing = await db.locations.find_one({"name": city_name, "state": state_name})
+    if existing:
+        raise HTTPException(status_code=400, detail="City already exists in delivery locations")
+    
+    # Add city to locations
+    city_data = {
+        "name": city_name,
+        "state": state_name,
+        "charge": delivery_charge
+    }
+    
+    if free_delivery_threshold:
+        city_data["free_delivery_threshold"] = free_delivery_threshold
+    
+    await db.locations.insert_one(city_data)
+    
+    return {
+        "message": f"City '{city_name}, {state_name}' approved and added to delivery locations",
+        "city_data": city_data
+    }
+
 # ============= STATES API =============
 
 @api_router.get("/states")
