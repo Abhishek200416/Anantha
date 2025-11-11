@@ -1514,6 +1514,9 @@ async def approve_custom_city(data: dict, current_user: dict = Depends(get_curre
         logger.error(f"Error updating city suggestion: {str(e)}")
         # Don't fail the approval if email/suggestion update fails
     
+    # Remove _id field from city_data before returning to avoid serialization issues
+    city_data.pop("_id", None)
+    
     return {
         "message": f"City '{city_name}, {state_name}' approved and added to delivery locations",
         "city_data": city_data
