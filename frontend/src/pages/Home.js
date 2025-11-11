@@ -304,7 +304,7 @@ const Home = () => {
               onChange={(e) => setSelectedCity(e.target.value)}
               className="px-4 py-2 border-2 border-orange-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white font-medium shadow-sm"
             >
-              <option value="">All Cities</option>
+              <option value="">{t('allCities')}</option>
               {[...new Set(
                 deliveryLocations
                   .filter(location => selectedState === 'all' || location.state === selectedState)
