@@ -811,10 +811,7 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus:
-    - "City Approval Email Notifications (Approval & Rejection)"
-    - "City Approval Adds to Locations"
-    - "Notification System with Read/Unread Tracking"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
