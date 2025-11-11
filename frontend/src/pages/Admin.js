@@ -3599,6 +3599,15 @@ const Admin = () => {
         message={`Are you sure you want to delete "${deleteStateDialog.stateName}"? This action cannot be undone.`}
       />
 
+      {/* Delete Report Dialog */}
+      <DeleteConfirmDialog
+        isOpen={deleteReportDialog.isOpen}
+        onClose={() => setDeleteReportDialog({ isOpen: false, reportId: null, reportEmail: '', reportIndex: 0 })}
+        onConfirm={confirmDeleteReport}
+        title={`Delete Report #${deleteReportDialog.reportIndex}`}
+        message={`Are you sure you want to delete report from "${deleteReportDialog.reportEmail}"? This action cannot be undone.`}
+      />
+
       {/* Add State Modal */}
       {showAddState && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
