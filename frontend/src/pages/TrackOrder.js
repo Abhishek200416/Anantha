@@ -370,6 +370,14 @@ const TrackOrder = () => {
           )}
         </div>
       </div>
+
+      {/* Cancel Order Modal */}
+      <CancelOrderModal
+        isOpen={showCancelModal}
+        onClose={() => setShowCancelModal(false)}
+        onConfirm={handleCancelOrder}
+        orderDetails={order}
+      />
     </div>
   );
 };
