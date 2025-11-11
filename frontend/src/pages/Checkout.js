@@ -225,9 +225,9 @@ const Checkout = () => {
     if (!formData.building.trim()) newErrors.building = 'Building/House name is required';
     if (!formData.street.trim()) newErrors.street = 'Street/Area is required';
     if (!formData.state.trim()) newErrors.state = 'State is required';
-    if (!formData.city.trim()) newErrors.city = 'City is required';
-    // If "Others" is selected, validate custom city
-    if (formData.city === 'Others' && !customCity.trim()) newErrors.city = 'Please enter your city name';
+    // Validate city - either from dropdown or custom
+    if (!showCustomCityInput && !formData.city.trim()) newErrors.city = 'City is required';
+    if (showCustomCityInput && !customCity.trim()) newErrors.city = 'Please enter your city name';
     if (!formData.pincode.trim()) newErrors.pincode = 'Pincode is required';
     else if (!/^\d{6}$/.test(formData.pincode)) newErrors.pincode = 'Enter valid 6-digit pincode';
     
