@@ -266,7 +266,7 @@ def main():
     
     # ============= FINAL SUMMARY =============
     print(f"\n{'='*80}")
-    print("🎯 BUG REPORTING AND CITY SUGGESTION ENDPOINTS TEST SUMMARY")
+    print("🎯 ADMIN BUG REPORTS ENDPOINT TEST SUMMARY")
     print(f"{'='*80}")
     
     total_tests = len(test_results)
@@ -277,13 +277,12 @@ def main():
     
     # Group results by category
     categories = {
-        "Bug Report Endpoint (POST /api/report-issue)": [
-            'create_bug_report_form_data', 'verify_bug_report_creation',
-            'create_bug_report_minimal'
+        "Admin Authentication": [
+            'admin_login'
         ],
-        "City Suggestion Endpoint (POST /api/suggest-city)": [
-            'create_city_suggestion', 'verify_city_suggestion_creation',
-            'create_city_suggestion_2', 'create_city_suggestion_incomplete'
+        "Admin Bug Reports Endpoint (GET /api/admin/reports)": [
+            'fetch_bug_reports_with_auth', 'verify_json_response',
+            'fetch_bug_reports_no_auth'
         ]
     }
     
@@ -305,57 +304,63 @@ def main():
     
     print(f"\n🎯 KEY FINDINGS:")
     
-    # Bug Report Endpoint
-    if test_results.get('create_bug_report_form_data') and test_results.get('verify_bug_report_creation'):
-        print(f"  ✅ POST /api/report-issue endpoint works correctly with form-data")
-        print(f"      - Accepts issue_title, description, name, email, phone, page fields")
-        print(f"      - Returns success response with report_id")
-        print(f"      - Response structure is valid")
+    # Admin Login
+    if test_results.get('admin_login'):
+        print(f"  ✅ Admin login works correctly with password 'admin123'")
+        print(f"      - Returns valid JWT token")
+        print(f"      - Token can be used for subsequent API calls")
     else:
-        print(f"  ❌ POST /api/report-issue endpoint failed")
+        print(f"  ❌ Admin login failed")
     
-    if test_results.get('create_bug_report_minimal'):
-        print(f"  ✅ Bug report endpoint works with minimal required fields")
+    # Admin Bug Reports Endpoint
+    if test_results.get('fetch_bug_reports_with_auth') and test_results.get('verify_json_response'):
+        print(f"  ✅ GET /api/admin/reports endpoint works correctly")
+        print(f"      - Returns valid JSON response (not HTML)")
+        print(f"      - Accepts Authorization header with JWT token")
+        print(f"      - Returns array of bug reports")
     else:
-        print(f"  ❌ Bug report endpoint failed with minimal fields")
+        print(f"  ❌ GET /api/admin/reports endpoint failed")
+        if not test_results.get('verify_json_response'):
+            print(f"      - Response was not valid JSON (possibly HTML)")
     
-    # City Suggestion Endpoint
-    if test_results.get('create_city_suggestion') and test_results.get('verify_city_suggestion_creation'):
-        print(f"  ✅ POST /api/suggest-city endpoint works correctly with JSON body")
-        print(f"      - Accepts state, city, customer_name, phone, email fields")
-        print(f"      - Returns success response with suggestion_id")
-        print(f"      - Response structure is valid")
+    if test_results.get('fetch_bug_reports_no_auth'):
+        print(f"  ✅ Endpoint correctly requires authentication (returns 401 without token)")
     else:
-        print(f"  ❌ POST /api/suggest-city endpoint failed")
-    
-    if test_results.get('create_city_suggestion_2'):
-        print(f"  ✅ City suggestion endpoint works with different state/city combinations")
-    else:
-        print(f"  ❌ City suggestion endpoint failed with different combinations")
-    
-    if test_results.get('create_city_suggestion_incomplete'):
-        print(f"  ✅ City suggestion endpoint handles missing optional fields gracefully")
-    else:
-        print(f"  ❌ City suggestion endpoint failed with missing optional fields")
+        print(f"  ❌ Endpoint should return 401 for unauthenticated requests")
     
     print(f"\n🔧 ENDPOINT VERIFICATION:")
-    print(f"  📍 Bug Report Endpoint: POST {BACKEND_URL}/report-issue")
-    print(f"  📍 City Suggestion Endpoint: POST {BACKEND_URL}/suggest-city")
+    print(f"  📍 Admin Login: POST {BACKEND_URL}/auth/admin-login")
+    print(f"  📍 Admin Bug Reports: GET {BACKEND_URL}/admin/reports")
     print(f"  📍 Both endpoints are accessible with /api prefix as expected")
+    
+    # Check the specific fix mentioned in review request
+    if test_results.get('fetch_bug_reports_with_auth') and test_results.get('verify_json_response'):
+        print(f"\n✅ FIX VERIFICATION:")
+        print(f"  The /api prefix issue has been resolved!")
+        print(f"  - GET /api/admin/reports now returns proper JSON response")
+        print(f"  - No longer returning HTML instead of JSON")
+        print(f"  - Endpoint is accessible with correct /api prefix")
+    else:
+        print(f"\n❌ FIX VERIFICATION:")
+        print(f"  The /api prefix issue may still exist!")
+        print(f"  - GET /api/admin/reports may still be returning HTML")
+        print(f"  - Check if endpoint routing is correct")
     
     if failed_tests > 0:
         print(f"\n⚠️  {failed_tests} test(s) failed. Check the detailed output above for specific issues.")
         print(f"🔍 TROUBLESHOOTING:")
         print(f"  - Verify backend service is running on {BACKEND_URL}")
-        print(f"  - Check if endpoints are properly mapped with /api prefix")
-        print(f"  - Ensure MongoDB is accessible and collections are created")
+        print(f"  - Check if /api/admin/reports endpoint is properly mapped")
+        print(f"  - Ensure admin authentication is working")
+        print(f"  - Verify endpoint returns JSON, not HTML")
         return 1
     else:
-        print(f"\n🎉 ALL TESTS PASSED! Bug reporting and city suggestion endpoints are working correctly.")
-        print(f"✅ POST /api/report-issue - Bug report endpoint WORKING")
-        print(f"✅ POST /api/suggest-city - City suggestion endpoint WORKING")
-        print(f"✅ Both endpoints return proper response structure with IDs")
-        print(f"✅ Frontend can now call these endpoints with /api prefix successfully")
+        print(f"\n🎉 ALL TESTS PASSED! Admin bug reports endpoint is working correctly.")
+        print(f"✅ Admin login with password 'admin123' - WORKING")
+        print(f"✅ GET /api/admin/reports with Authorization header - WORKING")
+        print(f"✅ Endpoint returns valid JSON response (not HTML) - WORKING")
+        print(f"✅ Authentication protection working correctly - WORKING")
+        print(f"✅ The /api prefix fix has been successfully verified!")
         return 0
 
 if __name__ == "__main__":
