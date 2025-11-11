@@ -693,8 +693,97 @@ const Admin = () => {
                 </button>
               </div>
 
+              {/* Product Filters */}
+              <div className="mb-6 bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Category Filter */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                    <select
+                      value={productCategoryFilter}
+                      onChange={(e) => setProductCategoryFilter(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    >
+                      <option value="all">All Categories</option>
+                      {categories.map(cat => (
+                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* State Filter */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">State</label>
+                    <select
+                      value={productStateFilter}
+                      onChange={(e) => {
+                        setProductStateFilter(e.target.value);
+                        setProductCityFilter('all');
+                      }}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    >
+                      <option value="all">All States</option>
+                      {[...new Set(deliveryLocations.map(l => l.state))].sort().map(state => (
+                        <option key={state} value={state}>{state}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* City Filter */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
+                    <select
+                      value={productCityFilter}
+                      onChange={(e) => setProductCityFilter(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    >
+                      <option value="all">All Cities</option>
+                      {deliveryLocations
+                        .filter(loc => productStateFilter === 'all' || loc.state === productStateFilter)
+                        .sort((a, b) => a.name.localeCompare(b.name))
+                        .map(loc => (
+                          <option key={loc.name} value={loc.name}>{loc.name}</option>
+                        ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
               <div className="grid gap-4">
-                {realProducts.map(product => (
+                {realProducts
+                  .filter(product => {
+                    // Category filter
+                    if (productCategoryFilter !== 'all' && product.category !== productCategoryFilter) {
+                      return false;
+                    }
+                    
+                    // State/City filter for product availability
+                    if (productCityFilter !== 'all') {
+                      // If product has available_cities, check if selected city is in the list
+                      if (product.available_cities && product.available_cities.length > 0) {
+                        return product.available_cities.includes(productCityFilter);
+                      }
+                      // If no available_cities restriction, show it
+                      return true;
+                    }
+                    
+                    if (productStateFilter !== 'all' && productCityFilter === 'all') {
+                      // Get all cities in the selected state
+                      const stateCities = deliveryLocations
+                        .filter(loc => loc.state === productStateFilter)
+                        .map(loc => loc.name);
+                      
+                      // If product has available_cities, check if any city from selected state is in the list
+                      if (product.available_cities && product.available_cities.length > 0) {
+                        return product.available_cities.some(city => stateCities.includes(city));
+                      }
+                      // If no available_cities restriction, show it
+                      return true;
+                    }
+                    
+                    return true;
+                  })
+                  .map(product => (
                   <div key={product.id} className="bg-gray-50 rounded-lg p-4">
                     {/* Mobile and Desktop Layout */}
                     <div className="flex flex-col md:flex-row md:items-center md:space-x-4">
