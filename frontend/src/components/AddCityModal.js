@@ -150,12 +150,16 @@ const AddCityModal = ({ isOpen, onClose, preSelectedState = '' }) => {
                 
                 <div className="space-y-4">
                   <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Your Name <span className="text-red-500">*</span>
+                    </label>
                     <input
                       type="text"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      placeholder="Your Name (Optional)"
+                      placeholder="Enter your full name"
                       className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      required
                     />
                   </div>
                   
