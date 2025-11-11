@@ -1673,6 +1673,121 @@ async def delete_report(
         logger.error(f"Error deleting report: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to delete report: {str(e)}")
 
+# ============= CITY SUGGESTION ENDPOINTS =============
+
+@api_router.get("/admin/city-suggestions")
+async def get_city_suggestions(current_user: dict = Depends(get_current_user)):
+    """Get all pending city suggestions (admin only)"""
+    try:
+        if not current_user.get("is_admin"):
+            raise HTTPException(status_code=403, detail="Admin access required")
+        
+        suggestions = await db.city_suggestions.find(
+            {"status": "pending"}, 
+            {"_id": 0}
+        ).sort("created_at", -1).to_list(length=None)
+        
+        # Convert datetime to ISO string for JSON serialization
+        for suggestion in suggestions:
+            if isinstance(suggestion.get("created_at"), datetime):
+                suggestion["created_at"] = suggestion["created_at"].isoformat()
+        
+        return suggestions
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching city suggestions: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch city suggestions: {str(e)}")
+
+@api_router.put("/admin/city-suggestions/{suggestion_id}/status")
+async def update_city_suggestion_status(
+    suggestion_id: str,
+    data: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update city suggestion status (admin only)"""
+    try:
+        if not current_user.get("is_admin"):
+            raise HTTPException(status_code=403, detail="Admin access required")
+        
+        status = data.get("status")
+        if status not in ["pending", "approved", "rejected"]:
+            raise HTTPException(status_code=400, detail="Invalid status")
+        
+        result = await db.city_suggestions.update_one(
+            {"id": suggestion_id},
+            {"$set": {"status": status, "updated_at": datetime.now(timezone.utc)}}
+        )
+        
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="City suggestion not found")
+        
+        return {"message": "City suggestion status updated successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating city suggestion status: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to update status: {str(e)}")
+
+@api_router.delete("/admin/city-suggestions/{suggestion_id}")
+async def delete_city_suggestion(
+    suggestion_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Delete a city suggestion (admin only)"""
+    try:
+        if not current_user.get("is_admin"):
+            raise HTTPException(status_code=403, detail="Admin access required")
+        
+        result = await db.city_suggestions.delete_one({"id": suggestion_id})
+        
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="City suggestion not found")
+        
+        return {"message": "City suggestion deleted successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting city suggestion: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to delete city suggestion: {str(e)}")
+
+# ============= NOTIFICATION ENDPOINTS =============
+
+@api_router.get("/admin/notifications/count")
+async def get_notification_count(current_user: dict = Depends(get_current_user)):
+    """Get count of pending notifications (admin only)"""
+    try:
+        if not current_user.get("is_admin"):
+            raise HTTPException(status_code=403, detail="Admin access required")
+        
+        # Count pending bug reports (status = 'New' or 'In Progress')
+        bug_reports_count = await db.bug_reports.count_documents({
+            "status": {"$in": ["New", "In Progress"]}
+        })
+        
+        # Count pending city suggestions
+        city_suggestions_count = await db.city_suggestions.count_documents({
+            "status": "pending"
+        })
+        
+        # Count orders from last 24 hours (new orders)
+        yesterday = datetime.now(timezone.utc) - timedelta(days=1)
+        new_orders_count = await db.orders.count_documents({
+            "created_at": {"$gte": yesterday}
+        })
+        
+        return {
+            "bug_reports": bug_reports_count,
+            "city_suggestions": city_suggestions_count,
+            "new_orders": new_orders_count,
+            "total": bug_reports_count + city_suggestions_count + new_orders_count
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching notification count: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch notification count: {str(e)}")
+
 # ============= ADMIN PROFILE ENDPOINTS =============
 
 @api_router.get("/admin/profile")
