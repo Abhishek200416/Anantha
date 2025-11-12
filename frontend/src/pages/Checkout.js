@@ -1232,33 +1232,6 @@ const Checkout = () => {
                   // Regular cities - show payment options
                   return (
                     <>
-                      {/* Cash on Delivery - Only for Guntur */}
-                      {isGuntur && (
-                        <div className="mb-4">
-                          <label className="flex items-center space-x-3 cursor-pointer">
-                            <input
-                              type="radio"
-                              name="paymentMethod"
-                              value="cod"
-                              checked={formData.paymentMethod === 'cod'}
-                              onChange={handleChange}
-                              className="w-4 h-4 text-orange-600"
-                            />
-                            <div className="flex items-center space-x-2">
-                              <Truck className="h-5 w-5 text-green-600" />
-                              <span className="font-semibold">Cash on Delivery (COD)</span>
-                            </div>
-                          </label>
-                          {formData.paymentMethod === 'cod' && (
-                            <div className="mt-3 ml-0 sm:ml-8 p-4 bg-green-50 border border-green-200 rounded-lg">
-                              <p className="text-sm text-green-700">
-                                💵 Pay with cash when your order is delivered. Available only in Guntur.
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      
                       {/* Online Payment */}
                       <div className="mb-4">
                         <label className="flex items-center space-x-3 cursor-pointer">
