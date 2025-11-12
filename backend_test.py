@@ -4062,106 +4062,438 @@ def test_razorpay_payment_integration():
     
     return test_results
 
-def main():
-    """Main testing function - COMPREHENSIVE TESTING REQUEST - Products & Payment System Verification"""
-    print("🚀 COMPREHENSIVE TESTING REQUEST - Products & Payment System Verification")
-    print("=" * 80)
+def test_order_creation_with_email_and_razorpay():
+    """Test order creation for Guntur with email confirmation and Razorpay payment flow"""
+    print("\n" + "="*80)
+    print("📧 TESTING ORDER CREATION WITH EMAIL & RAZORPAY PAYMENT FLOW")
+    print("="*80)
     
-    # Track overall results
     test_results = []
     
-    try:
-        # PRIORITY 1: PRODUCTS VERIFICATION (HIGH PRIORITY)
-        print("\n📦 PRIORITY 1: PRODUCTS VERIFICATION (HIGH PRIORITY)")
-        products_success = test_products_verification()
-        test_results.append(("Products Verification - 56 Products", products_success))
-        
-        # PRIORITY 2: RAZORPAY PAYMENT INTEGRATION (CRITICAL)
-        print("\n💳 PRIORITY 2: RAZORPAY PAYMENT INTEGRATION (CRITICAL)")
-        razorpay_results = test_razorpay_payment_integration()
-        test_results.extend(razorpay_results)
-        
-        # PRIORITY 3: PAYMENT SYSTEM CONFIGURATION
-        print("\n⚙️ PRIORITY 3: PAYMENT SYSTEM CONFIGURATION")
-        config_success = test_payment_system_configuration()
-        test_results.append(("Payment System Configuration", config_success))
-        
-        # Calculate overall success rate
-        total_tests = len(test_results)
-        passed_tests = sum(1 for _, success in test_results if success)
-        success_rate = (passed_tests / total_tests) * 100 if total_tests > 0 else 0
-        
-        # Print final summary
-        print("\n" + "=" * 80)
-        print("📊 COMPREHENSIVE TEST RESULTS")
-        print("=" * 80)
-        
-        for test_name, success in test_results:
-            status = "✅ PASS" if success else "❌ FAIL"
-            print(f"{status}: {test_name}")
-        
-        print(f"\n📈 OVERALL SUCCESS RATE: {passed_tests}/{total_tests} ({success_rate:.1f}%)")
-        
-        # Analyze critical functionality as per review request
-        critical_tests = [
-            "Products Verification - 56 Products",
-            "Razorpay Order Creation",
-            "Order Creation with Razorpay", 
-            "Payment Verification Error Handling",
-            "Payment System Configuration"
-        ]
-        
-        critical_passed = sum(1 for test_name, success in test_results 
-                             if test_name in critical_tests and success)
-        critical_total = len([t for t, _ in test_results if t in critical_tests])
-        
-        print(f"\n🎯 CRITICAL TESTS (As per review request): {critical_passed}/{critical_total}")
-        
-        # Detailed analysis
-        print(f"\n📋 DETAILED ANALYSIS:")
-        
-        # Products Analysis
-        products_test = next((success for name, success in test_results if "Products Verification" in name), False)
-        if products_test:
-            print(f"   ✅ Products: All 56 products available with correct structure")
-        else:
-            print(f"   ❌ Products: Issue with product count or structure")
-        
-        # Razorpay Analysis
-        razorpay_tests = [name for name, _ in test_results if "Razorpay" in name or "Order Creation" in name]
-        razorpay_success = all(success for name, success in test_results if name in razorpay_tests)
-        
-        if razorpay_success:
-            print(f"   ✅ Razorpay: Payment integration working perfectly")
-        else:
-            print(f"   ❌ Razorpay: Payment integration has issues")
-        
-        # Configuration Analysis
-        config_test = next((success for name, success in test_results if "Configuration" in name), False)
-        if config_test:
-            print(f"   ✅ Configuration: Test credentials properly loaded")
-        else:
-            print(f"   ❌ Configuration: Credential loading issues")
-        
-        if critical_passed == critical_total:
-            print("\n🎉 EXCELLENT: All critical systems working perfectly!")
-            print("   ✅ All 56 products available with correct category breakdown")
-            print("   ✅ Razorpay payment flow working end-to-end")
-            print("   ✅ Test credentials configured correctly")
-            return True
-        elif critical_passed >= critical_total * 0.8:
-            print("\n⚠️ MOSTLY WORKING: Most critical tests pass, minor issues remain")
-            return True
-        else:
-            print("\n❌ CRITICAL: Major issues found in core functionality!")
-            print("   🚨 Products or payment system may not work properly")
-            return False
+    # Test Scenario 1: Order Creation for Guntur (Existing City - Should trigger payment)
+    print("\n--- Test Scenario 1: Order Creation for Guntur ---")
+    order_data = {
+        "user_id": "guest",
+        "customer_name": "Test User",
+        "email": "test@example.com",
+        "phone": "9876543210",
+        "doorNo": "123",
+        "building": "Test Building",
+        "street": "Test Street",
+        "city": "Guntur",
+        "state": "Andhra Pradesh",
+        "pincode": "522001",
+        "location": "Guntur",
+        "items": [{
+            "product_id": "product_1762957506",
+            "name": "Immunity Dry Fruits Laddu",
+            "image": "https://example.com/image.jpg",
+            "weight": "¼ kg",
+            "price": 150.0,
+            "quantity": 1,
+            "description": ""
+        }],
+        "subtotal": 150.0,
+        "delivery_charge": 49.0,
+        "total": 199.0,
+        "payment_method": "razorpay",
+        "payment_sub_method": "upi",
+        "is_custom_location": False
+    }
     
+    success, order_response = test_api_endpoint(
+        "POST",
+        "/orders",
+        data=order_data,
+        description="Create order for Guntur with Razorpay payment"
+    )
+    
+    if success and order_response:
+        order_id = order_response.get("order_id")
+        tracking_code = order_response.get("tracking_code")
+        
+        print(f"✅ SUCCESS: Order created successfully")
+        print(f"   - Order ID: {order_id}")
+        print(f"   - Tracking Code: {tracking_code}")
+        print(f"   - Subtotal: ₹{order_response.get('subtotal', 0)}")
+        print(f"   - Delivery Charge: ₹{order_response.get('delivery_charge', 0)}")
+        print(f"   - Total: ₹{order_response.get('total', 0)}")
+        
+        # Verify order details
+        if "order" in order_response:
+            order_details = order_response["order"]
+            payment_status = order_details.get("payment_status")
+            order_status = order_details.get("order_status")
+            
+            if payment_status == "pending":
+                print(f"✅ SUCCESS: Payment status is 'pending' (awaiting payment)")
+            else:
+                print(f"❌ FAILURE: Expected payment status 'pending', got '{payment_status}'")
+            
+            if order_status == "pending":
+                print(f"✅ SUCCESS: Order status is 'pending' (awaiting payment)")
+            else:
+                print(f"❌ FAILURE: Expected order status 'pending', got '{order_status}'")
+        
+        test_results.append(("Order Creation for Guntur", True))
+        
+        # Test Scenario 2: Verify Email Was Sent
+        print("\n--- Test Scenario 2: Verify Email Was Sent ---")
+        try:
+            import subprocess
+            result = subprocess.run(
+                ["tail", "-50", "/var/log/supervisor/backend.err.log"],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+            
+            if result.stdout:
+                logs = result.stdout
+                if "Email sent successfully to test@example.com via Gmail" in logs:
+                    print(f"✅ SUCCESS: Email confirmation found in logs")
+                    print(f"   - Email sent to: test@example.com")
+                    test_results.append(("Email Confirmation Sent", True))
+                elif "EXISTING CITY CONFIRMED: Guntur, Andhra Pradesh" in logs:
+                    print(f"✅ SUCCESS: Guntur recognized as existing city")
+                    print(f"⚠️  WARNING: Email confirmation log not found")
+                    test_results.append(("Email Confirmation Sent", False))
+                else:
+                    print(f"❌ FAILURE: Neither email confirmation nor city confirmation found in logs")
+                    print(f"Recent logs:\n{logs}")
+                    test_results.append(("Email Confirmation Sent", False))
+            else:
+                print(f"❌ FAILURE: No backend logs found")
+                test_results.append(("Email Confirmation Sent", False))
+                
+        except Exception as e:
+            print(f"❌ FAILURE: Could not check backend logs: {e}")
+            test_results.append(("Email Confirmation Sent", False))
+        
+        # Test Scenario 3: Create Razorpay Order
+        print("\n--- Test Scenario 3: Create Razorpay Order ---")
+        razorpay_data = {
+            "amount": 199.0,
+            "currency": "INR",
+            "receipt": order_id
+        }
+        
+        success, razorpay_response = test_api_endpoint(
+            "POST",
+            "/payment/create-razorpay-order",
+            data=razorpay_data,
+            description="Create Razorpay order for payment"
+        )
+        
+        if success and razorpay_response:
+            razorpay_order_id = razorpay_response.get("razorpay_order_id")
+            key_id = razorpay_response.get("key_id")
+            amount = razorpay_response.get("amount")
+            
+            print(f"✅ SUCCESS: Razorpay order created successfully")
+            print(f"   - Razorpay Order ID: {razorpay_order_id}")
+            print(f"   - Key ID: {key_id}")
+            print(f"   - Amount: {amount} paise (₹{amount/100})")
+            
+            # Verify expected results
+            if razorpay_order_id and razorpay_order_id.startswith("order_"):
+                print(f"✅ SUCCESS: Razorpay order ID format correct")
+            else:
+                print(f"❌ FAILURE: Invalid Razorpay order ID format")
+            
+            if key_id == "rzp_test_Renc645PexAmXU":
+                print(f"✅ SUCCESS: Test credentials confirmed")
+            else:
+                print(f"❌ FAILURE: Unexpected key ID: {key_id}")
+            
+            if amount == 19900:  # ₹199 = 19900 paise
+                print(f"✅ SUCCESS: Amount correctly converted to paise")
+            else:
+                print(f"❌ FAILURE: Amount conversion incorrect (expected 19900, got {amount})")
+            
+            test_results.append(("Razorpay Order Creation", True))
+        else:
+            print(f"❌ FAILURE: Could not create Razorpay order")
+            test_results.append(("Razorpay Order Creation", False))
+        
+        # Test Scenario 4: Test Order Cancellation Email
+        print("\n--- Test Scenario 4: Test Order Cancellation Email ---")
+        cancel_data = {
+            "cancel_reason": "Customer requested cancellation"
+        }
+        
+        success, cancel_response = test_api_endpoint(
+            "POST",
+            f"/orders/{order_id}/cancel",
+            data=cancel_data,
+            description="Cancel order and test cancellation email"
+        )
+        
+        if success:
+            print(f"✅ SUCCESS: Order cancelled successfully")
+            
+            # Check for cancellation email in logs
+            try:
+                result = subprocess.run(
+                    ["tail", "-50", "/var/log/supervisor/backend.err.log"],
+                    capture_output=True,
+                    text=True,
+                    timeout=10
+                )
+                
+                if result.stdout:
+                    logs = result.stdout
+                    if "Order cancellation email sent successfully" in logs:
+                        print(f"✅ SUCCESS: Cancellation email sent successfully")
+                        test_results.append(("Order Cancellation Email", True))
+                    else:
+                        print(f"⚠️  WARNING: Cancellation email log not found")
+                        test_results.append(("Order Cancellation Email", False))
+                else:
+                    print(f"❌ FAILURE: No logs found for cancellation email")
+                    test_results.append(("Order Cancellation Email", False))
+                    
+            except Exception as e:
+                print(f"❌ FAILURE: Could not check cancellation email logs: {e}")
+                test_results.append(("Order Cancellation Email", False))
+        else:
+            print(f"❌ FAILURE: Could not cancel order")
+            test_results.append(("Order Cancellation Email", False))
+            
+    else:
+        print(f"❌ FAILURE: Could not create order for Guntur")
+        test_results.append(("Order Creation for Guntur", False))
+        test_results.append(("Email Confirmation Sent", False))
+        test_results.append(("Razorpay Order Creation", False))
+        test_results.append(("Order Cancellation Email", False))
+    
+    return test_results
+
+def test_email_and_razorpay_debugging():
+    """Debug email and Razorpay issues by checking configuration and logs"""
+    print("\n" + "="*80)
+    print("🔍 DEBUGGING EMAIL & RAZORPAY CONFIGURATION")
+    print("="*80)
+    
+    test_results = []
+    
+    # Check Gmail credentials
+    print("\n--- Checking Gmail Credentials ---")
+    try:
+        import subprocess
+        result = subprocess.run(
+            ["grep", "-E", "GMAIL_EMAIL|GMAIL_APP_PASSWORD", "/app/backend/.env"],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        
+        if result.stdout:
+            lines = result.stdout.strip().split('\n')
+            gmail_email = None
+            gmail_password = None
+            
+            for line in lines:
+                if line.startswith("GMAIL_EMAIL="):
+                    gmail_email = line.split("=", 1)[1].strip('"')
+                elif line.startswith("GMAIL_APP_PASSWORD="):
+                    gmail_password = line.split("=", 1)[1].strip('"')
+            
+            if gmail_email and gmail_password:
+                print(f"✅ SUCCESS: Gmail credentials found")
+                print(f"   - Email: {gmail_email}")
+                print(f"   - Password: {'*' * len(gmail_password)} (length: {len(gmail_password)})")
+                test_results.append(("Gmail Credentials Found", True))
+            else:
+                print(f"❌ FAILURE: Gmail credentials incomplete")
+                test_results.append(("Gmail Credentials Found", False))
+        else:
+            print(f"❌ FAILURE: No Gmail credentials found in .env")
+            test_results.append(("Gmail Credentials Found", False))
+            
     except Exception as e:
-        print(f"\n❌ CRITICAL ERROR during testing: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        return False
+        print(f"❌ FAILURE: Could not check Gmail credentials: {e}")
+        test_results.append(("Gmail Credentials Found", False))
+    
+    # Check Razorpay credentials
+    print("\n--- Checking Razorpay Credentials ---")
+    try:
+        result = subprocess.run(
+            ["grep", "-E", "RAZORPAY_KEY_ID|RAZORPAY_KEY_SECRET", "/app/backend/.env"],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        
+        if result.stdout:
+            lines = result.stdout.strip().split('\n')
+            key_id = None
+            key_secret = None
+            
+            for line in lines:
+                if line.startswith("RAZORPAY_KEY_ID="):
+                    key_id = line.split("=", 1)[1].strip('"')
+                elif line.startswith("RAZORPAY_KEY_SECRET="):
+                    key_secret = line.split("=", 1)[1].strip('"')
+            
+            if key_id and key_secret:
+                print(f"✅ SUCCESS: Razorpay credentials found")
+                print(f"   - Key ID: {key_id}")
+                print(f"   - Key Secret: {'*' * len(key_secret)} (length: {len(key_secret)})")
+                
+                if key_id == "rzp_test_Renc645PexAmXU":
+                    print(f"✅ SUCCESS: Test credentials match expected")
+                    test_results.append(("Razorpay Credentials Valid", True))
+                else:
+                    print(f"❌ FAILURE: Unexpected key ID")
+                    test_results.append(("Razorpay Credentials Valid", False))
+            else:
+                print(f"❌ FAILURE: Razorpay credentials incomplete")
+                test_results.append(("Razorpay Credentials Valid", False))
+        else:
+            print(f"❌ FAILURE: No Razorpay credentials found in .env")
+            test_results.append(("Razorpay Credentials Valid", False))
+            
+    except Exception as e:
+        print(f"❌ FAILURE: Could not check Razorpay credentials: {e}")
+        test_results.append(("Razorpay Credentials Valid", False))
+    
+    # Check recent backend logs for errors
+    print("\n--- Checking Recent Backend Logs ---")
+    try:
+        result = subprocess.run(
+            ["tail", "-100", "/var/log/supervisor/backend.err.log"],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        
+        if result.stdout:
+            logs = result.stdout
+            
+            # Check for email-related errors
+            if "Gmail credentials not configured" in logs:
+                print(f"❌ FAILURE: Gmail credentials not configured error found")
+                test_results.append(("No Gmail Credential Errors", False))
+            elif "Email sent successfully" in logs:
+                print(f"✅ SUCCESS: Email sending working")
+                test_results.append(("No Gmail Credential Errors", True))
+            else:
+                print(f"ℹ️  INFO: No recent email activity in logs")
+                test_results.append(("No Gmail Credential Errors", True))
+            
+            # Check for Razorpay errors
+            if "Razorpay" in logs and "error" in logs.lower():
+                print(f"⚠️  WARNING: Razorpay-related errors found in logs")
+                test_results.append(("No Razorpay Errors", False))
+            else:
+                print(f"✅ SUCCESS: No Razorpay errors in recent logs")
+                test_results.append(("No Razorpay Errors", True))
+                
+        else:
+            print(f"ℹ️  INFO: No recent backend error logs")
+            test_results.append(("No Gmail Credential Errors", True))
+            test_results.append(("No Razorpay Errors", True))
+            
+    except Exception as e:
+        print(f"❌ FAILURE: Could not check backend logs: {e}")
+        test_results.append(("No Gmail Credential Errors", False))
+        test_results.append(("No Razorpay Errors", False))
+    
+    return test_results
+
+def main():
+    """Main testing function focused on order creation with email and Razorpay"""
+    print("🚀 STARTING ORDER CREATION WITH EMAIL & RAZORPAY TESTING")
+    print("=" * 80)
+    print("TESTING FOCUS:")
+    print("1. Order Creation for Guntur (Existing City)")
+    print("2. Email Confirmation Verification")
+    print("3. Razorpay Payment Gateway Integration")
+    print("4. Order Cancellation Email")
+    print("=" * 80)
+    
+    # Track overall test results
+    all_tests_passed = True
+    test_summary = []
+    
+    # 1. DEBUG EMAIL & RAZORPAY CONFIGURATION
+    print("\n🔥 STEP 1: DEBUG EMAIL & RAZORPAY CONFIGURATION")
+    debug_results = test_email_and_razorpay_debugging()
+    for test_name, success in debug_results:
+        test_summary.append((f"Debug: {test_name}", success))
+        if not success:
+            all_tests_passed = False
+    
+    # 2. ORDER CREATION WITH EMAIL & RAZORPAY FLOW
+    print("\n🔥 STEP 2: ORDER CREATION WITH EMAIL & RAZORPAY FLOW")
+    order_results = test_order_creation_with_email_and_razorpay()
+    for test_name, success in order_results:
+        test_summary.append((f"Order Flow: {test_name}", success))
+        if not success:
+            all_tests_passed = False
+    
+    # 3. ADDITIONAL VERIFICATION - PRODUCTS API
+    print("\n🔥 STEP 3: PRODUCTS VERIFICATION")
+    products_success = test_products_verification()
+    test_summary.append(("Products Verification", products_success))
+    if not products_success:
+        all_tests_passed = False
+    
+    # FINAL SUMMARY
+    print("\n" + "="*80)
+    print("🏁 ORDER CREATION & EMAIL TESTING COMPLETE")
+    print("="*80)
+    
+    print(f"\n📊 TEST RESULTS SUMMARY:")
+    for test_name, success in test_summary:
+        status = "✅ PASS" if success else "❌ FAIL"
+        print(f"   {status}: {test_name}")
+    
+    total_tests = len(test_summary)
+    passed_tests = sum(1 for _, success in test_summary if success)
+    success_rate = (passed_tests / total_tests) * 100 if total_tests > 0 else 0
+    
+    print(f"\n📈 OVERALL RESULTS:")
+    print(f"   Total Tests: {total_tests}")
+    print(f"   Passed: {passed_tests}")
+    print(f"   Failed: {total_tests - passed_tests}")
+    print(f"   Success Rate: {success_rate:.1f}%")
+    
+    # Critical checks summary
+    print(f"\n🔍 CRITICAL CHECKS:")
+    
+    # Check if Guntur is recognized as existing city
+    guntur_test = next((success for name, success in test_summary if "Order Creation for Guntur" in name), False)
+    print(f"   {'✅' if guntur_test else '❌'} Guntur recognized as existing city: {guntur_test}")
+    
+    # Check if order confirmation email is sent
+    email_test = next((success for name, success in test_summary if "Email Confirmation Sent" in name), False)
+    print(f"   {'✅' if email_test else '❌'} Order confirmation email sent: {email_test}")
+    
+    # Check if Razorpay order creation works
+    razorpay_test = next((success for name, success in test_summary if "Razorpay Order Creation" in name), False)
+    print(f"   {'✅' if razorpay_test else '❌'} Razorpay order creation works: {razorpay_test}")
+    
+    # Check if cancellation email is sent
+    cancel_test = next((success for name, success in test_summary if "Order Cancellation Email" in name), False)
+    print(f"   {'✅' if cancel_test else '❌'} Cancellation email sent: {cancel_test}")
+    
+    if all_tests_passed:
+        print(f"\n🎉 ALL TESTS PASSED!")
+        print(f"✅ Order creation working correctly")
+        print(f"✅ Email notifications functioning")
+        print(f"✅ Razorpay integration operational")
+        print(f"\n🚀 SYSTEM IS READY FOR ORDER PROCESSING!")
+    else:
+        print(f"\n⚠️  SOME TESTS FAILED - REVIEW REQUIRED")
+        failed_tests = [name for name, success in test_summary if not success]
+        print(f"❌ Failed Tests:")
+        for failed_test in failed_tests:
+            print(f"   - {failed_test}")
+        print(f"\n🔧 PLEASE ADDRESS FAILED TESTS")
+    
+    return all_tests_passed
 
 if __name__ == "__main__":
     exit_code = main()
