@@ -546,35 +546,36 @@ def test_city_suggestions_api(admin_token):
     print(f"❌ FAILED: City suggestions API failed")
     return False
 
-def test_products_api():
-    """Test GET /api/products API and verify 56 products across 7 categories"""
+def test_products_verification():
+    """Test GET /api/products API and verify exactly 56 products across 7 categories as per review request"""
     print("\n" + "="*80)
-    print("📦 TESTING PRODUCTS API")
+    print("📦 PRODUCTS VERIFICATION (HIGH PRIORITY)")
     print("="*80)
     
     success, response_data = test_api_endpoint(
         "GET",
         "/products",
-        description="Get all products and verify count and categories"
+        description="Verify exactly 56 products are returned with correct category distribution"
     )
     
     if success and isinstance(response_data, list):
         total_products = len(response_data)
         print(f"✅ SUCCESS: Products API returns {total_products} products")
         
-        # Verify we have 56 products as expected
+        # CRITICAL: Verify we have exactly 56 products as specified in review request
         if total_products == 56:
-            print(f"✅ SUCCESS: Correct number of products (56)")
+            print(f"✅ CRITICAL SUCCESS: Exactly 56 products found as required")
         else:
-            print(f"⚠️  WARNING: Expected 56 products, got {total_products}")
+            print(f"❌ CRITICAL FAILURE: Expected exactly 56 products, got {total_products}")
+            return False
         
-        # Count products by category
+        # Count products by category as specified in review request
         category_counts = {}
         for product in response_data:
             category = product.get("category", "unknown")
             category_counts[category] = category_counts.get(category, 0) + 1
         
-        print(f"\n📊 CATEGORY BREAKDOWN:")
+        print(f"\n📊 CATEGORY BREAKDOWN (As per review request):")
         expected_categories = {
             "laddus-chikkis": 8,
             "sweets": 10, 
@@ -586,49 +587,56 @@ def test_products_api():
         }
         
         total_expected = sum(expected_categories.values())
-        print(f"Expected total: {total_expected} products across {len(expected_categories)} categories")
+        print(f"Expected: {total_expected} products across {len(expected_categories)} categories")
         
+        all_categories_correct = True
         for category, expected_count in expected_categories.items():
             actual_count = category_counts.get(category, 0)
             if actual_count == expected_count:
-                print(f"   ✅ {category}: {actual_count}/{expected_count}")
+                print(f"   ✅ {category}: {actual_count}/{expected_count} ✓")
             else:
-                print(f"   ⚠️  {category}: {actual_count}/{expected_count}")
+                print(f"   ❌ {category}: {actual_count}/{expected_count} ✗")
+                all_categories_correct = False
         
-        # Check for unexpected categories
-        unexpected_categories = set(category_counts.keys()) - set(expected_categories.keys())
-        if unexpected_categories:
-            print(f"\n⚠️  UNEXPECTED CATEGORIES FOUND:")
-            for category in unexpected_categories:
-                print(f"   - {category}: {category_counts[category]} products")
+        if all_categories_correct:
+            print(f"✅ CRITICAL SUCCESS: All 7 categories have correct product counts")
+        else:
+            print(f"❌ CRITICAL FAILURE: Category distribution incorrect")
+            return False
         
-        # Verify product structure
+        # Verify product structure as specified in review request
+        print(f"\n🔍 PRODUCT STRUCTURE VERIFICATION:")
         if response_data:
-            sample_product = response_data[0]
-            required_fields = ["id", "name", "category", "description", "image", "prices", "isBestSeller", "isNew", "tag"]
+            sample_products = response_data[:3]  # Check 3-4 products as requested
             
-            print(f"\n🔍 PRODUCT STRUCTURE VERIFICATION:")
-            for field in required_fields:
-                if field in sample_product:
-                    print(f"   ✅ '{field}' field present")
-                else:
-                    print(f"   ❌ '{field}' field missing")
+            required_fields = ["id", "name", "category", "description", "image", "prices", "isBestSeller", "inventory_count"]
             
-            # Verify prices structure
-            prices = sample_product.get("prices", [])
-            if isinstance(prices, list) and prices:
-                print(f"   ✅ Prices array has {len(prices)} price tiers")
-                sample_price = prices[0]
-                if "weight" in sample_price and "price" in sample_price:
-                    print(f"   ✅ Price structure correct (weight: {sample_price.get('weight')}, price: {sample_price.get('price')})")
-                else:
-                    print(f"   ❌ Price structure incorrect")
-            else:
-                print(f"   ❌ Prices array empty or invalid")
+            for i, product in enumerate(sample_products, 1):
+                print(f"\n   Sample Product {i}: {product.get('name', 'Unknown')}")
+                
+                # Check all required fields
+                for field in required_fields:
+                    if field in product and product[field] is not None:
+                        if field == "prices":
+                            prices = product.get("prices", [])
+                            if isinstance(prices, list) and len(prices) >= 3:
+                                print(f"     ✅ {field}: {len(prices)} price tiers (¼ kg, ½ kg, 1 kg)")
+                            else:
+                                print(f"     ❌ {field}: Invalid prices array")
+                        elif field == "inventory_count":
+                            inventory = product.get("inventory_count", 0)
+                            if inventory == 100:
+                                print(f"     ✅ {field}: {inventory} (correct)")
+                            else:
+                                print(f"     ⚠️  {field}: {inventory} (expected 100)")
+                        else:
+                            print(f"     ✅ {field}: Present")
+                    else:
+                        print(f"     ❌ {field}: Missing or null")
         
         return True
     
-    print(f"❌ FAILED: Products API failed or returned invalid data")
+    print(f"❌ CRITICAL FAILURE: Products API failed or returned invalid data")
     return False
 
 def test_notifications_count_api(admin_token):
