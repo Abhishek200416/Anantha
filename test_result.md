@@ -427,15 +427,33 @@ frontend:
   
   - task: "Email Field in Checkout & Order Confirmation Email"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/pages/Checkout.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Added email field to checkout form with validation. Email is now captured during order creation and passed to backend. Order confirmation email with tracking code is automatically sent upon order placement."
+      - working: true
+        agent: "main"
+        comment: "✅ ORDER CONFIRMATION EMAILS VERIFIED WORKING. Testing showed order creation successfully sends confirmation emails via Gmail. Emails include order details, tracking code, delivery address, and items ordered."
+  
+  - task: "Order Status Update Email Notifications"
+    implemented: true
+    working: true
+    file: "/app/backend/gmail_service.py, /app/backend/server.py"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL BUG: Order status update emails NOT working. PUT /api/orders/{order_id}/status and PUT /api/orders/{order_id}/admin-update APIs work but emails not triggered. Backend logs show 'Gmail credentials not configured' warnings despite credentials being present in .env file. ROOT CAUSE: Gmail credentials loaded at module level BEFORE .env file is loaded."
+      - working: true
+        agent: "main"
+        comment: "✅ FIXED: Implemented lazy credential loading in gmail_service.py. Modified get_gmail_credentials() function to load credentials on-demand instead of at module level. Updated all 6 email functions to use lazy loading. Now credentials are loaded AFTER .env file is loaded. Backend restarted. Status update emails should now work correctly. NEEDS TESTING."
   
   - task: "Enhanced Payment Options (Remove COD, Add UPI & Card)"
     implemented: true
