@@ -1129,21 +1129,31 @@ async def create_order(order_data: OrderCreate, current_user: dict = Depends(get
 @api_router.get("/orders/track/{identifier}")
 async def track_order(identifier: str):
     """Track order by order_id, tracking_code, phone number, or email (public API)"""
-    # Search by order_id, tracking_code, phone number, or email
+    # Check if identifier is order_id or tracking_code (return single order)
     order = await db.orders.find_one(
         {"$or": [
             {"order_id": identifier}, 
-            {"tracking_code": identifier}, 
-            {"phone": identifier},
-            {"email": identifier}
+            {"tracking_code": identifier}
         ]},
         {"_id": 0}
     )
     
-    if not order:
+    if order:
+        return {"orders": [order], "total": 1}
+    
+    # If not found by order_id/tracking_code, search by phone or email (return all orders)
+    orders = await db.orders.find(
+        {"$or": [
+            {"phone": identifier},
+            {"email": identifier}
+        ]},
+        {"_id": 0}
+    ).sort("order_date", -1).to_list(length=100)  # Sort by newest first, limit 100
+    
+    if not orders:
         raise HTTPException(status_code=404, detail="Order not found")
     
-    return order
+    return {"orders": orders, "total": len(orders)}
 
 @api_router.get("/orders/user/{user_id}")
 async def get_user_orders(user_id: str, current_user: dict = Depends(get_current_user)):
