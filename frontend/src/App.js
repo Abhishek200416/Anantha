@@ -46,6 +46,7 @@ function App() {
                   <Route path="/report-bug" element={<ReportBug />} />
                 </Routes>
                 <Footer />
+                <ScrollToTop />
                 <Toaster />
               </div>
             </CartProvider>
