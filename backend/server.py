@@ -942,10 +942,10 @@ async def create_order(order_data: OrderCreate, current_user: dict = Depends(get
                 print(f"📍 CUSTOM LOCATION: {custom_city}, {custom_state} - Delivery charge to be calculated by admin")
         else:
             # Find the city's delivery settings from database
-            # Match by both city name AND state for accuracy
+            # Match by both city name AND state for accuracy (CASE-INSENSITIVE)
             city_location = await db.locations.find_one({
-                "name": order_data.city,
-                "state": order_data.state
+                "name": {"$regex": f"^{order_data.city}$", "$options": "i"},
+                "state": {"$regex": f"^{order_data.state}$", "$options": "i"}
             })
             
             if city_location:
@@ -961,9 +961,11 @@ async def create_order(order_data: OrderCreate, current_user: dict = Depends(get
                     print(f"💰 DELIVERY CHARGE APPLIED: {order_data.city} - Rs.{base_charge}")
             else:
                 # City not found in database, treat as custom city request
+                # This should ONLY happen for truly non-existent cities
                 custom_city_request = True
                 calculated_delivery_charge = 0.0
-                print(f"⚠️ CITY NOT IN DATABASE: {order_data.city} - Treating as custom city request")
+                print(f"⚠️ CITY NOT IN DATABASE: {order_data.city}, {order_data.state} - Treating as custom city request")
+                print(f"📝 Debug: Please verify city name and state spelling match the database")
         
         # Calculate correct total
         calculated_total = order_data.subtotal + calculated_delivery_charge
