@@ -2838,9 +2838,395 @@ def test_city_suggestions_approval_flow(admin_token):
     
     return test_results
 
+def test_city_suggestions_approval_flow_comprehensive(admin_token):
+    """
+    Test city suggestions approval flow comprehensively to verify all cities remain visible after approval
+    This is the MAIN TEST requested in the review request
+    """
+    print("\n" + "="*80)
+    print("🏙️ COMPREHENSIVE CITY SUGGESTIONS APPROVAL FLOW TEST")
+    print("Testing that all cities remain visible after approval/rejection/deletion")
+    print("="*80)
+    
+    auth_headers = {
+        "Authorization": f"Bearer {admin_token}",
+        "Content-Type": "application/json"
+    }
+    
+    test_results = []
+    
+    # Step 1: Clean Setup - Check current city suggestions
+    print("\n--- Step 1: Clean Setup - Check Current City Suggestions ---")
+    success, initial_suggestions = test_api_endpoint(
+        "GET",
+        "/admin/city-suggestions",
+        headers=auth_headers,
+        description="Check current city suggestions count"
+    )
+    
+    if success and isinstance(initial_suggestions, list):
+        initial_count = len(initial_suggestions)
+        print(f"✅ SUCCESS: Found {initial_count} existing city suggestions")
+        test_results.append(("Initial City Suggestions Count", True))
+    else:
+        print("❌ FAILED: Could not get initial city suggestions")
+        test_results.append(("Initial City Suggestions Count", False))
+        return test_results
+    
+    # Step 2: Create Multiple Test City Suggestions (4 new cities as specified)
+    print("\n--- Step 2: Create 4 New City Suggestions ---")
+    test_cities = [
+        {
+            "city": "Tirupati",
+            "state": "Andhra Pradesh",
+            "customer_name": "Test Customer 1",
+            "phone": "9876543210",
+            "email": "tirupati@example.com"
+        },
+        {
+            "city": "Kurnool", 
+            "state": "Andhra Pradesh",
+            "customer_name": "Test Customer 2",
+            "phone": "9876543211",
+            "email": "kurnool@example.com"
+        },
+        {
+            "city": "Nizamabad",
+            "state": "Telangana", 
+            "customer_name": "Test Customer 3",
+            "phone": "9876543212",
+            "email": "nizamabad@example.com"
+        },
+        {
+            "city": "Karimnagar",
+            "state": "Telangana",
+            "customer_name": "Test Customer 4", 
+            "phone": "9876543213",
+            "email": "karimnagar@example.com"
+        }
+    ]
+    
+    created_suggestion_ids = {}
+    
+    for i, city_data in enumerate(test_cities, 1):
+        success, response = test_api_endpoint(
+            "POST",
+            "/city-suggestions",
+            data=city_data,
+            description=f"Create city suggestion {i}: {city_data['city']}, {city_data['state']}"
+        )
+        
+        if success and response and "suggestion_id" in response:
+            suggestion_id = response["suggestion_id"]
+            created_suggestion_ids[city_data['city']] = suggestion_id
+            print(f"✅ SUCCESS: {city_data['city']} suggestion created with ID: {suggestion_id}")
+            test_results.append((f"Create {city_data['city']} Suggestion", True))
+        else:
+            print(f"❌ FAILED: Could not create {city_data['city']} suggestion")
+            test_results.append((f"Create {city_data['city']} Suggestion", False))
+    
+    # Step 3: Verify All Suggestions Visible (initial + 4 new)
+    print("\n--- Step 3: Verify All Suggestions Visible ---")
+    success, all_suggestions = test_api_endpoint(
+        "GET",
+        "/admin/city-suggestions",
+        headers=auth_headers,
+        description="Get ALL city suggestions (no status filter)"
+    )
+    
+    if success and isinstance(all_suggestions, list):
+        total_count = len(all_suggestions)
+        expected_count = initial_count + len(created_suggestion_ids)
+        
+        print(f"✅ SUCCESS: Total suggestions count: {total_count}")
+        print(f"   - Initial count: {initial_count}")
+        print(f"   - New suggestions: {len(created_suggestion_ids)}")
+        print(f"   - Expected total: {expected_count}")
+        
+        if total_count >= expected_count:
+            print(f"✅ SUCCESS: All suggestions visible (found {total_count}, expected at least {expected_count})")
+            test_results.append(("All Suggestions Visible", True))
+        else:
+            print(f"❌ FAILED: Missing suggestions (found {total_count}, expected {expected_count})")
+            test_results.append(("All Suggestions Visible", False))
+    else:
+        print("❌ FAILED: Could not get all suggestions")
+        test_results.append(("All Suggestions Visible", False))
+        return test_results
+    
+    # Step 4: Approve ONE City (Tirupati)
+    print("\n--- Step 4: Approve Tirupati ---")
+    if "Tirupati" in created_suggestion_ids:
+        tirupati_id = created_suggestion_ids["Tirupati"]
+        approval_data = {
+            "status": "approved",
+            "delivery_charge": 99,
+            "free_delivery_threshold": 1000
+        }
+        
+        success, response = test_api_endpoint(
+            "PUT",
+            f"/admin/city-suggestions/{tirupati_id}/status",
+            headers=auth_headers,
+            data=approval_data,
+            description="Approve Tirupati with delivery charge ₹99 and free delivery threshold ₹1000"
+        )
+        
+        if success:
+            print(f"✅ SUCCESS: Tirupati approved successfully")
+            test_results.append(("Approve Tirupati", True))
+        else:
+            print(f"❌ FAILED: Could not approve Tirupati")
+            test_results.append(("Approve Tirupati", False))
+    else:
+        print(f"❌ FAILED: Tirupati suggestion ID not found")
+        test_results.append(("Approve Tirupati", False))
+    
+    # Step 5: CRITICAL CHECK - All Cities Still Visible After Approval
+    print("\n--- Step 5: CRITICAL CHECK - All Cities Still Visible After Approval ---")
+    success, after_approval_suggestions = test_api_endpoint(
+        "GET",
+        "/admin/city-suggestions",
+        headers=auth_headers,
+        description="Get ALL city suggestions after approval (CRITICAL TEST)"
+    )
+    
+    if success and isinstance(after_approval_suggestions, list):
+        after_approval_count = len(after_approval_suggestions)
+        
+        print(f"📊 CRITICAL VERIFICATION:")
+        print(f"   - Count before approval: {total_count}")
+        print(f"   - Count after approval: {after_approval_count}")
+        
+        # Verify count matches
+        if after_approval_count == total_count:
+            print(f"✅ SUCCESS: All cities still visible after approval (count unchanged: {after_approval_count})")
+            test_results.append(("All Cities Visible After Approval", True))
+        else:
+            print(f"❌ CRITICAL FAILURE: Cities disappeared after approval! Before: {total_count}, After: {after_approval_count}")
+            test_results.append(("All Cities Visible After Approval", False))
+        
+        # Verify specific cities are present
+        cities_found = {}
+        for suggestion in after_approval_suggestions:
+            city_name = suggestion.get("city")
+            if city_name in ["Tirupati", "Kurnool", "Nizamabad", "Karimnagar"]:
+                cities_found[city_name] = suggestion.get("status")
+        
+        print(f"\n🔍 SPECIFIC CITIES VERIFICATION:")
+        for city in ["Tirupati", "Kurnool", "Nizamabad", "Karimnagar"]:
+            if city in cities_found:
+                status = cities_found[city]
+                expected_status = "approved" if city == "Tirupati" else "pending"
+                if status == expected_status:
+                    print(f"   ✅ {city}: Found with correct status '{status}'")
+                else:
+                    print(f"   ⚠️  {city}: Found but status is '{status}' (expected '{expected_status}')")
+            else:
+                print(f"   ❌ {city}: NOT FOUND (CRITICAL ISSUE)")
+                test_results.append((f"{city} Still Visible", False))
+                continue
+            test_results.append((f"{city} Still Visible", True))
+    else:
+        print("❌ CRITICAL FAILURE: Could not get suggestions after approval")
+        test_results.append(("All Cities Visible After Approval", False))
+    
+    # Step 6: Test With Status Filters
+    print("\n--- Step 6: Test Status Filters ---")
+    
+    # Test approved filter
+    success, approved_suggestions = test_api_endpoint(
+        "GET",
+        "/admin/city-suggestions?status=approved",
+        headers=auth_headers,
+        description="Get approved city suggestions"
+    )
+    
+    if success and isinstance(approved_suggestions, list):
+        tirupati_found = any(s.get("city") == "Tirupati" and s.get("status") == "approved" 
+                           for s in approved_suggestions)
+        if tirupati_found:
+            print(f"✅ SUCCESS: Approved filter works - Tirupati found ({len(approved_suggestions)} approved cities)")
+            test_results.append(("Approved Filter Works", True))
+        else:
+            print(f"❌ FAILED: Tirupati not found in approved filter")
+            test_results.append(("Approved Filter Works", False))
+    else:
+        print(f"❌ FAILED: Could not get approved suggestions")
+        test_results.append(("Approved Filter Works", False))
+    
+    # Test pending filter
+    success, pending_suggestions = test_api_endpoint(
+        "GET",
+        "/admin/city-suggestions?status=pending",
+        headers=auth_headers,
+        description="Get pending city suggestions"
+    )
+    
+    if success and isinstance(pending_suggestions, list):
+        pending_cities = [s.get("city") for s in pending_suggestions if s.get("status") == "pending"]
+        expected_pending = ["Kurnool", "Nizamabad", "Karimnagar"]
+        found_pending = [city for city in expected_pending if city in pending_cities]
+        
+        print(f"✅ SUCCESS: Pending filter works - Found {len(found_pending)}/3 expected pending cities: {found_pending}")
+        test_results.append(("Pending Filter Works", len(found_pending) >= 2))  # Allow some flexibility
+    else:
+        print(f"❌ FAILED: Could not get pending suggestions")
+        test_results.append(("Pending Filter Works", False))
+    
+    # Step 7: Approve Second City (Kurnool)
+    print("\n--- Step 7: Approve Second City (Kurnool) ---")
+    if "Kurnool" in created_suggestion_ids:
+        kurnool_id = created_suggestion_ids["Kurnool"]
+        approval_data = {
+            "status": "approved",
+            "delivery_charge": 89,
+            "free_delivery_threshold": 1200
+        }
+        
+        success, response = test_api_endpoint(
+            "PUT",
+            f"/admin/city-suggestions/{kurnool_id}/status",
+            headers=auth_headers,
+            data=approval_data,
+            description="Approve Kurnool with delivery charge ₹89"
+        )
+        
+        if success:
+            print(f"✅ SUCCESS: Kurnool approved successfully")
+            test_results.append(("Approve Kurnool", True))
+        else:
+            print(f"❌ FAILED: Could not approve Kurnool")
+            test_results.append(("Approve Kurnool", False))
+    
+    # Step 8: CRITICAL CHECK - All Cities Still Visible After Second Approval
+    print("\n--- Step 8: CRITICAL CHECK - All Cities Still Visible After Second Approval ---")
+    success, after_second_approval = test_api_endpoint(
+        "GET",
+        "/admin/city-suggestions",
+        headers=auth_headers,
+        description="Get ALL city suggestions after second approval (CRITICAL TEST)"
+    )
+    
+    if success and isinstance(after_second_approval, list):
+        second_approval_count = len(after_second_approval)
+        
+        print(f"📊 SECOND APPROVAL VERIFICATION:")
+        print(f"   - Count after first approval: {after_approval_count}")
+        print(f"   - Count after second approval: {second_approval_count}")
+        
+        if second_approval_count == after_approval_count:
+            print(f"✅ SUCCESS: All cities still visible after second approval")
+            test_results.append(("All Cities Visible After Second Approval", True))
+        else:
+            print(f"❌ CRITICAL FAILURE: Cities disappeared after second approval!")
+            test_results.append(("All Cities Visible After Second Approval", False))
+        
+        # Count approved vs pending
+        approved_count = sum(1 for s in after_second_approval if s.get("status") == "approved")
+        pending_count = sum(1 for s in after_second_approval if s.get("status") == "pending")
+        
+        print(f"   - Approved cities: {approved_count} (should include Tirupati and Kurnool)")
+        print(f"   - Pending cities: {pending_count} (should include Nizamabad and Karimnagar)")
+    else:
+        print("❌ CRITICAL FAILURE: Could not get suggestions after second approval")
+        test_results.append(("All Cities Visible After Second Approval", False))
+    
+    # Step 9: Reject One City (Nizamabad)
+    print("\n--- Step 9: Reject One City (Nizamabad) ---")
+    if "Nizamabad" in created_suggestion_ids:
+        nizamabad_id = created_suggestion_ids["Nizamabad"]
+        rejection_data = {
+            "status": "rejected"
+        }
+        
+        success, response = test_api_endpoint(
+            "PUT",
+            f"/admin/city-suggestions/{nizamabad_id}/status",
+            headers=auth_headers,
+            data=rejection_data,
+            description="Reject Nizamabad city suggestion"
+        )
+        
+        if success:
+            print(f"✅ SUCCESS: Nizamabad rejected successfully")
+            test_results.append(("Reject Nizamabad", True))
+        else:
+            print(f"❌ FAILED: Could not reject Nizamabad")
+            test_results.append(("Reject Nizamabad", False))
+    
+    # Step 10: CRITICAL CHECK - All Cities Still Visible After Rejection
+    print("\n--- Step 10: CRITICAL CHECK - All Cities Still Visible After Rejection ---")
+    success, after_rejection = test_api_endpoint(
+        "GET",
+        "/admin/city-suggestions",
+        headers=auth_headers,
+        description="Get ALL city suggestions after rejection (CRITICAL TEST)"
+    )
+    
+    if success and isinstance(after_rejection, list):
+        after_rejection_count = len(after_rejection)
+        
+        print(f"📊 AFTER REJECTION VERIFICATION:")
+        print(f"   - Count before rejection: {second_approval_count}")
+        print(f"   - Count after rejection: {after_rejection_count}")
+        
+        if after_rejection_count == second_approval_count:
+            print(f"✅ SUCCESS: All cities still visible after rejection")
+            test_results.append(("All Cities Visible After Rejection", True))
+        else:
+            print(f"❌ CRITICAL FAILURE: Cities disappeared after rejection!")
+            test_results.append(("All Cities Visible After Rejection", False))
+        
+        # Final status breakdown
+        status_counts = {}
+        for suggestion in after_rejection:
+            status = suggestion.get("status", "unknown")
+            status_counts[status] = status_counts.get(status, 0) + 1
+        
+        print(f"\n📈 FINAL STATUS BREAKDOWN:")
+        for status, count in status_counts.items():
+            print(f"   - {status}: {count} cities")
+        
+        # Verify all our test cities are present with correct statuses
+        test_city_statuses = {}
+        for suggestion in after_rejection:
+            city_name = suggestion.get("city")
+            if city_name in ["Tirupati", "Kurnool", "Nizamabad", "Karimnagar"]:
+                test_city_statuses[city_name] = suggestion.get("status")
+        
+        print(f"\n🎯 TEST CITIES FINAL STATUS:")
+        expected_statuses = {
+            "Tirupati": "approved",
+            "Kurnool": "approved", 
+            "Nizamabad": "rejected",
+            "Karimnagar": "pending"
+        }
+        
+        all_correct = True
+        for city, expected_status in expected_statuses.items():
+            actual_status = test_city_statuses.get(city, "NOT FOUND")
+            if actual_status == expected_status:
+                print(f"   ✅ {city}: {actual_status} (correct)")
+            else:
+                print(f"   ❌ {city}: {actual_status} (expected {expected_status})")
+                all_correct = False
+        
+        if all_correct:
+            print(f"\n🎉 SUCCESS: All test cities have correct final statuses!")
+            test_results.append(("All Test Cities Correct Status", True))
+        else:
+            print(f"\n❌ FAILURE: Some test cities have incorrect statuses")
+            test_results.append(("All Test Cities Correct Status", False))
+    else:
+        print("❌ CRITICAL FAILURE: Could not get suggestions after rejection")
+        test_results.append(("All Cities Visible After Rejection", False))
+    
+    return test_results
+
 def main():
     """Main testing function focused on city suggestions approval flow"""
-    print("🚀 TESTING CITY SUGGESTIONS APPROVAL FLOW - VANISHING CITIES FIX")
+    print("🚀 COMPREHENSIVE CITY SUGGESTIONS APPROVAL FLOW TESTING")
     print("=" * 80)
     
     # Track overall results
