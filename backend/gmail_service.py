@@ -26,7 +26,7 @@ async def send_order_confirmation_email_gmail(to_email: str, order_data: dict):
         # Create message
         msg = MIMEMultipart('alternative')
         msg['Subject'] = f'Order Confirmation - #{order_data["order_id"]}'
-        msg['From'] = f'Anantha Lakshmi <{GMAIL_EMAIL}>'
+        msg['From'] = f'Anantha Home Foods <{GMAIL_EMAIL}>'
         msg['To'] = to_email
         
         # Format items HTML
