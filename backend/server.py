@@ -919,12 +919,10 @@ async def create_order(order_data: OrderCreate, current_user: dict = Depends(get
         custom_city_request = False
         if not is_custom_location and order_data.city and order_data.state:
             # Check if city exists by matching both city name AND state (CASE-INSENSITIVE)
-            print(f"🔍 DEBUG: Looking for city: '{order_data.city}' in state: '{order_data.state}'")
             city_exists = await db.locations.find_one({
                 "name": {"$regex": f"^{order_data.city}$", "$options": "i"},
                 "state": {"$regex": f"^{order_data.state}$", "$options": "i"}
             })
-            print(f"🔍 DEBUG: City lookup result: {city_exists}")
             if not city_exists:
                 custom_city_request = True
                 print(f"🆕 CUSTOM CITY REQUEST: {order_data.city}, {order_data.state} - Awaiting approval")
