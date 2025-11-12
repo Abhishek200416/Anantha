@@ -13,6 +13,9 @@ const TrackOrder = () => {
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('online');
+  const [paymentSubMethod, setPaymentSubMethod] = useState('');
 
   const handleSearch = async (e) => {
     e.preventDefault();
