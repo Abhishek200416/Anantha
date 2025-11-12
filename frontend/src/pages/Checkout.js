@@ -11,6 +11,28 @@ import CustomCityModal from '../components/CustomCityModal';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
 const API = `${BACKEND_URL}/api`;
 
+// Load Razorpay Checkout script dynamically
+const loadRazorpayScript = () => {
+  return new Promise((resolve) => {
+    // Check if Razorpay is already loaded
+    if (window.Razorpay) {
+      resolve(true);
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    script.onload = () => {
+      resolve(true);
+    };
+    script.onerror = () => {
+      resolve(false);
+    };
+    document.body.appendChild(script);
+  });
+};
+
 const Checkout = () => {
   const { cart, getCartTotal, clearCart, updateQuantity, removeFromCart, addToCart } = useCart();
   const { user } = useAuth();
