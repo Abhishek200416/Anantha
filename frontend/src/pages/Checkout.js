@@ -767,18 +767,6 @@ const Checkout = () => {
       const orderResult = orderResponse.data;
       const orderId = orderResult.order_id;
 
-      // Check if this is a custom city request (no payment needed yet)
-      if (orderResult.custom_city_request) {
-        clearCart();
-        toast({
-          title: "Order Created - Awaiting City Approval",
-          description: `Order ID: ${orderId}\n\nYour city is being reviewed for delivery. You'll receive an email notification within 10-15 minutes.\n\nYou can track your order using your mobile number: ${formData.phone}\n\nPayment can be completed after city approval.`,
-          duration: 10000
-        });
-        navigate('/order-success', { state: { orderData: orderResult } });
-        return;
-      }
-
       // Step 2: Create Razorpay order
       const razorpayOrderResponse = await axios.post(`${API}/payment/create-razorpay-order`, {
         amount: orderTotal,
