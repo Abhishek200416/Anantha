@@ -114,6 +114,8 @@ async def send_order_confirmation_email_gmail(to_email: str, order_data: dict):
 async def send_order_status_update_email(to_email: str, order_data: dict, old_status: str, new_status: str):
     """Send email notification when order status is updated"""
     try:
+        GMAIL_EMAIL, GMAIL_APP_PASSWORD = get_gmail_credentials()
+        
         if not GMAIL_EMAIL or not GMAIL_APP_PASSWORD:
             logger.warning("Gmail credentials not configured. Email not sent.")
             return False
