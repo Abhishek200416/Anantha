@@ -1148,15 +1148,18 @@ const Checkout = () => {
 
                     {/* Custom City Selected Message */}
                     {showCustomCityInput && customCity && (
-                      <div className="mt-3 p-4 bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-lg">
+                      <div className="mt-3 p-4 bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-300 rounded-lg">
                         <div className="flex items-start gap-3">
-                          <MapPin className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                          <MapPin className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                           <div>
-                            <p className="text-sm font-semibold text-blue-900">
-                              Custom Location: <span className="font-bold">{customCity}, {customCityState || formData.state}</span>
+                            <p className="text-sm font-semibold text-green-900">
+                              ✓ Thank you for adding: <span className="font-bold">{customCity}, {customCityState || formData.state}</span>
                             </p>
-                            <p className="text-xs text-gray-600 mt-1">
-                              💰 Delivery charges will be calculated and updated within <span className="font-semibold">5-10 minutes</span>
+                            <p className="text-xs text-gray-700 mt-2 font-medium">
+                              📦 Please complete your order. We'll contact you within <span className="font-bold text-green-700">5-10 minutes</span> to confirm delivery charges and delivery availability to your location.
+                            </p>
+                            <p className="text-xs text-green-800 mt-1 font-semibold">
+                              Thank you for your patience! 🙏
                             </p>
                           </div>
                         </div>
