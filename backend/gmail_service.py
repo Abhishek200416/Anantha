@@ -490,6 +490,8 @@ async def send_order_cancellation_email(to_email: str, order_data: dict, cancell
 async def send_payment_completion_email(to_email: str, order_data: dict):
     """Send email notification when payment is completed for a pending order"""
     try:
+        GMAIL_EMAIL, GMAIL_APP_PASSWORD = get_gmail_credentials()
+        
         if not GMAIL_EMAIL or not GMAIL_APP_PASSWORD:
             logger.warning("Gmail credentials not configured. Email not sent.")
             return False
