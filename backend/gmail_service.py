@@ -423,7 +423,7 @@ async def send_order_cancellation_email(to_email: str, order_data: dict, cancell
                     </p>
                 </div>
                 
-                {"" if order_data.get("payment_status") != "completed" else f'''
+                {("" if order_data.get("payment_status") != "completed" else f"""
                 <div style="background-color: #fff7ed; padding: 20px; border-radius: 8px; margin: 20px 0;">
                     <h3 style="color: #ea580c; margin: 0;"> Refund Information</h3>
                     <p style="margin-top: 15px;">
@@ -435,7 +435,7 @@ async def send_order_cancellation_email(to_email: str, order_data: dict, cancell
                         Your refund will be processed within 2-3 business days to the original payment method.
                     </p>
                 </div>
-                '''}
+                """)}
                 
                 <div style="background-color: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0;">
                     <h4 style="margin-top: 0;">📞 Need Help?</h4>
