@@ -132,13 +132,12 @@ User requested to add ALL NEW products from their comprehensive list to replace 
 5. Product Metadata - Names, descriptions, tags, bestseller flags, inventory all configured correctly ✅
 6. Backend Testing - All 56 products verified in database with correct structure ✅
 
-CURRENT SESSION - City Suggestions & Email Notifications:
-User requested improvements to Cities & States tab in admin panel:
-1. Database Population - Populated database with all 431 cities (217 Andhra Pradesh + 214 Telangana) ✅
-2. City Suggestions Management - Verify approve/reject/delete functionality for customer city suggestions ⏳
-3. Email Notifications - Ensure approval and rejection emails are sent to customers ⏳
-4. Pending Cities from Orders - Verify functionality when customers order from "Other" cities ⏳
-5. Products - Keep existing 56 products as they are ✅"
+CURRENT SESSION - UX Improvements & Order Tracking Enhancement:
+User requested the following changes:
+1. Remove "City Not Listed? Click Here" button from Checkout - Replace with informational note ✅
+2. Remove "Pending Cities from Orders" section from Admin Panel (Cities & States tab) ✅
+3. Track Order Enhancement - Show ALL orders (including cancelled) when searching by phone/email with count display ✅
+4. Previous products and functionality - Keep as is ✅"
 
 backend:
   - task: "Admin Authentication (JWT Token)"
