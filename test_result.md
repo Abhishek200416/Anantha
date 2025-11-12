@@ -2018,6 +2018,29 @@ agent_communication:
     ✅ Improved admin workflow efficiency
 
     Frontend service restarted successfully!"
+  - agent: "testing"
+    message: "🚨 CRITICAL TESTING RESULTS - TWO SPECIFIC ISSUES FROM REVIEW REQUEST:
+
+    **ISSUE 1: Order Status Update Emails NOT Triggering** ✅ RESOLVED
+    - **TESTING COMPLETED**: Comprehensive testing of enhanced logging and email functionality
+    - **ORDER CREATION**: POST /api/orders successfully creates order (AL202511127291) with email test@example.com
+    - **STATUS UPDATES**: PUT /api/orders/{order_id}/admin-update successfully updates order status to 'shipped' and 'delivered'
+    - **ENHANCED LOGGING VERIFIED**: Backend logs in /var/log/supervisor/backend.err.log show PERFECT enhanced logging:
+      * 'Attempting to send order status update email to test@example.com for order AL202511127291'
+      * '✅ Order status update email sent successfully to test@example.com'
+      * Gmail service logs confirm successful email delivery
+    - **CONCLUSION**: Enhanced logging is working exactly as designed in server.py lines 1175-1188 and 1358-1371. Emails are being triggered and sent successfully.
+
+    **ISSUE 2: Cities Disappearing After City Approval** ❌ CRITICAL BUG CONFIRMED
+    - **INITIAL STATE**: GET /api/locations returns exactly 431 cities (217 AP + 214 Telangana) as expected
+    - **CITY APPROVAL PROCESS**: Successfully approved TestCity with delivery charge ₹99 and free delivery threshold ₹1000
+    - **CRITICAL BUG CONFIRMED**: After approval, GET /api/locations returns ONLY 1 city (TestCity) instead of 432 cities
+    - **DATA LOSS**: ALL 431 existing cities disappeared from database (431 → 1, should be 431 → 432)
+    - **ROOT CAUSE**: City approval process is clearing/overwriting entire locations collection instead of adding new city
+    - **IMPACT**: Critical data loss bug - all existing delivery locations become unavailable after any city approval
+    - **NEEDS IMMEDIATE FIX**: Approval logic in server.py must ADD cities to locations, not replace entire collection
+
+    **SUMMARY**: Issue 1 is RESOLVED (emails working perfectly). Issue 2 is CONFIRMED as critical bug requiring immediate fix."
   - agent: "main"
     message: "✅ CRITICAL FIX - CITY APPROVAL BUG RESOLVED: User reported issue where clicking 'approved' shows 'failed to upload' error, and after refresh only one city shows, all others gone. Error was 500 Internal Server Error on POST /api/admin/approve-city.
     
