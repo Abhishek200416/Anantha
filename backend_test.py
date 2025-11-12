@@ -1982,22 +1982,40 @@ def test_order_status_update_emails(admin_token):
         print(f"⚠️  WARNING: Could not check for Gmail warnings: {e}")
         test_results.append(("No Gmail Credentials Warnings", False))
     
-    # Step 5: Verify Gmail credentials are loaded properly
-    print("\n--- Step 5: Verify Gmail Credentials Loading ---")
+    # Step 5: Verify Gmail credentials are loaded properly in backend
+    print("\n--- Step 5: Verify Gmail Credentials Loading in Backend ---")
     try:
-        import os
-        gmail_email = os.environ.get('GMAIL_EMAIL', '')
-        gmail_password = os.environ.get('GMAIL_APP_PASSWORD', '')
+        import subprocess
+        result = subprocess.run(
+            ["python", "-c", """
+import os
+import sys
+sys.path.append('/app/backend')
+from dotenv import load_dotenv
+load_dotenv('/app/backend/.env')
+gmail_email = os.environ.get('GMAIL_EMAIL', '')
+gmail_password = os.environ.get('GMAIL_APP_PASSWORD', '')
+print(f'GMAIL_EMAIL: {gmail_email}')
+print(f'GMAIL_APP_PASSWORD: {"FOUND" if gmail_password else "NOT_FOUND"}')
+"""],
+            cwd="/app/backend",
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
         
-        if gmail_email and gmail_password:
-            print(f"✅ SUCCESS: Gmail credentials found in environment")
-            print(f"   - GMAIL_EMAIL: {gmail_email}")
-            print(f"   - GMAIL_APP_PASSWORD: {'*' * len(gmail_password)} (masked)")
-            test_results.append(("Gmail Credentials Available", True))
+        if result.stdout:
+            print(f"Backend environment check:")
+            print(result.stdout)
+            
+            if "contact.ananthahomefoods@gmail.com" in result.stdout and "FOUND" in result.stdout:
+                print(f"✅ SUCCESS: Gmail credentials properly loaded in backend")
+                test_results.append(("Gmail Credentials Available", True))
+            else:
+                print(f"❌ CRITICAL: Gmail credentials not properly loaded in backend")
+                test_results.append(("Gmail Credentials Available", False))
         else:
-            print(f"❌ CRITICAL: Gmail credentials not found in environment")
-            print(f"   - GMAIL_EMAIL: '{gmail_email}'")
-            print(f"   - GMAIL_APP_PASSWORD: '{gmail_password}'")
+            print(f"❌ ERROR: Could not check backend environment")
             test_results.append(("Gmail Credentials Available", False))
             
     except Exception as e:
