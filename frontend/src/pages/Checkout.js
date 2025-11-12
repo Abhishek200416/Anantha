@@ -1167,17 +1167,18 @@ const Checkout = () => {
                       </div>
                     )}
 
-                    {/* City Not Listed Button */}
+                    {/* City Not Listed Note */}
                     {formData.state && (
-                      <div className="mt-3">
-                        <button
-                          type="button"
-                          onClick={() => setShowCustomCityModal(true)}
-                          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-lg transition-all font-medium shadow-md text-sm"
-                        >
-                          <MapPin className="h-4 w-4" />
-                          <span>City Not Listed? Click Here</span>
-                        </button>
+                      <div className="mt-3 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
+                        <div className="flex items-start gap-3">
+                          <MapPin className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                          <div>
+                            <p className="text-sm font-medium text-blue-900">Can't find your city?</p>
+                            <p className="text-sm text-blue-700 mt-1">
+                              Please visit the homepage and request your city. We'll contact you soon to add it to our delivery locations!
+                            </p>
+                          </div>
+                        </div>
                       </div>
                     )}
                   </div>
