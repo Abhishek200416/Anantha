@@ -1300,13 +1300,13 @@ const Checkout = () => {
 
                     {/* City Not Listed Note */}
                     {formData.state && (
-                      <div className="mt-3 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
+                      <div className="mt-3 p-4 bg-amber-50 border-l-4 border-amber-500 rounded-lg">
                         <div className="flex items-start gap-3">
-                          <MapPin className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                          <Info className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
                           <div>
-                            <p className="text-sm font-medium text-blue-900">Can't find your city?</p>
-                            <p className="text-sm text-blue-700 mt-1">
-                              Please visit the homepage and request your city. We'll contact you soon to add it to our delivery locations!
+                            <p className="text-sm font-medium text-amber-900">City not in the list?</p>
+                            <p className="text-sm text-amber-700 mt-1">
+                              This checkout is only for ordering to existing delivery cities. To request delivery to a new city, please visit our <span className="font-semibold">homepage</span> and submit a city request there.
                             </p>
                           </div>
                         </div>
