@@ -870,10 +870,14 @@ const Checkout = () => {
             // Payment cancelled or closed
             toast({
               title: "Payment Cancelled",
-              description: "You cancelled the payment. Your order is saved and you can complete payment later from Track Order page.",
+              description: `Your order #${orderId} has been created but payment is pending. You can complete payment later by tracking your order with phone: ${formData.phone}`,
               variant: "default",
-              duration: 6000
+              duration: 8000
             });
+            // Navigate to home page after dismissal
+            setTimeout(() => {
+              navigate('/');
+            }, 2000);
           }
         }
       };
