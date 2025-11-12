@@ -2432,3 +2432,66 @@ agent_communication:
     READY FOR TESTING!"
   - agent: "testing"
     message: "✅ CRITICAL EMAIL FIX VERIFICATION COMPLETED - ALL TESTS PASSED (9/9 - 100% SUCCESS): Comprehensive testing of order status update email functionality completed successfully as requested in review. TESTED SCENARIOS: 1) **ORDER CREATION + CONFIRMATION EMAIL** ✅ - POST /api/orders successfully creates order with complete valid data, Order confirmation email sent successfully via Gmail service, Backend logs show 'Email sent successfully to emailtest@example.com via Gmail'. 2) **ORDER STATUS UPDATE VIA PUT /api/orders/{order_id}/status** ✅ - PUT /api/orders/{order_id}/status successfully updates order status to 'processing', API returns HTTP 200 with success message, Backend logs show 'Order status update email sent successfully to emailtest@example.com via Gmail', NO 'Gmail credentials not configured' warnings found. 3) **ORDER STATUS UPDATE VIA PUT /api/orders/{order_id}/admin-update** ✅ - PUT /api/orders/{order_id}/admin-update successfully updates order status to 'shipped' with admin notes, API returns HTTP 200 with success message, Backend logs show 'Order status update email sent successfully to emailtest@example.com via Gmail', NO 'Gmail credentials not configured' warnings found. 4) **GMAIL CREDENTIALS VERIFICATION** ✅ - Gmail credentials properly loaded in backend environment (GMAIL_EMAIL: contact.ananthahomefoods@gmail.com, GMAIL_APP_PASSWORD: FOUND), No Gmail credential warnings in any logs, Lazy credential loading working correctly. **CONCLUSION:** The lazy credential loading fix implemented by main agent has been successfully verified. All order status update emails are now working correctly. Gmail credentials are loaded properly when email functions are called. The original 'Gmail credentials not configured' issue has been completely resolved. Order confirmation emails worked before and continue to work. Status update emails that were previously failing are now working perfectly."
+  - agent: "main"
+    message: "✅ UX IMPROVEMENTS & ORDER TRACKING ENHANCEMENT COMPLETED - Ready for Testing
+
+IMPLEMENTATION SUMMARY:
+Implemented 3 major improvements as requested by user:
+
+1. **CHECKOUT PAGE - Removed City Not Listed Button** (/app/frontend/src/pages/Checkout.js):
+   - Removed interactive 'City Not Listed? Click Here' button that opened custom city modal
+   - Replaced with beautiful blue-themed informational note with MapPin icon
+   - Note provides clear guidance: 'Please visit the homepage and request your city. We'll contact you soon to add it to our delivery locations!'
+   - Better UX - users know what to do without confusion
+
+2. **ADMIN PANEL - Removed Pending Cities Section** (/app/frontend/src/pages/Admin.js):
+   - Completely removed 'Pending Cities from Orders' section from Cities & States tab
+   - Removed entire PendingCitiesSection component (295 lines including approval modal)
+   - Cities & States tab now simplified with only City Suggestions section
+   - Cleaner admin interface as requested
+
+3. **TRACK ORDER - Multiple Orders Display** (Backend + Frontend):
+   
+   **Backend Enhancement** (/app/backend/server.py):
+   - Modified GET /api/orders/track/{identifier} endpoint
+   - Now returns {orders: [], total: count} format instead of single order
+   - Logic: If searching by order_id/tracking_code → returns that specific order in array
+   - Logic: If searching by phone/email → returns ALL orders for that customer
+   - Orders sorted by newest first, includes ALL statuses (confirmed, processing, shipped, delivered, cancelled)
+   - Limit 100 orders per customer
+   
+   **Frontend Complete Redesign** (/app/frontend/src/pages/TrackOrder.js):
+   - Completely redesigned to handle multiple orders elegantly
+   - Features implemented:
+     * Order count badge on each order header (e.g., '1 of 3 orders')
+     * Blue info banner shows total: 'Found X orders for this account (including cancelled orders)'
+     * Collapsible card design - click header to expand/collapse
+     * First order auto-expanded for immediate viewing
+     * Each card shows order number, tracking code, and status badge in header
+     * Full order details shown when expanded (customer info, address, payment, items, summary)
+     * Cancel and Complete Payment buttons available per order based on status
+     * Smooth expand/collapse animations with ChevronUp/ChevronDown icons
+   
+   **User Benefits**:
+   - Customers can now see their COMPLETE order history
+   - Cancelled orders are visible alongside active orders
+   - Easy navigation between multiple orders
+   - No confusion about which order is which
+   - Perfect for users who place multiple orders
+
+TECHNICAL CHANGES:
+- Modified 1 backend file: /app/backend/server.py (track order endpoint)
+- Modified 2 frontend files: /app/frontend/src/pages/Checkout.js, /app/frontend/src/pages/TrackOrder.js
+- Removed 1 unused component from: /app/frontend/src/pages/Admin.js (PendingCitiesSection)
+- All services restarted successfully ✅
+
+TESTING NEEDED:
+1. **Checkout Page**: Verify 'City Not Listed' button is gone and note appears correctly when state is selected
+2. **Admin Panel**: Verify 'Pending Cities from Orders' section is removed from Cities & States tab
+3. **Track Order - Single Order**: Search by order_id or tracking_code - should show 1 order in expandable card
+4. **Track Order - Multiple Orders**: Search by phone number or email with multiple orders - should show all orders with count
+5. **Track Order - Cancelled Orders**: Verify cancelled orders appear in the list alongside active orders
+6. **Track Order - Expand/Collapse**: Click order header to expand/collapse, first order should be expanded by default
+7. **Track Order - Actions**: Verify Cancel Order and Complete Payment buttons work correctly for each order
+
+All changes implemented successfully. Ready for comprehensive testing!"
