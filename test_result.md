@@ -1783,11 +1783,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Bug Report APIs"
-    - "Admin Profile APIs"
-    - "Report Bug Page"
-    - "Admin Reports Tab"
-    - "Admin Profile Tab"
+    - "Track Order API - Multiple Orders Support"
+    - "Remove City Not Listed Button from Checkout"
+    - "Remove Pending Cities Section from Admin Panel"
+    - "Track Order - Multiple Orders Display"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
