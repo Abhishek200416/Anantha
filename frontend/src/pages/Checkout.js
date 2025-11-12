@@ -866,14 +866,30 @@ const Checkout = () => {
           }
         },
         modal: {
-          ondismiss: function() {
-            // Payment cancelled or closed
-            toast({
-              title: "Payment Cancelled",
-              description: `Your order #${orderId} has been created but payment is pending. You can complete payment later by tracking your order with phone: ${formData.phone}`,
-              variant: "default",
-              duration: 8000
-            });
+          ondismiss: async function() {
+            // Payment cancelled or closed - Cancel the order
+            try {
+              const token = localStorage.getItem('token');
+              await axios.put(`${API}/orders/${orderId}/cancel`, {}, {
+                headers: { Authorization: `Bearer ${token}` }
+              });
+              
+              toast({
+                title: "Order Cancelled",
+                description: "Payment was cancelled. Your order has been cancelled and will not be processed.",
+                variant: "default",
+                duration: 6000
+              });
+            } catch (error) {
+              console.error('Failed to cancel order:', error);
+              toast({
+                title: "Payment Cancelled",
+                description: "Payment was not completed. Please contact support if needed.",
+                variant: "default",
+                duration: 6000
+              });
+            }
+            
             // Navigate to home page after dismissal
             setTimeout(() => {
               navigate('/');
