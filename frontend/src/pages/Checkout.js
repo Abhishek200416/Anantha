@@ -803,6 +803,32 @@ const Checkout = () => {
         theme: {
           color: '#ea580c' // Orange theme matching your app
         },
+        config: {
+          display: {
+            blocks: {
+              upi: {
+                name: 'Pay using UPI',
+                instruments: [
+                  {
+                    method: 'upi'
+                  }
+                ]
+              },
+              card: {
+                name: 'Pay using Cards',
+                instruments: [
+                  {
+                    method: 'card'
+                  }
+                ]
+              }
+            },
+            sequence: ['block.upi', 'block.card'],
+            preferences: {
+              show_default_blocks: false // Hide default payment methods (Netbanking, Wallets, etc.)
+            }
+          }
+        },
         handler: async function (response) {
           // Payment successful callback
           console.log('Payment Success Response:', response);
