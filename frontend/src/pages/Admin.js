@@ -1252,7 +1252,12 @@ const Admin = () => {
   };
 
   const handleUpdateLocation = async () => {
-    const success = await updateDeliveryLocation(editingLocation.name, editingLocation.charge, editingLocation.free_delivery_threshold, editingLocation.state);
+    // Ensure values are properly converted to numbers
+    const charge = typeof editingLocation.charge === 'string' ? parseInt(editingLocation.charge) : editingLocation.charge;
+    const threshold = editingLocation.free_delivery_threshold === '' ? null : 
+                     (typeof editingLocation.free_delivery_threshold === 'string' ? parseInt(editingLocation.free_delivery_threshold) : editingLocation.free_delivery_threshold);
+    
+    const success = await updateDeliveryLocation(editingLocation.name, charge, threshold, editingLocation.state);
     if (success) {
       toast({
         title: "Success",
