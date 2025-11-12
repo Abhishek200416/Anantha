@@ -218,6 +218,8 @@ async def send_order_status_update_email(to_email: str, order_data: dict, old_st
 async def send_city_approval_email(to_email: str, city_data: dict):
     """Send email notification when a city suggestion is approved"""
     try:
+        GMAIL_EMAIL, GMAIL_APP_PASSWORD = get_gmail_credentials()
+        
         if not GMAIL_EMAIL or not GMAIL_APP_PASSWORD:
             logger.warning("Gmail credentials not configured. Email not sent.")
             return False
