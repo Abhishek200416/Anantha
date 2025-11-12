@@ -296,29 +296,38 @@ const TrackOrder = () => {
                     <span className="font-semibold">{new Date(order.order_date).toLocaleString()}</span>
                   </div>
                 </div>
-                {order.order_status?.toLowerCase() === 'pending' && order.payment_required && (
+                <div className="flex flex-wrap gap-2">
+                  {order.order_status?.toLowerCase() === 'pending' && order.payment_required && (
+                    <button
+                      onClick={() => {
+                        setSelectedOrder(order);
+                        setShowPaymentModal(true);
+                      }}
+                      className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold transition-colors flex items-center gap-2"
+                    >
+                      Complete Payment
+                    </button>
+                  )}
+                  {order.order_status?.toLowerCase() !== 'cancelled' && 
+                   order.order_status?.toLowerCase() !== 'delivered' && (
+                    <button
+                      onClick={() => {
+                        setSelectedOrder(order);
+                        setShowCancelModal(true);
+                      }}
+                      className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg font-semibold transition-colors"
+                    >
+                      Cancel Order
+                    </button>
+                  )}
                   <button
-                    onClick={() => {
-                      setSelectedOrder(order);
-                      setShowPaymentModal(true);
-                    }}
-                    className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold transition-colors"
+                    onClick={() => handleReorder(order)}
+                    className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-semibold transition-colors flex items-center gap-2"
                   >
-                    Complete Payment
+                    <RefreshCw className="h-4 w-4" />
+                    Reorder
                   </button>
-                )}
-                {order.order_status?.toLowerCase() !== 'cancelled' && 
-                 order.order_status?.toLowerCase() !== 'delivered' && (
-                  <button
-                    onClick={() => {
-                      setSelectedOrder(order);
-                      setShowCancelModal(true);
-                    }}
-                    className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg font-semibold transition-colors"
-                  >
-                    Cancel Order
-                  </button>
-                )}
+                </div>
               </div>
             </div>
 
