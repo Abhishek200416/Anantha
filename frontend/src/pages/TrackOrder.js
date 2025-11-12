@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
-import { Search, Package, Truck, CheckCircle, Clock, MapPin, Mail, Phone, CreditCard, Calendar, User, XCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, Package, Truck, CheckCircle, Clock, MapPin, Mail, Phone, CreditCard, Calendar, User, XCircle, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from '../hooks/use-toast';
+import { useCart } from '../contexts/CartContext';
 import CancelOrderModal from '../components/CancelOrderModal';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 const TrackOrder = () => {
+  const navigate = useNavigate();
+  const { addToCart } = useCart();
   const [searchTerm, setSearchTerm] = useState('');
   const [orders, setOrders] = useState([]);
   const [totalOrders, setTotalOrders] = useState(0);
