@@ -424,9 +424,9 @@ async def send_order_cancellation_email(to_email: str, order_data: dict, cancell
         <html>
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
             <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-                <h2 style="color: #dc2626; text-align: center;">Order Cancelled</h2>
+                <h2 style="color: #dc2626; text-align: center;">😔 Order Cancelled</h2>
                 <p>Dear {order_data.get("customer_name", "Valued Customer")},</p>
-                <p>Your order <strong>#{order_data["order_id"]}</strong> has been successfully cancelled.</p>
+                <p><strong>Sorry to see you go!</strong> Your order <strong>#{order_data["order_id"]}</strong> has been cancelled.</p>
                 
                 <div style="background-color: #fef2f2; padding: 20px; border-radius: 8px; margin: 20px 0;">
                     <h3 style="color: #dc2626; margin: 0;">Order Details</h3>
