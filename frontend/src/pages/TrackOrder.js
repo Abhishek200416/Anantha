@@ -158,11 +158,26 @@ const TrackOrder = () => {
   };
 
   const handleCompletePayment = async () => {
+    // Validate payment selection
+    if (!paymentMethod) {
+      toast({
+        title: "Payment Method Required",
+        description: "Please select a payment method to continue.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (paymentMethod !== 'cod' && !paymentSubMethod) {
+      toast({
+        title: "Payment Option Required",
+        description: "Please select a payment option to continue.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     try {
-      // Show payment method selection (in a real app, this would open payment gateway)
-      const paymentMethod = 'online';
-      const paymentSubMethod = 'upi'; // Default to UPI
-      
       const response = await axios.post(
         `${API}/orders/${order.order_id}/complete-payment`,
         { 
@@ -176,6 +191,11 @@ const TrackOrder = () => {
         description: "Your payment has been recorded successfully! Your order is now confirmed.",
         duration: 6000
       });
+
+      // Reset payment selections and close modal
+      setPaymentMethod('online');
+      setPaymentSubMethod('');
+      setShowPaymentModal(false);
 
       // Refresh order data
       const updatedOrder = await axios.get(`${API}/orders/track/${searchTerm.trim()}`);
