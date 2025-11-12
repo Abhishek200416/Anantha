@@ -63,13 +63,15 @@ const CitySuggestionsSection = () => {
     fetchCitySuggestions();
   }, [statusFilter]);
 
-  const fetchCitySuggestions = async () => {
+  const fetchCitySuggestions = async (filterStatus = null) => {
     setLoading(true);
     try {
       const adminToken = localStorage.getItem('token');
-      const url = statusFilter === 'all' 
+      // Use passed parameter if provided, otherwise use state
+      const filter = filterStatus !== null ? filterStatus : statusFilter;
+      const url = filter === 'all' 
         ? `${BACKEND_URL}/api/admin/city-suggestions`
-        : `${BACKEND_URL}/api/admin/city-suggestions?status=${statusFilter}`;
+        : `${BACKEND_URL}/api/admin/city-suggestions?status=${filter}`;
       
       const response = await axios.get(url, {
         headers: { Authorization: `Bearer ${adminToken}` }
