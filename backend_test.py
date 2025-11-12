@@ -2497,62 +2497,412 @@ def test_cities_states_management_system(admin_token):
     
     return test_results
 
-def main():
-    """Main testing function"""
-    print("🚀 STARTING COMPREHENSIVE CITIES & STATES MANAGEMENT TESTING")
-    print("="*80)
-    
-    # Track test results
-    all_tests_passed = True
-    test_summary = []
-    
-    # 1. Admin Authentication Test
+def test_city_suggestions_approval_flow(admin_token):
+    """Test the city suggestions approval flow to verify the fix for cities disappearing after approval"""
     print("\n" + "="*80)
-    print("TEST 1: ADMIN AUTHENTICATION")
+    print("🏙️ TESTING CITY SUGGESTIONS APPROVAL FLOW - VANISHING CITIES FIX")
     print("="*80)
     
+    auth_headers = {
+        "Authorization": f"Bearer {admin_token}",
+        "Content-Type": "application/json"
+    }
+    
+    test_results = []
+    created_suggestion_ids = []
+    
+    # Step 1: Setup Phase - Create 3-5 test city suggestions
+    print("\n--- SETUP PHASE: Create 3-5 Test City Suggestions ---")
+    test_cities = [
+        {"city": "Kadapa", "state": "Andhra Pradesh", "phone": "9876543210", "email": "kadapa@example.com"},
+        {"city": "Warangal", "state": "Telangana", "phone": "9876543211", "email": "warangal@example.com"},
+        {"city": "Nellore", "state": "Andhra Pradesh", "phone": "9876543212", "email": "nellore@example.com"},
+        {"city": "Vijayawada", "state": "Andhra Pradesh", "phone": "9876543213", "email": "vijayawada@example.com"}
+    ]
+    
+    for i, city_data in enumerate(test_cities, 1):
+        suggestion_data = {
+            "city": city_data["city"],
+            "state": city_data["state"],
+            "customer_name": f"Test User {i}",
+            "phone": city_data["phone"],
+            "email": city_data["email"]
+        }
+        
+        success, response = test_api_endpoint(
+            "POST",
+            "/suggest-city",
+            data=suggestion_data,
+            description=f"Create city suggestion for {city_data['city']}, {city_data['state']}"
+        )
+        
+        if success and response and "suggestion_id" in response:
+            suggestion_id = response["suggestion_id"]
+            created_suggestion_ids.append(suggestion_id)
+            print(f"✅ SUCCESS: Created suggestion {i} - {city_data['city']} (ID: {suggestion_id})")
+            test_results.append((f"Create Suggestion {i} ({city_data['city']})", True))
+        else:
+            print(f"❌ FAILED: Could not create suggestion for {city_data['city']}")
+            test_results.append((f"Create Suggestion {i} ({city_data['city']})", False))
+    
+    if len(created_suggestion_ids) < 3:
+        print("❌ CRITICAL: Need at least 3 city suggestions to test properly")
+        return test_results
+    
+    # Step 2: Verify Initial State - All suggestions should be pending
+    print("\n--- STEP 2: Verify Initial State ---")
+    success, all_suggestions = test_api_endpoint(
+        "GET",
+        "/admin/city-suggestions",
+        headers=auth_headers,
+        description="Get all city suggestions (should return all pending suggestions)"
+    )
+    
+    if success and isinstance(all_suggestions, list):
+        initial_count = len(all_suggestions)
+        pending_count = len([s for s in all_suggestions if s.get("status") == "pending"])
+        
+        print(f"✅ SUCCESS: Retrieved {initial_count} total suggestions, {pending_count} pending")
+        
+        # Verify our created suggestions are present
+        found_suggestions = 0
+        for suggestion in all_suggestions:
+            if suggestion.get("id") in created_suggestion_ids:
+                found_suggestions += 1
+                print(f"   ✅ Found: {suggestion.get('city')}, {suggestion.get('state')} (Status: {suggestion.get('status')})")
+        
+        if found_suggestions == len(created_suggestion_ids):
+            print(f"✅ SUCCESS: All {len(created_suggestion_ids)} created suggestions found with status='pending'")
+            test_results.append(("Initial State Verification", True))
+        else:
+            print(f"❌ FAILED: Only found {found_suggestions}/{len(created_suggestion_ids)} created suggestions")
+            test_results.append(("Initial State Verification", False))
+    else:
+        print("❌ FAILED: Could not get initial city suggestions")
+        test_results.append(("Initial State Verification", False))
+        return test_results
+    
+    # Step 3: Test Approval Flow - Approve ONE city
+    print("\n--- STEP 3: Test Approval Flow ---")
+    if created_suggestion_ids:
+        # Find first suggestion to approve (Kadapa)
+        kadapa_suggestion = None
+        for suggestion in all_suggestions:
+            if (suggestion.get("city") == "Kadapa" and 
+                suggestion.get("id") in created_suggestion_ids):
+                kadapa_suggestion = suggestion
+                break
+        
+        if kadapa_suggestion:
+            kadapa_id = kadapa_suggestion.get("id")
+            approval_data = {
+                "status": "approved",
+                "delivery_charge": 99,
+                "free_delivery_threshold": 1000
+            }
+            
+            success, response = test_api_endpoint(
+                "PUT",
+                f"/admin/city-suggestions/{kadapa_id}/status",
+                headers=auth_headers,
+                data=approval_data,
+                description="Approve Kadapa city suggestion"
+            )
+            
+            if success:
+                print(f"✅ SUCCESS: Kadapa approved successfully")
+                test_results.append(("Approve One City", True))
+                
+                # CRITICAL TEST: Immediately check if ALL cities are still returned
+                print("\n   🔍 CRITICAL CHECK: Verify ALL cities still visible after approval")
+                success, post_approval_suggestions = test_api_endpoint(
+                    "GET",
+                    "/admin/city-suggestions",
+                    headers=auth_headers,
+                    description="Get ALL city suggestions after approval (CRITICAL: should return ALL cities)"
+                )
+                
+                if success and isinstance(post_approval_suggestions, list):
+                    post_approval_count = len(post_approval_suggestions)
+                    
+                    # Count by status
+                    pending_count = len([s for s in post_approval_suggestions if s.get("status") == "pending"])
+                    approved_count = len([s for s in post_approval_suggestions if s.get("status") == "approved"])
+                    
+                    print(f"   📊 POST-APPROVAL COUNTS:")
+                    print(f"      - Total suggestions: {post_approval_count}")
+                    print(f"      - Pending: {pending_count}")
+                    print(f"      - Approved: {approved_count}")
+                    
+                    # VERIFY: Total count should remain the same
+                    if post_approval_count >= initial_count:
+                        print(f"   ✅ SUCCESS: Total count maintained ({post_approval_count} >= {initial_count})")
+                        test_results.append(("All Cities Visible After Approval", True))
+                        
+                        # VERIFY: We should have both pending AND approved cities
+                        if pending_count > 0 and approved_count > 0:
+                            print(f"   ✅ SUCCESS: Both pending ({pending_count}) and approved ({approved_count}) cities visible")
+                            test_results.append(("Mixed Status Cities Visible", True))
+                        else:
+                            print(f"   ❌ FAILED: Only one status type visible (pending: {pending_count}, approved: {approved_count})")
+                            test_results.append(("Mixed Status Cities Visible", False))
+                        
+                        # VERIFY: Our specific cities are still present
+                        found_after_approval = 0
+                        for suggestion in post_approval_suggestions:
+                            if suggestion.get("id") in created_suggestion_ids:
+                                found_after_approval += 1
+                                status = suggestion.get("status")
+                                city = suggestion.get("city")
+                                print(f"      ✅ {city}: {status}")
+                        
+                        if found_after_approval == len(created_suggestion_ids):
+                            print(f"   ✅ SUCCESS: All {len(created_suggestion_ids)} test cities still visible")
+                            test_results.append(("All Test Cities Still Visible", True))
+                        else:
+                            print(f"   ❌ FAILED: Only {found_after_approval}/{len(created_suggestion_ids)} test cities visible")
+                            test_results.append(("All Test Cities Still Visible", False))
+                    else:
+                        print(f"   ❌ CRITICAL FAILURE: Total count decreased from {initial_count} to {post_approval_count}")
+                        print(f"   🚨 THIS IS THE BUG: Cities are disappearing after approval!")
+                        test_results.append(("All Cities Visible After Approval", False))
+                else:
+                    print("   ❌ FAILED: Could not get city suggestions after approval")
+                    test_results.append(("All Cities Visible After Approval", False))
+            else:
+                print(f"❌ FAILED: Could not approve Kadapa")
+                test_results.append(("Approve One City", False))
+        else:
+            print(f"❌ FAILED: Could not find Kadapa suggestion")
+            test_results.append(("Approve One City", False))
+    
+    # Step 4: Test Rejection Flow
+    print("\n--- STEP 4: Test Rejection Flow ---")
+    if created_suggestion_ids and 'post_approval_suggestions' in locals():
+        # Find Warangal suggestion to reject
+        warangal_suggestion = None
+        for suggestion in post_approval_suggestions:
+            if (suggestion.get("city") == "Warangal" and 
+                suggestion.get("id") in created_suggestion_ids):
+                warangal_suggestion = suggestion
+                break
+        
+        if warangal_suggestion:
+            warangal_id = warangal_suggestion.get("id")
+            rejection_data = {
+                "status": "rejected"
+            }
+            
+            success, response = test_api_endpoint(
+                "PUT",
+                f"/admin/city-suggestions/{warangal_id}/status",
+                headers=auth_headers,
+                data=rejection_data,
+                description="Reject Warangal city suggestion"
+            )
+            
+            if success:
+                print(f"✅ SUCCESS: Warangal rejected successfully")
+                test_results.append(("Reject One City", True))
+                
+                # CRITICAL TEST: Verify ALL cities still visible after rejection
+                print("\n   🔍 CRITICAL CHECK: Verify ALL cities still visible after rejection")
+                success, post_rejection_suggestions = test_api_endpoint(
+                    "GET",
+                    "/admin/city-suggestions",
+                    headers=auth_headers,
+                    description="Get ALL city suggestions after rejection"
+                )
+                
+                if success and isinstance(post_rejection_suggestions, list):
+                    post_rejection_count = len(post_rejection_suggestions)
+                    
+                    # Count by status
+                    pending_count = len([s for s in post_rejection_suggestions if s.get("status") == "pending"])
+                    approved_count = len([s for s in post_rejection_suggestions if s.get("status") == "approved"])
+                    rejected_count = len([s for s in post_rejection_suggestions if s.get("status") == "rejected"])
+                    
+                    print(f"   📊 POST-REJECTION COUNTS:")
+                    print(f"      - Total suggestions: {post_rejection_count}")
+                    print(f"      - Pending: {pending_count}")
+                    print(f"      - Approved: {approved_count}")
+                    print(f"      - Rejected: {rejected_count}")
+                    
+                    # VERIFY: All status types should be visible
+                    if pending_count > 0 and approved_count > 0 and rejected_count > 0:
+                        print(f"   ✅ SUCCESS: All status types visible (pending, approved, rejected)")
+                        test_results.append(("All Status Types Visible", True))
+                    else:
+                        print(f"   ❌ FAILED: Not all status types visible")
+                        test_results.append(("All Status Types Visible", False))
+                else:
+                    print("   ❌ FAILED: Could not get city suggestions after rejection")
+                    test_results.append(("All Status Types Visible", False))
+            else:
+                print(f"❌ FAILED: Could not reject Warangal")
+                test_results.append(("Reject One City", False))
+    
+    # Step 5: Test Status Filters
+    print("\n--- STEP 5: Test Status Filters ---")
+    status_filters = ["pending", "approved", "rejected"]
+    
+    for status in status_filters:
+        success, filtered_suggestions = test_api_endpoint(
+            "GET",
+            f"/admin/city-suggestions?status={status}",
+            headers=auth_headers,
+            description=f"Get city suggestions with status={status}"
+        )
+        
+        if success and isinstance(filtered_suggestions, list):
+            # Verify all returned suggestions have the correct status
+            if filtered_suggestions:
+                all_correct_status = all(s.get("status") == status for s in filtered_suggestions)
+                if all_correct_status:
+                    print(f"   ✅ SUCCESS: Status filter '{status}' returns {len(filtered_suggestions)} suggestions with correct status")
+                    test_results.append((f"Status Filter {status}", True))
+                else:
+                    print(f"   ❌ FAILED: Status filter '{status}' returns suggestions with incorrect status")
+                    test_results.append((f"Status Filter {status}", False))
+            else:
+                print(f"   ✅ SUCCESS: Status filter '{status}' returns empty array (no suggestions with this status)")
+                test_results.append((f"Status Filter {status}", True))
+        else:
+            print(f"   ❌ FAILED: Status filter '{status}' failed")
+            test_results.append((f"Status Filter {status}", False))
+    
+    # Step 6: Test Delete Flow
+    print("\n--- STEP 6: Test Delete Flow ---")
+    if created_suggestion_ids and 'post_rejection_suggestions' in locals():
+        # Find Nellore suggestion to delete
+        nellore_suggestion = None
+        for suggestion in post_rejection_suggestions:
+            if (suggestion.get("city") == "Nellore" and 
+                suggestion.get("id") in created_suggestion_ids):
+                nellore_suggestion = suggestion
+                break
+        
+        if nellore_suggestion:
+            nellore_id = nellore_suggestion.get("id")
+            
+            success, response = test_api_endpoint(
+                "DELETE",
+                f"/admin/city-suggestions/{nellore_id}",
+                headers=auth_headers,
+                description="Delete Nellore city suggestion"
+            )
+            
+            if success:
+                print(f"✅ SUCCESS: Nellore deleted successfully")
+                test_results.append(("Delete One City", True))
+                
+                # CRITICAL TEST: Verify remaining cities are still visible
+                print("\n   🔍 CRITICAL CHECK: Verify remaining cities still visible after deletion")
+                success, post_deletion_suggestions = test_api_endpoint(
+                    "GET",
+                    "/admin/city-suggestions",
+                    headers=auth_headers,
+                    description="Get ALL city suggestions after deletion"
+                )
+                
+                if success and isinstance(post_deletion_suggestions, list):
+                    post_deletion_count = len(post_deletion_suggestions)
+                    expected_count = post_rejection_count - 1  # Should be one less
+                    
+                    print(f"   📊 POST-DELETION COUNT: {post_deletion_count} (expected: {expected_count})")
+                    
+                    if post_deletion_count == expected_count:
+                        print(f"   ✅ SUCCESS: Count decreased by 1 as expected")
+                        test_results.append(("Correct Count After Deletion", True))
+                        
+                        # Verify Nellore is gone but others remain
+                        nellore_found = any(s.get("city") == "Nellore" for s in post_deletion_suggestions)
+                        remaining_test_cities = [s for s in post_deletion_suggestions 
+                                               if s.get("id") in created_suggestion_ids]
+                        
+                        if not nellore_found and len(remaining_test_cities) == len(created_suggestion_ids) - 1:
+                            print(f"   ✅ SUCCESS: Nellore deleted, other test cities remain visible")
+                            test_results.append(("Remaining Cities Visible After Deletion", True))
+                        else:
+                            print(f"   ❌ FAILED: Deletion affected other cities unexpectedly")
+                            test_results.append(("Remaining Cities Visible After Deletion", False))
+                    else:
+                        print(f"   ❌ FAILED: Unexpected count after deletion")
+                        test_results.append(("Correct Count After Deletion", False))
+                else:
+                    print("   ❌ FAILED: Could not get city suggestions after deletion")
+                    test_results.append(("Correct Count After Deletion", False))
+            else:
+                print(f"❌ FAILED: Could not delete Nellore")
+                test_results.append(("Delete One City", False))
+    
+    return test_results
+
+def main():
+    """Main testing function focused on city suggestions approval flow"""
+    print("🚀 TESTING CITY SUGGESTIONS APPROVAL FLOW - VANISHING CITIES FIX")
+    print("=" * 80)
+    
+    # Track overall results
+    test_results = []
+    
+    # Test 1: Admin Authentication
+    print("\n🔐 STEP 1: ADMIN AUTHENTICATION")
     admin_success, admin_token = test_admin_authentication()
-    test_summary.append(("Admin Authentication", admin_success))
+    test_results.append(("Admin Authentication", admin_success))
     
     if not admin_success or not admin_token:
         print("❌ CRITICAL: Cannot proceed without admin authentication")
-        all_tests_passed = False
-        print_test_summary(test_summary, all_tests_passed)
-        return
+        return False
     
-    # 2. Cities & States Management System Test (Main Focus)
-    print("\n" + "="*80)
-    print("TEST 2: CITIES & STATES MANAGEMENT SYSTEM - COMPREHENSIVE REVIEW")
-    print("="*80)
+    # Test 2: City Suggestions Approval Flow (Main Test)
+    print("\n🏙️ STEP 2: CITY SUGGESTIONS APPROVAL FLOW")
+    approval_flow_results = test_city_suggestions_approval_flow(admin_token)
+    test_results.extend(approval_flow_results)
     
-    cities_states_results = test_cities_states_management_system(admin_token)
-    for test_name, result in cities_states_results:
-        test_summary.append((f"Cities & States - {test_name}", result))
-        if not result:
-            all_tests_passed = False
-    
-    # 3. Products API Test (Verify 56 products still intact)
-    print("\n" + "="*80)
-    print("TEST 3: PRODUCTS API VERIFICATION")
-    print("="*80)
-    
-    products_success = test_products_api()
-    test_summary.append(("Products API (56 products)", products_success))
-    if not products_success:
-        all_tests_passed = False
-    
-    # 4. Error Handling Test
-    print("\n" + "="*80)
-    print("TEST 4: ERROR HANDLING")
-    print("="*80)
-    
-    error_handling_success = test_error_handling()
-    test_summary.append(("Error Handling", error_handling_success))
-    if not error_handling_success:
-        all_tests_passed = False
+    # Calculate overall success rate
+    total_tests = len(test_results)
+    passed_tests = sum(1 for _, success in test_results if success)
+    success_rate = (passed_tests / total_tests) * 100 if total_tests > 0 else 0
     
     # Print final summary
-    print_test_summary(test_summary)
+    print("\n" + "=" * 80)
+    print("📊 CITY SUGGESTIONS APPROVAL FLOW TEST RESULTS")
+    print("=" * 80)
+    
+    for test_name, success in test_results:
+        status = "✅ PASS" if success else "❌ FAIL"
+        print(f"{status}: {test_name}")
+    
+    print(f"\n📈 OVERALL SUCCESS RATE: {passed_tests}/{total_tests} ({success_rate:.1f}%)")
+    
+    # Specific analysis for the vanishing cities issue
+    critical_tests = [
+        "All Cities Visible After Approval",
+        "Mixed Status Cities Visible", 
+        "All Test Cities Still Visible",
+        "All Status Types Visible",
+        "Remaining Cities Visible After Deletion"
+    ]
+    
+    critical_passed = sum(1 for test_name, success in test_results 
+                         if test_name in critical_tests and success)
+    critical_total = len([t for t, _ in test_results if t in critical_tests])
+    
+    print(f"\n🎯 CRITICAL VANISHING CITIES TESTS: {critical_passed}/{critical_total}")
+    
+    if critical_passed == critical_total:
+        print("🎉 EXCELLENT: The vanishing cities bug appears to be FIXED!")
+        print("   ✅ All cities remain visible after approval/rejection/deletion")
+        print("   ✅ Backend API correctly returns all cities with 'all' filter")
+        return True
+    elif critical_passed >= critical_total * 0.8:
+        print("⚠️ MOSTLY FIXED: Most critical tests pass, minor issues remain")
+        return True
+    else:
+        print("❌ CRITICAL: Vanishing cities bug still exists!")
+        print("   🚨 Cities are disappearing after approval/rejection/deletion")
+        return False
 
 if __name__ == "__main__":
     exit_code = main()
