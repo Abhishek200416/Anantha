@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """
 Backend API Testing Script for Anantha Lakshmi Food Delivery App
-COMPREHENSIVE BACKEND API TESTING
-Tests the recent fixes as requested in review:
-1. Admin Authentication: POST /api/auth/admin-login with password 'admin123'
-2. City Suggestions API: GET /api/admin/city-suggestions 
-3. Products API: GET /api/products (verify 56 products across 7 categories)
-4. Notifications Count API: GET /api/admin/notifications/count with admin token
-5. Error Handling: Test endpoints with invalid data for proper JSON responses
+COMPREHENSIVE TESTING REQUEST - Products & Payment System Verification
+
+**TESTING PRIORITIES**:
+1. PRODUCTS VERIFICATION (HIGH PRIORITY) - Test GET /api/products endpoint for exactly 56 products across 7 categories
+2. RAZORPAY PAYMENT INTEGRATION (CRITICAL) - Test complete payment flow including order creation, payment verification
+3. PAYMENT SYSTEM CONFIGURATION - Verify Razorpay credentials
+
+This script tests the complete payment system and ensures all 56 products are available as requested.
 """
 
 import requests
