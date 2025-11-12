@@ -936,7 +936,11 @@ async def create_order(order_data: OrderCreate, current_user: dict = Depends(get
                 print(f"📍 CUSTOM LOCATION: {custom_city}, {custom_state} - Delivery charge to be calculated by admin")
         else:
             # Find the city's delivery settings from database
-            city_location = await db.locations.find_one({"name": order_data.city})
+            # Match by both city name AND state for accuracy
+            city_location = await db.locations.find_one({
+                "name": order_data.city,
+                "state": order_data.state
+            })
             
             if city_location:
                 base_charge = city_location.get("charge", 99.0)
