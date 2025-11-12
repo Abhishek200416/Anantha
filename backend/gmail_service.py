@@ -6,8 +6,12 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-GMAIL_EMAIL = os.environ.get('GMAIL_EMAIL', '')
-GMAIL_APP_PASSWORD = os.environ.get('GMAIL_APP_PASSWORD', '')
+def get_gmail_credentials():
+    """Get Gmail credentials from environment variables (lazy loading)"""
+    return (
+        os.environ.get('GMAIL_EMAIL', ''),
+        os.environ.get('GMAIL_APP_PASSWORD', '')
+    )
 
 async def send_order_confirmation_email_gmail(to_email: str, order_data: dict):
     """Send order confirmation email using Gmail SMTP"""
