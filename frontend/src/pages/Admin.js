@@ -158,9 +158,10 @@ const CitySuggestionsSection = () => {
       setSelectedSuggestion(null);
       setApprovalData({ deliveryCharge: '', freeDeliveryThreshold: '' });
       
-      // Switch to "all" filter to show all cities including the newly approved one
+      // Switch to "all" filter and refresh to show all cities including the newly approved one
       setStatusFilter('all');
-      // Refresh the list (will automatically fetch with new filter due to useEffect)
+      // Small delay to ensure state updates, then fetch
+      setTimeout(() => fetchCitySuggestions(), 100);
     } catch (error) {
       console.error('Failed to approve city suggestion:', error);
       toast({
