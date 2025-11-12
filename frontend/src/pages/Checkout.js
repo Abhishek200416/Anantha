@@ -1311,9 +1311,9 @@ const Checkout = () => {
                 </div>
               </div>
 
-              {/* Payment Method */}
+              {/* Payment Information */}
               <div className="pt-4 border-t">
-                <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3 sm:mb-4">Payment Method</h3>
+                <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3 sm:mb-4">Payment</h3>
                 
                 {(() => {
                   // Check if city is in delivery locations (not a custom city)
@@ -1321,117 +1321,51 @@ const Checkout = () => {
                     loc.name === formData.city && loc.state === formData.state
                   );
                   
-                  // Check if city is Guntur
-                  const isGuntur = formData.city === 'Guntur' && formData.state === 'Andhra Pradesh';
-                  
-                  // If custom city, show pending message
+                  // Custom cities don't require immediate payment
                   if (isCustomCity) {
                     return (
-                      <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-4">
-                        <h4 className="font-semibold text-yellow-800 mb-2">⏳ City Not Serviceable Yet</h4>
-                        <p className="text-sm text-yellow-700">
-                          Your city is not in our delivery network yet. We will contact you within 5-10 minutes to confirm if we can deliver to your location.
-                        </p>
-                        <p className="text-sm text-yellow-700 mt-2">
-                          Your order will be created with <strong>pending payment status</strong>. Once approved, you can complete the payment from the Track Orders page.
-                        </p>
+                      <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div className="flex items-start space-x-3">
+                          <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                          <p className="text-sm text-blue-800">
+                            <span className="font-semibold">City Under Review:</span> Your city is being reviewed for delivery. Payment can be completed after city approval. You'll receive an email notification within 10-15 minutes.
+                          </p>
+                        </div>
                       </div>
                     );
                   }
                   
-                  // Regular cities - show payment options
+                  // Regular cities - show Razorpay payment info
                   return (
-                    <>
-                      {/* Online Payment */}
-                      <div className="mb-4">
-                        <label className="flex items-center space-x-3 cursor-pointer">
-                          <input
-                            type="radio"
-                            name="paymentMethod"
-                            value="online"
-                            checked={formData.paymentMethod === 'online'}
-                            onChange={handleChange}
-                            className="w-4 h-4 text-orange-600"
-                          />
-                          <div className="flex items-center space-x-2">
-                            <CreditCard className="h-5 w-5 text-blue-600" />
-                            <span className="font-semibold">Online Payment (UPI)</span>
-                          </div>
-                        </label>
-                        {formData.paymentMethod === 'online' && (
-                          <div className="mt-3 ml-0 sm:ml-8 p-4 bg-white border border-gray-200 rounded-lg">
-                            <p className="text-sm text-gray-600 mb-3 font-medium">Select UPI Payment Option:</p>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                              {['Paytm', 'PhonePe', 'Google Pay', 'BHIM UPI'].map((app) => (
-                                <label 
-                                  key={app}
-                                  className={`flex items-center space-x-2 p-3 border rounded-lg cursor-pointer transition-all ${
-                                    formData.paymentSubMethod === app 
-                                      ? 'border-orange-500 bg-orange-50' 
-                                      : 'border-gray-200 hover:border-orange-300'
-                                  }`}
-                                >
-                                  <input
-                                    type="radio"
-                                    name="paymentSubMethod"
-                                    value={app}
-                                    checked={formData.paymentSubMethod === app}
-                                    onChange={handleChange}
-                                    className="w-4 h-4 text-orange-600"
-                                  />
-                                  <span className="text-sm font-medium">{app}</span>
-                                </label>
-                              ))}
+                    <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg">
+                      <div className="flex items-start space-x-3">
+                        <CreditCard className="h-6 w-6 text-blue-600 flex-shrink-0" />
+                        <div className="flex-1">
+                          <p className="font-semibold text-gray-800 mb-2">Secure Payment via Razorpay</p>
+                          <p className="text-sm text-gray-600 mb-3">
+                            Pay securely with multiple payment options
+                          </p>
+                          <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
+                            <div className="flex items-center space-x-1">
+                              <span className="text-green-600">✓</span>
+                              <span>UPI (PhonePe, GPay, Paytm)</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <span className="text-green-600">✓</span>
+                              <span>Credit/Debit Cards</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <span className="text-green-600">✓</span>
+                              <span>Net Banking</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <span className="text-green-600">✓</span>
+                              <span>Wallets</span>
                             </div>
                           </div>
-                        )}
+                        </div>
                       </div>
-
-                      {/* Card Payment */}
-                      <div>
-                        <label className="flex items-center space-x-3 cursor-pointer">
-                          <input
-                            type="radio"
-                            name="paymentMethod"
-                            value="card"
-                            checked={formData.paymentMethod === 'card'}
-                            onChange={handleChange}
-                            className="w-4 h-4 text-orange-600"
-                          />
-                          <div className="flex items-center space-x-2">
-                            <CreditCard className="h-5 w-5 text-purple-600" />
-                            <span className="font-semibold">Card Payment</span>
-                          </div>
-                        </label>
-                        {formData.paymentMethod === 'card' && (
-                          <div className="mt-3 ml-0 sm:ml-8 p-4 bg-white border border-gray-200 rounded-lg">
-                            <p className="text-sm text-gray-600 mb-3 font-medium">Select Card Type:</p>
-                            <div className="flex flex-col sm:flex-row gap-3 sm:space-x-4">
-                              {['Debit Card', 'Credit Card'].map((cardType) => (
-                                <label 
-                                  key={cardType}
-                                  className={`flex items-center space-x-2 p-3 border rounded-lg cursor-pointer transition-all ${
-                                    formData.paymentSubMethod === cardType 
-                                      ? 'border-orange-500 bg-orange-50' 
-                                      : 'border-gray-200 hover:border-orange-300'
-                                  }`}
-                                >
-                                  <input
-                                    type="radio"
-                                    name="paymentSubMethod"
-                                    value={cardType}
-                                    checked={formData.paymentSubMethod === cardType}
-                                    onChange={handleChange}
-                                    className="w-4 h-4 text-orange-600"
-                                  />
-                                  <span className="text-sm font-medium">{cardType}</span>
-                                </label>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </>
+                    </div>
                   );
                 })()}
               </div>
