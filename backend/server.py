@@ -1553,19 +1553,23 @@ async def get_orders_analytics(current_user: dict = Depends(get_current_user)):
         # Get all orders
         all_orders = await db.orders.find({}, {"_id": 0}).to_list(10000)
         
+        # Filter out cancelled orders for sales calculations
+        non_cancelled_orders = [o for o in all_orders if not o.get("cancelled", False) and o.get("order_status") != "cancelled"]
+        
         # Calculate statistics
         total_orders = len(all_orders)
-        total_sales = sum(order.get("total", 0) for order in all_orders)
-        active_orders = len([o for o in all_orders if not o.get("cancelled", False) and o.get("order_status") != "delivered"])
-        cancelled_orders = len([o for o in all_orders if o.get("cancelled", False)])
-        completed_orders = len([o for o in all_orders if o.get("order_status") == "delivered"])
+        # Only sum sales from non-cancelled orders
+        total_sales = sum(order.get("total", 0) for order in non_cancelled_orders)
+        active_orders = len([o for o in non_cancelled_orders if o.get("order_status") != "delivered"])
+        cancelled_orders = len([o for o in all_orders if o.get("cancelled", False) or o.get("order_status") == "cancelled"])
+        completed_orders = len([o for o in non_cancelled_orders if o.get("order_status") == "delivered"])
         
-        # Monthly sales
+        # Monthly sales - only include non-cancelled orders
         from collections import defaultdict
         monthly_sales = defaultdict(float)
         monthly_orders = defaultdict(int)
         
-        for order in all_orders:
+        for order in non_cancelled_orders:
             created_at = order.get("created_at", "")
             if created_at:
                 try:
@@ -1576,9 +1580,9 @@ async def get_orders_analytics(current_user: dict = Depends(get_current_user)):
                 except:
                     pass
         
-        # Top products
+        # Top products - only include non-cancelled orders
         product_counts = defaultdict(int)
-        for order in all_orders:
+        for order in non_cancelled_orders:
             for item in order.get("items", []):
                 product_counts[item.get("name", "Unknown")] += item.get("quantity", 0)
         
