@@ -204,8 +204,8 @@ const CitySuggestionsSection = () => {
 
       // Switch to "all" filter and refresh to show all cities including the newly rejected one
       setStatusFilter('all');
-      // Small delay to ensure state updates, then fetch
-      setTimeout(() => fetchCitySuggestions(), 100);
+      // Explicitly fetch with 'all' filter to avoid stale closure issue
+      await fetchCitySuggestions('all');
     } catch (error) {
       console.error('Failed to reject city suggestion:', error);
       toast({
