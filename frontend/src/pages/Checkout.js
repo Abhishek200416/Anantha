@@ -1396,6 +1396,20 @@ const Checkout = () => {
                 })()}
               </div>
 
+              {/* Test Payment Information */}
+              <div className="mb-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-blue-900">Razorpay Test Mode</p>
+                    <p className="text-sm text-blue-700 mt-1">
+                      After clicking "Place Order", complete the test payment in the Razorpay modal to see order confirmation. 
+                      Or close the modal to save order as pending (you can track with your phone number).
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               <button
                 type="submit"
                 className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-3 sm:py-4 rounded-xl font-semibold hover:from-green-700 hover:to-green-800 transition-all transform hover:scale-105 shadow-lg flex items-center justify-center space-x-2 text-sm sm:text-base"
