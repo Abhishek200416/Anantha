@@ -780,25 +780,45 @@ const Checkout = () => {
 
       const { razorpay_order_id, key_id } = razorpayOrderResponse.data;
 
-      // Step 3: Open Razorpay checkout
+      // Step 3: Load Razorpay script and open checkout (Official Razorpay UI)
+      const scriptLoaded = await loadRazorpayScript();
+      
+      if (!scriptLoaded) {
+        toast({
+          title: "Payment Error",
+          description: "Failed to load payment gateway. Please check your internet connection and try again.",
+          variant: "destructive",
+          duration: 6000
+        });
+        return;
+      }
+
+      // Official Razorpay Checkout Options
       const options = {
-        key: key_id,
-        amount: orderTotal * 100, // Amount in paise
+        key: key_id, // Razorpay API Key
+        amount: orderTotal * 100, // Amount in paise (multiply by 100)
         currency: 'INR',
         name: 'Anantha Home Foods',
-        description: `Order ${orderId}`,
-        order_id: razorpay_order_id,
+        description: `Order #${orderId}`,
+        image: '/logo.png', // Your logo
+        order_id: razorpay_order_id, // Order ID from backend
         prefill: {
           name: formData.name,
           email: formData.email,
           contact: formData.phone
         },
+        notes: {
+          order_id: orderId,
+          customer_name: formData.name
+        },
         theme: {
-          color: '#ea580c'
+          color: '#ea580c' // Orange theme matching your app
         },
         handler: async function (response) {
-          // Payment successful, verify on backend
+          // Payment successful callback
+          console.log('Payment Success Response:', response);
           try {
+            // Verify payment signature on backend
             await axios.post(`${API}/payment/verify-razorpay-payment`, {
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
@@ -808,7 +828,7 @@ const Checkout = () => {
 
             clearCart();
             toast({
-              title: "Payment Successful!",
+              title: "Payment Successful! 🎉",
               description: `Order ID: ${orderId}\n\nYour order has been confirmed. Check your email for details.`,
               duration: 6000
             });
@@ -825,6 +845,7 @@ const Checkout = () => {
         },
         modal: {
           ondismiss: function() {
+            // Payment cancelled or closed
             toast({
               title: "Payment Cancelled",
               description: "You cancelled the payment. Your order is saved and you can complete payment later from Track Order page.",
@@ -835,8 +856,9 @@ const Checkout = () => {
         }
       };
 
-      const razorpay = new window.Razorpay(options);
-      razorpay.open();
+      // Open Official Razorpay Checkout Modal
+      const razorpayCheckout = new window.Razorpay(options);
+      razorpayCheckout.open();
 
     } catch (error) {
       console.error('Order error:', error);
