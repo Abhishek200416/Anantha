@@ -1204,95 +1204,152 @@ const Checkout = () => {
               <div className="pt-4 border-t">
                 <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3 sm:mb-4">Payment Method</h3>
                 
-                {/* Online Payment */}
-                <div className="mb-4">
-                  <label className="flex items-center space-x-3 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="online"
-                      checked={formData.paymentMethod === 'online'}
-                      onChange={handleChange}
-                      className="w-4 h-4 text-orange-600"
-                    />
-                    <div className="flex items-center space-x-2">
-                      <CreditCard className="h-5 w-5 text-blue-600" />
-                      <span className="font-semibold">Online Payment (UPI)</span>
-                    </div>
-                  </label>
-                  {formData.paymentMethod === 'online' && (
-                    <div className="mt-3 ml-0 sm:ml-8 p-4 bg-white border border-gray-200 rounded-lg">
-                      <p className="text-sm text-gray-600 mb-3 font-medium">Select UPI Payment Option:</p>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {['Paytm', 'PhonePe', 'Google Pay', 'BHIM UPI'].map((app) => (
-                          <label 
-                            key={app}
-                            className={`flex items-center space-x-2 p-3 border rounded-lg cursor-pointer transition-all ${
-                              formData.paymentSubMethod === app 
-                                ? 'border-orange-500 bg-orange-50' 
-                                : 'border-gray-200 hover:border-orange-300'
-                            }`}
-                          >
+                {(() => {
+                  // Check if city is in delivery locations (not a custom city)
+                  const isCustomCity = formData.city && formData.state && !deliveryLocations.some(loc => 
+                    loc.name === formData.city && loc.state === formData.state
+                  );
+                  
+                  // Check if city is Guntur
+                  const isGuntur = formData.city === 'Guntur' && formData.state === 'Andhra Pradesh';
+                  
+                  // If custom city, show pending message
+                  if (isCustomCity) {
+                    return (
+                      <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-4">
+                        <h4 className="font-semibold text-yellow-800 mb-2">⏳ City Not Serviceable Yet</h4>
+                        <p className="text-sm text-yellow-700">
+                          Your city is not in our delivery network yet. We will contact you within 5-10 minutes to confirm if we can deliver to your location.
+                        </p>
+                        <p className="text-sm text-yellow-700 mt-2">
+                          Your order will be created with <strong>pending payment status</strong>. Once approved, you can complete the payment from the Track Orders page.
+                        </p>
+                      </div>
+                    );
+                  }
+                  
+                  // Regular cities - show payment options
+                  return (
+                    <>
+                      {/* Cash on Delivery - Only for Guntur */}
+                      {isGuntur && (
+                        <div className="mb-4">
+                          <label className="flex items-center space-x-3 cursor-pointer">
                             <input
                               type="radio"
-                              name="paymentSubMethod"
-                              value={app}
-                              checked={formData.paymentSubMethod === app}
+                              name="paymentMethod"
+                              value="cod"
+                              checked={formData.paymentMethod === 'cod'}
                               onChange={handleChange}
                               className="w-4 h-4 text-orange-600"
                             />
-                            <span className="text-sm font-medium">{app}</span>
+                            <div className="flex items-center space-x-2">
+                              <Truck className="h-5 w-5 text-green-600" />
+                              <span className="font-semibold">Cash on Delivery (COD)</span>
+                            </div>
                           </label>
-                        ))}
+                          {formData.paymentMethod === 'cod' && (
+                            <div className="mt-3 ml-0 sm:ml-8 p-4 bg-green-50 border border-green-200 rounded-lg">
+                              <p className="text-sm text-green-700">
+                                💵 Pay with cash when your order is delivered. Available only in Guntur.
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
+                      {/* Online Payment */}
+                      <div className="mb-4">
+                        <label className="flex items-center space-x-3 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="paymentMethod"
+                            value="online"
+                            checked={formData.paymentMethod === 'online'}
+                            onChange={handleChange}
+                            className="w-4 h-4 text-orange-600"
+                          />
+                          <div className="flex items-center space-x-2">
+                            <CreditCard className="h-5 w-5 text-blue-600" />
+                            <span className="font-semibold">Online Payment (UPI)</span>
+                          </div>
+                        </label>
+                        {formData.paymentMethod === 'online' && (
+                          <div className="mt-3 ml-0 sm:ml-8 p-4 bg-white border border-gray-200 rounded-lg">
+                            <p className="text-sm text-gray-600 mb-3 font-medium">Select UPI Payment Option:</p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              {['Paytm', 'PhonePe', 'Google Pay', 'BHIM UPI'].map((app) => (
+                                <label 
+                                  key={app}
+                                  className={`flex items-center space-x-2 p-3 border rounded-lg cursor-pointer transition-all ${
+                                    formData.paymentSubMethod === app 
+                                      ? 'border-orange-500 bg-orange-50' 
+                                      : 'border-gray-200 hover:border-orange-300'
+                                  }`}
+                                >
+                                  <input
+                                    type="radio"
+                                    name="paymentSubMethod"
+                                    value={app}
+                                    checked={formData.paymentSubMethod === app}
+                                    onChange={handleChange}
+                                    className="w-4 h-4 text-orange-600"
+                                  />
+                                  <span className="text-sm font-medium">{app}</span>
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  )}
-                </div>
 
-                {/* Card Payment */}
-                <div>
-                  <label className="flex items-center space-x-3 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="card"
-                      checked={formData.paymentMethod === 'card'}
-                      onChange={handleChange}
-                      className="w-4 h-4 text-orange-600"
-                    />
-                    <div className="flex items-center space-x-2">
-                      <CreditCard className="h-5 w-5 text-purple-600" />
-                      <span className="font-semibold">Card Payment</span>
-                    </div>
-                  </label>
-                  {formData.paymentMethod === 'card' && (
-                    <div className="mt-3 ml-0 sm:ml-8 p-4 bg-white border border-gray-200 rounded-lg">
-                      <p className="text-sm text-gray-600 mb-3 font-medium">Select Card Type:</p>
-                      <div className="flex flex-col sm:flex-row gap-3 sm:space-x-4">
-                        {['Debit Card', 'Credit Card'].map((cardType) => (
-                          <label 
-                            key={cardType}
-                            className={`flex items-center space-x-2 p-3 border rounded-lg cursor-pointer transition-all ${
-                              formData.paymentSubMethod === cardType 
-                                ? 'border-orange-500 bg-orange-50' 
-                                : 'border-gray-200 hover:border-orange-300'
-                            }`}
-                          >
-                            <input
-                              type="radio"
-                              name="paymentSubMethod"
-                              value={cardType}
-                              checked={formData.paymentSubMethod === cardType}
-                              onChange={handleChange}
-                              className="w-4 h-4 text-orange-600"
-                            />
-                            <span className="text-sm font-medium">{cardType}</span>
-                          </label>
-                        ))}
+                      {/* Card Payment */}
+                      <div>
+                        <label className="flex items-center space-x-3 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="paymentMethod"
+                            value="card"
+                            checked={formData.paymentMethod === 'card'}
+                            onChange={handleChange}
+                            className="w-4 h-4 text-orange-600"
+                          />
+                          <div className="flex items-center space-x-2">
+                            <CreditCard className="h-5 w-5 text-purple-600" />
+                            <span className="font-semibold">Card Payment</span>
+                          </div>
+                        </label>
+                        {formData.paymentMethod === 'card' && (
+                          <div className="mt-3 ml-0 sm:ml-8 p-4 bg-white border border-gray-200 rounded-lg">
+                            <p className="text-sm text-gray-600 mb-3 font-medium">Select Card Type:</p>
+                            <div className="flex flex-col sm:flex-row gap-3 sm:space-x-4">
+                              {['Debit Card', 'Credit Card'].map((cardType) => (
+                                <label 
+                                  key={cardType}
+                                  className={`flex items-center space-x-2 p-3 border rounded-lg cursor-pointer transition-all ${
+                                    formData.paymentSubMethod === cardType 
+                                      ? 'border-orange-500 bg-orange-50' 
+                                      : 'border-gray-200 hover:border-orange-300'
+                                  }`}
+                                >
+                                  <input
+                                    type="radio"
+                                    name="paymentSubMethod"
+                                    value={cardType}
+                                    checked={formData.paymentSubMethod === cardType}
+                                    onChange={handleChange}
+                                    className="w-4 h-4 text-orange-600"
+                                  />
+                                  <span className="text-sm font-medium">{cardType}</span>
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  )}
-                </div>
+                    </>
+                  );
+                })()}
               </div>
 
               <button
