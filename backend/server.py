@@ -952,10 +952,10 @@ async def create_order(order_data: OrderCreate, current_user: dict = Depends(get
             
             if city_location:
                 base_charge = city_location.get("charge", 99.0)
-                free_delivery_threshold = city_location.get("free_delivery_threshold", 0)
+                free_delivery_threshold = city_location.get("free_delivery_threshold") or 0
                 
                 # Check if order qualifies for free delivery (threshold must be > 0)
-                if free_delivery_threshold > 0 and order_data.subtotal >= free_delivery_threshold:
+                if free_delivery_threshold and free_delivery_threshold > 0 and order_data.subtotal >= free_delivery_threshold:
                     calculated_delivery_charge = 0.0
                     print(f"🎁 FREE DELIVERY APPLIED: {order_data.city} - Subtotal Rs.{order_data.subtotal} >= Threshold Rs.{free_delivery_threshold}")
                 else:
