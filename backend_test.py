@@ -3850,15 +3850,20 @@ def test_razorpay_payment_integration():
     return test_results
 
 def main():
-    """Main testing function focused on Track Order API testing"""
-    print("🚀 TRACK ORDER API - MULTIPLE ORDERS SUPPORT TESTING")
+    """Main testing function - RAZORPAY PAYMENT INTEGRATION TESTING"""
+    print("🚀 RAZORPAY PAYMENT INTEGRATION TESTING")
     print("=" * 80)
     
     # Track overall results
     test_results = []
     
     try:
-        # Test 1: Track Order API - Multiple Orders Support (MAIN TEST)
+        # Test 1: Razorpay Payment Integration (PRIORITY TEST)
+        print("\n💳 TESTING RAZORPAY PAYMENT INTEGRATION")
+        razorpay_results = test_razorpay_payment_integration()
+        test_results.extend(razorpay_results)
+        
+        # Test 2: Track Order API - Multiple Orders Support (SECONDARY TEST)
         print("\n📋 TESTING TRACK ORDER API - MULTIPLE ORDERS SUPPORT")
         track_order_results = test_track_order_api()
         test_results.extend(track_order_results)
