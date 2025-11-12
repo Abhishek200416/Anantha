@@ -3409,10 +3409,15 @@ const Admin = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2 mt-3">New Delivery Charge (₹)</label>
                 <input
                   type="number"
-                  value={editingLocation.charge || ''}
-                  onChange={(e) => setEditingLocation({...editingLocation, charge: parseInt(e.target.value) || 0})}
+                  value={editingLocation.charge === 0 ? '0' : (editingLocation.charge || '')}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    // Keep as string during editing, convert only when saving
+                    setEditingLocation({...editingLocation, charge: value === '' ? '' : (Number(value) || 0)});
+                  }}
                   className="w-full px-4 py-2 border rounded-lg"
                   placeholder="Enter new charge"
+                  min="0"
                 />
               </div>
               <div>
