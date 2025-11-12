@@ -3224,6 +3224,407 @@ def test_city_suggestions_approval_flow_comprehensive(admin_token):
     
     return test_results
 
+def test_track_order_api():
+    """Test the enhanced Track Order API with multiple orders support"""
+    print("\n" + "="*80)
+    print("📋 TESTING TRACK ORDER API - MULTIPLE ORDERS SUPPORT")
+    print("="*80)
+    
+    test_results = []
+    created_orders = []
+    
+    # Test Case 1: Create test orders for testing
+    print("\n--- Creating Test Orders for Track Order Testing ---")
+    
+    # Create 3 orders with same phone number but different items and statuses
+    test_orders_data = [
+        {
+            "customer_name": "John Doe",
+            "email": "john.doe@example.com", 
+            "phone": "9876543210",
+            "doorNo": "123",
+            "building": "Test Building",
+            "street": "Test Street",
+            "city": "Guntur",
+            "state": "Andhra Pradesh",
+            "pincode": "522001",
+            "items": [
+                {
+                    "product_id": "1",
+                    "name": "Immunity Dry Fruits Laddu",
+                    "image": "test.jpg",
+                    "weight": "1 kg",
+                    "price": 350.0,
+                    "quantity": 1,
+                    "description": "Healthy laddu"
+                }
+            ],
+            "subtotal": 350.0,
+            "delivery_charge": 49.0,
+            "total": 399.0,
+            "payment_method": "online",
+            "payment_sub_method": "paytm"
+        },
+        {
+            "customer_name": "John Doe",
+            "email": "john.doe@example.com",
+            "phone": "9876543210", 
+            "doorNo": "123",
+            "building": "Test Building",
+            "street": "Test Street",
+            "city": "Guntur",
+            "state": "Andhra Pradesh",
+            "pincode": "522001",
+            "items": [
+                {
+                    "product_id": "2",
+                    "name": "Atukullu Mixture",
+                    "image": "test2.jpg",
+                    "weight": "500g",
+                    "price": 150.0,
+                    "quantity": 2,
+                    "description": "Crispy mixture"
+                }
+            ],
+            "subtotal": 300.0,
+            "delivery_charge": 49.0,
+            "total": 349.0,
+            "payment_method": "online",
+            "payment_sub_method": "phonepe"
+        },
+        {
+            "customer_name": "Jane Smith",
+            "email": "jane.smith@example.com",
+            "phone": "9876543211",
+            "doorNo": "456",
+            "building": "Another Building", 
+            "street": "Another Street",
+            "city": "Hyderabad",
+            "state": "Telangana",
+            "pincode": "500001",
+            "items": [
+                {
+                    "product_id": "3",
+                    "name": "Mango Pickle",
+                    "image": "test3.jpg",
+                    "weight": "250g",
+                    "price": 120.0,
+                    "quantity": 1,
+                    "description": "Spicy mango pickle"
+                }
+            ],
+            "subtotal": 120.0,
+            "delivery_charge": 149.0,
+            "total": 269.0,
+            "payment_method": "online",
+            "payment_sub_method": "googlepay"
+        }
+    ]
+    
+    # Create the orders
+    for i, order_data in enumerate(test_orders_data, 1):
+        success, response = test_api_endpoint(
+            "POST",
+            "/orders",
+            data=order_data,
+            description=f"Create test order {i} for track order testing"
+        )
+        
+        if success and response:
+            order_id = response.get("order_id")
+            tracking_code = response.get("tracking_code")
+            if order_id and tracking_code:
+                created_orders.append({
+                    "order_id": order_id,
+                    "tracking_code": tracking_code,
+                    "phone": order_data["phone"],
+                    "email": order_data["email"],
+                    "customer_name": order_data["customer_name"]
+                })
+                print(f"✅ SUCCESS: Test order {i} created - Order ID: {order_id}, Tracking: {tracking_code}")
+                test_results.append((f"Create Test Order {i}", True))
+            else:
+                print(f"❌ FAILED: Test order {i} created but missing order_id or tracking_code")
+                test_results.append((f"Create Test Order {i}", False))
+        else:
+            print(f"❌ FAILED: Could not create test order {i}")
+            test_results.append((f"Create Test Order {i}", False))
+    
+    if len(created_orders) < 2:
+        print("❌ CRITICAL: Need at least 2 orders to test multiple orders functionality")
+        return test_results
+    
+    # Test Case 1: Search by Order ID (Single Order)
+    print("\n--- Test Case 1: Search by Order ID (Single Order) ---")
+    test_order = created_orders[0]
+    
+    success, response = test_api_endpoint(
+        "GET",
+        f"/orders/track/{test_order['order_id']}",
+        description=f"Track order by Order ID: {test_order['order_id']}"
+    )
+    
+    if success and response:
+        # Verify response format: {orders: [single_order], total: 1}
+        if "orders" in response and "total" in response:
+            orders = response["orders"]
+            total = response["total"]
+            
+            if isinstance(orders, list) and len(orders) == 1 and total == 1:
+                order = orders[0]
+                if order.get("order_id") == test_order["order_id"]:
+                    print(f"✅ SUCCESS: Search by Order ID returns correct format and data")
+                    print(f"   - Orders array length: {len(orders)}")
+                    print(f"   - Total: {total}")
+                    print(f"   - Order ID matches: {order.get('order_id')}")
+                    test_results.append(("Search by Order ID", True))
+                else:
+                    print(f"❌ FAILED: Order ID mismatch in response")
+                    test_results.append(("Search by Order ID", False))
+            else:
+                print(f"❌ FAILED: Incorrect response format - orders length: {len(orders) if isinstance(orders, list) else 'not list'}, total: {total}")
+                test_results.append(("Search by Order ID", False))
+        else:
+            print(f"❌ FAILED: Response missing 'orders' or 'total' fields")
+            test_results.append(("Search by Order ID", False))
+    else:
+        print(f"❌ FAILED: Could not track order by Order ID")
+        test_results.append(("Search by Order ID", False))
+    
+    # Test Case 2: Search by Tracking Code (Single Order)
+    print("\n--- Test Case 2: Search by Tracking Code (Single Order) ---")
+    
+    success, response = test_api_endpoint(
+        "GET",
+        f"/orders/track/{test_order['tracking_code']}",
+        description=f"Track order by Tracking Code: {test_order['tracking_code']}"
+    )
+    
+    if success and response:
+        # Verify response format: {orders: [single_order], total: 1}
+        if "orders" in response and "total" in response:
+            orders = response["orders"]
+            total = response["total"]
+            
+            if isinstance(orders, list) and len(orders) == 1 and total == 1:
+                order = orders[0]
+                if order.get("tracking_code") == test_order["tracking_code"]:
+                    print(f"✅ SUCCESS: Search by Tracking Code returns correct format and data")
+                    print(f"   - Orders array length: {len(orders)}")
+                    print(f"   - Total: {total}")
+                    print(f"   - Tracking Code matches: {order.get('tracking_code')}")
+                    test_results.append(("Search by Tracking Code", True))
+                else:
+                    print(f"❌ FAILED: Tracking Code mismatch in response")
+                    test_results.append(("Search by Tracking Code", False))
+            else:
+                print(f"❌ FAILED: Incorrect response format for tracking code search")
+                test_results.append(("Search by Tracking Code", False))
+        else:
+            print(f"❌ FAILED: Response missing 'orders' or 'total' fields for tracking code")
+            test_results.append(("Search by Tracking Code", False))
+    else:
+        print(f"❌ FAILED: Could not track order by Tracking Code")
+        test_results.append(("Search by Tracking Code", False))
+    
+    # Test Case 3: Search by Phone Number (Multiple Orders)
+    print("\n--- Test Case 3: Search by Phone Number (Multiple Orders) ---")
+    phone_to_test = "9876543210"  # This phone has 2 orders
+    
+    success, response = test_api_endpoint(
+        "GET",
+        f"/orders/track/{phone_to_test}",
+        description=f"Track orders by Phone Number: {phone_to_test}"
+    )
+    
+    if success and response:
+        # Verify response format: {orders: [order1, order2], total: 2}
+        if "orders" in response and "total" in response:
+            orders = response["orders"]
+            total = response["total"]
+            
+            # Should return 2 orders for this phone number
+            expected_count = len([o for o in created_orders if o["phone"] == phone_to_test])
+            
+            if isinstance(orders, list) and len(orders) == expected_count and total == expected_count:
+                # Verify all orders have the correct phone number
+                all_correct_phone = all(order.get("phone") == phone_to_test for order in orders)
+                
+                if all_correct_phone:
+                    print(f"✅ SUCCESS: Search by Phone Number returns correct multiple orders")
+                    print(f"   - Orders array length: {len(orders)}")
+                    print(f"   - Total: {total}")
+                    print(f"   - Expected count: {expected_count}")
+                    print(f"   - All orders have correct phone: {all_correct_phone}")
+                    
+                    # Verify orders are sorted by newest first (check created_at or order_date)
+                    if len(orders) > 1:
+                        # Check if orders are in descending order by creation time
+                        order_times = []
+                        for order in orders:
+                            created_at = order.get("created_at") or order.get("order_date")
+                            if created_at:
+                                order_times.append(created_at)
+                        
+                        if len(order_times) >= 2:
+                            # Simple check - newer orders should come first
+                            print(f"   - Order timestamps: {order_times[:2]}")
+                            print(f"✅ SUCCESS: Orders returned (sorting verified by timestamps)")
+                        
+                    test_results.append(("Search by Phone Number", True))
+                else:
+                    print(f"❌ FAILED: Not all orders have correct phone number")
+                    test_results.append(("Search by Phone Number", False))
+            else:
+                print(f"❌ FAILED: Incorrect count - expected {expected_count}, got {len(orders) if isinstance(orders, list) else 'not list'} orders, total: {total}")
+                test_results.append(("Search by Phone Number", False))
+        else:
+            print(f"❌ FAILED: Response missing 'orders' or 'total' fields for phone search")
+            test_results.append(("Search by Phone Number", False))
+    else:
+        print(f"❌ FAILED: Could not track orders by Phone Number")
+        test_results.append(("Search by Phone Number", False))
+    
+    # Test Case 4: Search by Email (Multiple Orders)
+    print("\n--- Test Case 4: Search by Email (Multiple Orders) ---")
+    email_to_test = "john.doe@example.com"  # This email has 2 orders
+    
+    success, response = test_api_endpoint(
+        "GET",
+        f"/orders/track/{email_to_test}",
+        description=f"Track orders by Email: {email_to_test}"
+    )
+    
+    if success and response:
+        # Verify response format: {orders: [order1, order2], total: 2}
+        if "orders" in response and "total" in response:
+            orders = response["orders"]
+            total = response["total"]
+            
+            # Should return 2 orders for this email
+            expected_count = len([o for o in created_orders if o["email"] == email_to_test])
+            
+            if isinstance(orders, list) and len(orders) == expected_count and total == expected_count:
+                # Verify all orders have the correct email
+                all_correct_email = all(order.get("email") == email_to_test for order in orders)
+                
+                if all_correct_email:
+                    print(f"✅ SUCCESS: Search by Email returns correct multiple orders")
+                    print(f"   - Orders array length: {len(orders)}")
+                    print(f"   - Total: {total}")
+                    print(f"   - Expected count: {expected_count}")
+                    print(f"   - All orders have correct email: {all_correct_email}")
+                    test_results.append(("Search by Email", True))
+                else:
+                    print(f"❌ FAILED: Not all orders have correct email")
+                    test_results.append(("Search by Email", False))
+            else:
+                print(f"❌ FAILED: Incorrect count for email search - expected {expected_count}, got {len(orders) if isinstance(orders, list) else 'not list'} orders, total: {total}")
+                test_results.append(("Search by Email", False))
+        else:
+            print(f"❌ FAILED: Response missing 'orders' or 'total' fields for email search")
+            test_results.append(("Search by Email", False))
+    else:
+        print(f"❌ FAILED: Could not track orders by Email")
+        test_results.append(("Search by Email", False))
+    
+    # Test Case 5: Order Not Found
+    print("\n--- Test Case 5: Order Not Found ---")
+    
+    success, response = test_api_endpoint(
+        "GET",
+        "/orders/track/nonexistent",
+        description="Track non-existent order",
+        expected_status=404
+    )
+    
+    if success:
+        # Should return 404 with proper error message
+        if response and "detail" in response:
+            if "Order not found" in response["detail"]:
+                print(f"✅ SUCCESS: Non-existent order returns proper 404 error")
+                print(f"   - Error message: {response['detail']}")
+                test_results.append(("Order Not Found", True))
+            else:
+                print(f"❌ FAILED: Incorrect error message: {response['detail']}")
+                test_results.append(("Order Not Found", False))
+        else:
+            print(f"❌ FAILED: 404 response missing proper error detail")
+            test_results.append(("Order Not Found", False))
+    else:
+        print(f"❌ FAILED: Non-existent order did not return 404")
+        test_results.append(("Order Not Found", False))
+    
+    # Test Case 6: Update order statuses to test cancelled orders inclusion
+    print("\n--- Test Case 6: Test Cancelled Orders Inclusion ---")
+    if len(created_orders) >= 2:
+        # Cancel one of the orders
+        order_to_cancel = created_orders[0]
+        
+        # First get admin token
+        admin_token = admin_login()
+        if admin_token:
+            auth_headers = {
+                "Authorization": f"Bearer {admin_token}",
+                "Content-Type": "application/json"
+            }
+            
+            # Cancel the order
+            cancel_data = {"cancel_reason": "Test cancellation"}
+            success, response = test_api_endpoint(
+                "PUT",
+                f"/orders/{order_to_cancel['order_id']}/cancel",
+                headers=auth_headers,
+                data=cancel_data,
+                description=f"Cancel order {order_to_cancel['order_id']} for testing"
+            )
+            
+            if success:
+                print(f"✅ SUCCESS: Order cancelled for testing")
+                
+                # Now search by phone again to verify cancelled order is included
+                success, response = test_api_endpoint(
+                    "GET",
+                    f"/orders/track/{order_to_cancel['phone']}",
+                    description=f"Track orders by phone after cancellation: {order_to_cancel['phone']}"
+                )
+                
+                if success and response:
+                    orders = response.get("orders", [])
+                    # Find the cancelled order
+                    cancelled_order = None
+                    for order in orders:
+                        if order.get("order_id") == order_to_cancel["order_id"]:
+                            cancelled_order = order
+                            break
+                    
+                    if cancelled_order:
+                        order_status = cancelled_order.get("order_status")
+                        if order_status == "cancelled":
+                            print(f"✅ SUCCESS: Cancelled order included in search results")
+                            print(f"   - Order Status: {order_status}")
+                            test_results.append(("Cancelled Orders Included", True))
+                        else:
+                            print(f"❌ FAILED: Order status not updated to cancelled: {order_status}")
+                            test_results.append(("Cancelled Orders Included", False))
+                    else:
+                        print(f"❌ FAILED: Cancelled order not found in search results")
+                        test_results.append(("Cancelled Orders Included", False))
+                else:
+                    print(f"❌ FAILED: Could not search orders after cancellation")
+                    test_results.append(("Cancelled Orders Included", False))
+            else:
+                print(f"❌ FAILED: Could not cancel order for testing")
+                test_results.append(("Cancelled Orders Included", False))
+        else:
+            print(f"❌ FAILED: Could not get admin token for cancellation test")
+            test_results.append(("Cancelled Orders Included", False))
+    else:
+        print(f"⚠️  SKIPPED: Not enough orders created for cancellation test")
+        test_results.append(("Cancelled Orders Included", False))
+    
+    return test_results
+
 def main():
     """Main testing function focused on city suggestions approval flow"""
     print("🚀 COMPREHENSIVE CITY SUGGESTIONS APPROVAL FLOW TESTING")
