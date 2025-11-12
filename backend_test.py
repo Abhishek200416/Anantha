@@ -1839,26 +1839,37 @@ def test_order_status_update_emails(admin_token):
             import time
             time.sleep(2)  # Wait for email to be processed
             
-            result = subprocess.run(
+            # Check both output and error logs
+            email_found = False
+            
+            # Check error log (where application logs go)
+            result_err = subprocess.run(
+                ["tail", "-n", "100", "/var/log/supervisor/backend.err.log"],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+            
+            # Check output log
+            result_out = subprocess.run(
                 ["tail", "-n", "100", "/var/log/supervisor/backend.out.log"],
                 capture_output=True,
                 text=True,
                 timeout=10
             )
             
-            if result.stdout:
-                if "Order status update email sent successfully" in result.stdout:
-                    print(f"✅ SUCCESS: Order status update email sent successfully")
-                    test_results.append(("Status Update Email Sent", True))
-                elif "Gmail credentials not configured" in result.stdout:
-                    print(f"❌ CRITICAL BUG: Gmail credentials not configured warning found")
-                    test_results.append(("Status Update Email Sent", False))
-                else:
-                    print(f"⚠️  WARNING: No specific email log found")
-                    print(f"Recent logs: {result.stdout[-500:]}")  # Show last 500 chars
-                    test_results.append(("Status Update Email Sent", False))
-            else:
-                print(f"⚠️  WARNING: No backend logs found")
+            combined_logs = (result_err.stdout or "") + (result_out.stdout or "")
+            
+            if "Order status update email sent successfully" in combined_logs:
+                print(f"✅ SUCCESS: Order status update email sent successfully")
+                test_results.append(("Status Update Email Sent", True))
+                email_found = True
+            elif "Gmail credentials not configured" in combined_logs:
+                print(f"❌ CRITICAL BUG: Gmail credentials not configured warning found")
+                test_results.append(("Status Update Email Sent", False))
+            
+            if not email_found:
+                print(f"⚠️  WARNING: No specific email log found in recent logs")
                 test_results.append(("Status Update Email Sent", False))
                 
         except Exception as e:
