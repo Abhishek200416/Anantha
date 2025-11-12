@@ -1365,11 +1365,18 @@ async def update_order_admin_fields(order_id: str, data: dict, current_user: dic
     # Send email notification if order status was changed and email exists
     if "order_status" in update_fields and old_status != update_fields["order_status"] and order.get("email"):
         try:
+            logger.info(f"Attempting to send order status update email to {order.get('email')} for order {order_id}")
             # Update order data with new status for email
             order["order_status"] = update_fields["order_status"]
-            await send_order_status_update_email(order["email"], order, old_status, update_fields["order_status"])
+            email_sent = await send_order_status_update_email(order["email"], order, old_status, update_fields["order_status"])
+            if email_sent:
+                logger.info(f"✅ Order status update email sent successfully to {order.get('email')}")
+            else:
+                logger.warning(f"⚠️ Order status update email function returned False for {order.get('email')}")
         except Exception as e:
-            logger.error(f"Failed to send order status update email: {str(e)}")
+            logger.error(f"❌ Failed to send order status update email: {str(e)}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
             # Don't fail the request if email fails
     
     return {"message": "Order updated successfully"}
