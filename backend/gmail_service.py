@@ -53,9 +53,9 @@ async def send_order_confirmation_email_gmail(to_email: str, order_data: dict):
         <html>
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
             <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-                <h2 style="color: #f97316; text-align: center;"> Order Confirmed!</h2>
+                <h2 style="color: #f97316; text-align: center;">🎉 Order Confirmed!</h2>
                 <p>Dear {order_data["customer_name"]},</p>
-                <p>Thank you for your order from Anantha Home Foods!</p>
+                <p><strong>Your order has been successfully placed!</strong> Thank you for choosing Anantha Home Foods!</p>
                 
                 <div style="background-color: #fff7ed; padding: 15px; border-radius: 8px; margin: 20px 0;">
                     <h3 style="color: #ea580c; margin-top: 0;">Order Details</h3>
