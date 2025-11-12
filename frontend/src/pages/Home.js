@@ -26,13 +26,24 @@ const Home = () => {
 
   const [detectingLocation, setDetectingLocation] = useState(false);
   const [showAddCityModal, setShowAddCityModal] = useState(false);
+  const [locationNotification, setLocationNotification] = useState(null);
 
   const t = (key) => getTranslation(language, key);
 
-  // Improved location detection function
+  // Show custom location notification
+  const showLocationNotification = (message, type = 'success', city = null) => {
+    setLocationNotification({ message, type, city });
+    
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => {
+      setLocationNotification(null);
+    }, 5000);
+  };
+
+  // Improved location detection function with custom notifications
   const detectLocation = async () => {
     if (!('geolocation' in navigator)) {
-      alert('Geolocation is not supported by your browser');
+      showLocationNotification('Geolocation is not supported by your browser', 'error');
       return;
     }
 
@@ -111,14 +122,16 @@ const Home = () => {
             if (matchedLocation) {
               setSelectedState(matchedLocation.state);
             }
-            alert(`📍 Location detected: ${matchedCity}!\n\nNow showing products available in ${matchedCity}.`);
+            // Show custom notification instead of alert
+            showLocationNotification(`Location detected! Now showing products for ${matchedCity}`, 'success', matchedCity);
           } else {
             const nearestCity = possibleCities[0] || 'your area';
-            alert(`⚠️ Location detected: ${nearestCity}\n\nHowever, we don't deliver to this area yet. Showing all products.`);
+            // Show custom notification for areas not in delivery
+            showLocationNotification(`Detected ${nearestCity}, but we don't deliver there yet. Showing all products.`, 'warning', nearestCity);
           }
         } catch (error) {
           console.error('Location detection error:', error);
-          alert('Failed to detect location. Please select your city manually.');
+          showLocationNotification('Failed to detect location. Please select your city manually.', 'error');
         } finally {
           setDetectingLocation(false);
         }
@@ -129,13 +142,13 @@ const Home = () => {
         
         let errorMessage = 'Unable to detect your location. ';
         if (error.code === error.PERMISSION_DENIED) {
-          errorMessage += 'Please allow location access in your browser settings.';
+          errorMessage = 'Please allow location access in your browser settings.';
         } else if (error.code === error.POSITION_UNAVAILABLE) {
-          errorMessage += 'Location information is unavailable.';
+          errorMessage = 'Location information is unavailable.';
         } else if (error.code === error.TIMEOUT) {
-          errorMessage += 'Location request timed out.';
+          errorMessage = 'Location request timed out.';
         }
-        alert(errorMessage);
+        showLocationNotification(errorMessage, 'error');
       },
       { 
         timeout: 15000, 
