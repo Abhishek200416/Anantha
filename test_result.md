@@ -879,6 +879,57 @@ agent_communication:
   - agent: "main"
     message: "Successfully imported food-web application from GitHub. All backend dependencies installed, frontend dependencies installed. Services started and running. Application ready for initial setup and testing."
   - agent: "main"
+    message: "✅ IMPLEMENTED CITY-SPECIFIC PAYMENT OPTIONS & PENDING PAYMENT FLOW:
+    
+    **NEW FEATURES IMPLEMENTED:**
+    
+    **1. CHECKOUT PAYMENT METHOD CHANGES:**
+    ✅ Guntur City: Shows BOTH Cash on Delivery (COD) AND Online Payment options
+    ✅ All Other Cities: Shows ONLY Online Payment (UPI) and Card Payment
+    ✅ Custom Cities (not in database): Payment options HIDDEN, shows pending message
+    ✅ Conditional payment validation: COD doesn't require sub-method selection
+    
+    **2. CUSTOM CITY CHECKOUT FLOW:**
+    ✅ When customer selects a city not in delivery locations database:
+       - Payment method section replaced with informational message
+       - Message: 'City Not Serviceable Yet - We will contact you within 5-10 minutes'
+       - Explains order will be created with pending payment status
+       - Informs customer they can complete payment from Track Orders page after approval
+    ✅ Order validation skips payment requirement for custom cities
+    ✅ Order created with 'pending' payment status and 'pending' order status
+    
+    **3. TRACK ORDERS PAGE PAYMENT COMPLETION:**
+    ✅ Added payment method selection modal for orders with pending payment
+    ✅ Modal shows payment options based on delivery city:
+       - Guntur orders: COD + Online (UPI) + Card Payment
+       - Other cities: Online (UPI) + Card Payment only
+    ✅ Complete Payment button appears for orders with payment_status='pending'
+    ✅ Payment options include:
+       - Cash on Delivery (COD) - Guntur only
+       - Online Payment (UPI): Paytm, PhonePe, Google Pay, BHIM UPI
+       - Card Payment: Debit Card, Credit Card
+    ✅ Validation ensures payment method and sub-method are selected
+    ✅ After payment completion, order status updates to 'confirmed'
+    ✅ Order details automatically refresh after payment
+    
+    **4. EMAIL NOTIFICATIONS:**
+    ✅ Already working: Order confirmation emails
+    ✅ Already working: Order status update emails (confirmed, processing, shipped, delivered, cancelled)
+    ✅ 'Out for Delivery' or 'Shipped' status changes trigger email notifications
+    ✅ Email system using Gmail SMTP with proper lazy credential loading
+    
+    **FILES MODIFIED:**
+    - /app/frontend/src/pages/Checkout.js: Added conditional payment options, custom city handling
+    - /app/frontend/src/pages/TrackOrder.js: Added payment completion modal with method selection
+    
+    **BACKEND:**
+    - No changes needed - existing API already supports:
+      - POST /api/orders/{order_id}/complete-payment
+      - PUT /api/orders/{order_id}/status (sends email on status change)
+      - PUT /api/orders/{order_id}/admin-update (sends email on status change)
+    
+    All services restarted successfully. Ready for testing!"
+  - agent: "main"
     message: "✅ CRITICAL FIX - ORDER STATUS UPDATE EMAILS NOW WORKING + IMPROVED LOCATION DETECTION UX:
     
     **ISSUE #1 (HIGH PRIORITY):** Order status update emails not working - Gmail credentials present in .env but not being loaded properly. Order confirmation emails worked but status update emails failed with 'Gmail credentials not configured' warnings.
