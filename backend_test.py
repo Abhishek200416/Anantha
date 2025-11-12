@@ -1792,14 +1792,25 @@ def test_order_status_update_emails(admin_token):
         # Check for order confirmation email log
         try:
             import subprocess
-            result = subprocess.run(
+            
+            # Check both output and error logs
+            result_err = subprocess.run(
+                ["tail", "-n", "50", "/var/log/supervisor/backend.err.log"],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+            
+            result_out = subprocess.run(
                 ["tail", "-n", "50", "/var/log/supervisor/backend.out.log"],
                 capture_output=True,
                 text=True,
                 timeout=10
             )
             
-            if result.stdout and "Email sent successfully" in result.stdout:
+            combined_logs = (result_err.stdout or "") + (result_out.stdout or "")
+            
+            if "Email sent successfully" in combined_logs or "Order confirmation email sent" in combined_logs:
                 print(f"✅ SUCCESS: Order confirmation email log found")
                 test_results.append(("Order Confirmation Email Log", True))
             else:
