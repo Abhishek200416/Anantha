@@ -3431,16 +3431,18 @@ const Admin = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2 mt-3">New Free Delivery Above (₹)</label>
                 <input
                   type="number"
-                  value={editingLocation.free_delivery_threshold || ''}
+                  value={editingLocation.free_delivery_threshold === 0 ? '0' : (editingLocation.free_delivery_threshold || '')}
                   onChange={(e) => {
                     const value = e.target.value;
+                    // Keep as string/number during editing
                     setEditingLocation({
                       ...editingLocation, 
-                      free_delivery_threshold: value === '' ? null : parseInt(value) || null
+                      free_delivery_threshold: value === '' ? null : (Number(value) || null)
                     });
                   }}
                   className="w-full px-4 py-2 border rounded-lg"
                   placeholder="e.g., 1000 (optional)"
+                  min="0"
                 />
                 <p className="text-xs text-gray-500 mt-1">Leave empty to use global threshold or no free delivery for this city</p>
               </div>
