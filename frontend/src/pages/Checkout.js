@@ -239,7 +239,8 @@ const Checkout = () => {
     
     if (!isCustomCity) {
       if (!formData.paymentMethod) newErrors.paymentMethod = 'Please select payment method';
-      if (formData.paymentMethod && !formData.paymentSubMethod) {
+      // COD doesn't need a sub-method, only online and card do
+      if (formData.paymentMethod && formData.paymentMethod !== 'cod' && !formData.paymentSubMethod) {
         newErrors.paymentSubMethod = 'Please select payment option';
       }
     }
