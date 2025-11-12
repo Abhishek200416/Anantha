@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
-import { useToast } from '../components/ui/use-toast';
+import { useToast } from '../hooks/use-toast';
 import { ShoppingBag, MapPin, Phone, Mail, CreditCard, Wallet, User, Home, Building, MapPinned, Navigation, Sparkles, Trash2, Edit, Check } from 'lucide-react';
 
 const API = import.meta.env.REACT_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
