@@ -1217,11 +1217,12 @@ async def verify_razorpay_payment(data: dict):
             logger.error(f"Payment signature verification failed for order {order_id}")
             raise HTTPException(status_code=400, detail="Invalid payment signature")
         
-        # Update order payment status
+        # Update order payment status and order status
         result = await db.orders.update_one(
             {"order_id": order_id},
             {"$set": {
                 "payment_status": "completed",
+                "order_status": "confirmed",
                 "razorpay_order_id": razorpay_order_id,
                 "razorpay_payment_id": razorpay_payment_id,
                 "payment_verified_at": datetime.now(timezone.utc).isoformat()
