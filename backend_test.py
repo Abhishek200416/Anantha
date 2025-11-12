@@ -1711,6 +1711,28 @@ def test_enhanced_city_suggestions_system(admin_token):
     
     return test_results
 
+def print_test_summary(test_results):
+    """Print a summary of all test results"""
+    print("\n" + "="*80)
+    print("📊 FINAL TEST RESULTS SUMMARY")
+    print("="*80)
+    
+    passed_tests = 0
+    total_tests = len(test_results)
+    
+    for test_name, success in test_results:
+        status = "✅ PASSED" if success else "❌ FAILED"
+        print(f"{status}: {test_name}")
+        if success:
+            passed_tests += 1
+    
+    print(f"\n🎯 OVERALL RESULT: {passed_tests}/{total_tests} tests passed ({(passed_tests/total_tests)*100:.1f}%)")
+    
+    if passed_tests == total_tests:
+        print("🎉 ALL TESTS PASSED - Email fix verification successful!")
+    else:
+        print("⚠️  SOME TESTS FAILED - Check individual test results above")
+
 def test_order_status_update_emails(admin_token):
     """Test order status update email functionality - CRITICAL EMAIL FIX VERIFICATION"""
     print("\n" + "="*80)
