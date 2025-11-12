@@ -2552,7 +2552,7 @@ def main():
         all_tests_passed = False
     
     # Print final summary
-    print_test_summary(test_summary, all_tests_passed)
+    print_test_summary(test_summary)
 
 if __name__ == "__main__":
     exit_code = main()
