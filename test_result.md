@@ -409,6 +409,9 @@ frontend:
     status_history:
       - working: "NA"
         agent: "main"
+        comment: "🎯 CRITICAL UX FIX - REMOVED CITY REQUEST FLOW FROM CHECKOUT (Current Session): User reported that checkout should be ONLY for ordering existing cities, NOT for requesting new cities. CHANGES IMPLEMENTED: 1) **CITY VALIDATION ADDED**: Now validates that selected city exists in delivery locations database before allowing order placement, Shows error toast if city not found: 'We don't currently deliver to [City]. Please select a city from the dropdown list.', Directs users to homepage for city requests instead of allowing checkout to proceed. 2) **REMOVED CUSTOM_CITY_REQUEST HANDLING**: Removed custom_city_request flow from order submission (lines 751-761), No longer allows orders to proceed for cities not in database, Checkout now strictly enforces existing city selection. 3) **UPDATED INFORMATIONAL NOTE**: Changed from blue info box to amber warning box, Clarified message: 'This checkout is only for ordering to existing delivery cities', Directs users to homepage for new city requests. 4) **VALIDATION LOGIC**: Added cityExists check using deliveryLocations array, Matches by city name (case-insensitive) AND state for accuracy, Blocks order creation if city doesn't exist in database. **RESULT**: Checkout is now strictly for ordering only. City requests must be done from homepage. Users cannot bypass this by entering non-existent cities."
+      - working: "NA"
+        agent: "main"
         comment: "Complete checkout flow with order summary and payment."
       - working: "NA"
         agent: "main"
