@@ -919,6 +919,7 @@ const Admin = () => {
     updateProduct,
     deleteProduct,
     deliveryLocations,
+    fetchDeliveryLocations,
     updateDeliveryLocation,
     deleteDeliveryLocation,
     states,
