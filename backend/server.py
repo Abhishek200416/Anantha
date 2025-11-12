@@ -818,7 +818,7 @@ async def get_free_delivery_settings():
     setting = await db.settings.find_one({"key": "free_delivery"}, {"_id": 0})
     
     if not setting:
-        # Default: Free delivery enabled for orders >= ₹1000
+        # Default: Free delivery enabled for orders >= Rs.1000
         return {"enabled": True, "threshold": 1000}
     
     return {"enabled": setting.get("enabled", True), "threshold": setting.get("threshold", 1000)}
@@ -939,10 +939,10 @@ async def create_order(order_data: OrderCreate, current_user: dict = Depends(get
                 # Check if order qualifies for free delivery (threshold must be > 0)
                 if free_delivery_threshold > 0 and order_data.subtotal >= free_delivery_threshold:
                     calculated_delivery_charge = 0.0
-                    print(f"🎁 FREE DELIVERY APPLIED: {order_data.city} - Subtotal ₹{order_data.subtotal} >= Threshold ₹{free_delivery_threshold}")
+                    print(f"🎁 FREE DELIVERY APPLIED: {order_data.city} - Subtotal Rs.{order_data.subtotal} >= Threshold Rs.{free_delivery_threshold}")
                 else:
                     calculated_delivery_charge = base_charge
-                    print(f"💰 DELIVERY CHARGE APPLIED: {order_data.city} - ₹{base_charge}")
+                    print(f"💰 DELIVERY CHARGE APPLIED: {order_data.city} - Rs.{base_charge}")
             else:
                 # City not found in database, treat as custom city request
                 custom_city_request = True
@@ -1205,7 +1205,7 @@ async def cancel_order(order_id: str, data: dict, current_user: dict = Depends(g
 
 @api_router.post("/orders/{order_id}/cancel-customer")
 async def cancel_order_customer(order_id: str, data: dict):
-    """Cancel order by customer (20-minute window, ₹20 fee)"""
+    """Cancel order by customer (20-minute window, Rs.20 fee)"""
     try:
         # Get the order
         order = await db.orders.find_one({"order_id": order_id}, {"_id": 0})
@@ -2027,7 +2027,7 @@ async def update_city_suggestion_status(
                     city_data["free_delivery_threshold"] = free_delivery_threshold
                 
                 await db.locations.insert_one(city_data)
-                logger.info(f"City {suggestion.get('city')}, {suggestion.get('state')} added to locations with charge ₹{delivery_charge}")
+                logger.info(f"City {suggestion.get('city')}, {suggestion.get('state')} added to locations with charge Rs.{delivery_charge}")
         
         # Update suggestion status
         result = await db.city_suggestions.update_one(
