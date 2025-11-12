@@ -86,7 +86,7 @@ async def send_order_confirmation_email_gmail(to_email: str, order_data: dict):
                 <p style="margin-top: 30px;">If you have any questions, feel free to contact us at <strong>9985116385</strong></p>
                 
                 <p style="text-align: center; color: #666; margin-top: 30px; font-size: 12px;">
-                    Thank you for choosing Anantha Lakshmi Traditional Foods!<br>
+                    Thank you for choosing Anantha Home Foods!<br>
                     Handcrafted with love and tradition 💚
                 </p>
             </div>
