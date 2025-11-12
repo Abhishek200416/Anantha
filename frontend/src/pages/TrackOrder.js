@@ -211,6 +211,38 @@ const TrackOrder = () => {
     setExpandedOrderIndex(expandedOrderIndex === index ? null : index);
   };
 
+  const handleReorder = (order) => {
+    // Add all items from the order back to cart
+    if (order.items && order.items.length > 0) {
+      order.items.forEach(item => {
+        // Prepare item for cart
+        const cartItem = {
+          id: item.product_id || item.id,
+          name: item.name,
+          image: item.image,
+          description: item.description || '',
+          selectedWeight: item.weight || item.size,
+          selectedPrice: item.price,
+          quantity: item.quantity,
+          weight: item.weight || item.size,
+          price: item.price
+        };
+        addToCart(cartItem);
+      });
+
+      toast({
+        title: "Items Added to Cart!",
+        description: `${order.items.length} item(s) from Order #${order.order_id} have been added to your cart.`,
+        duration: 5000
+      });
+
+      // Navigate to checkout or home
+      setTimeout(() => {
+        navigate('/checkout');
+      }, 1000);
+    }
+  };
+
   const OrderCard = ({ order, index, total }) => {
     const isExpanded = expandedOrderIndex === index;
     
