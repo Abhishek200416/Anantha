@@ -253,19 +253,8 @@ const Checkout = () => {
     if (!formData.pincode.trim()) newErrors.pincode = 'Pincode is required';
     else if (!/^\d{6}$/.test(formData.pincode)) newErrors.pincode = 'Enter valid 6-digit pincode';
     
-    // Payment validation - not required for custom city requests
-    // Custom city requests can place order without selecting payment
-    const isCustomCity = !deliveryLocations.some(loc => 
-      loc.name === formData.city && loc.state === formData.state
-    );
-    
-    if (!isCustomCity) {
-      if (!formData.paymentMethod) newErrors.paymentMethod = 'Please select payment method';
-      // Both online and card payment methods require a sub-method
-      if (formData.paymentMethod && !formData.paymentSubMethod) {
-        newErrors.paymentSubMethod = 'Please select payment option';
-      }
-    }
+    // Payment validation - not required as Razorpay modal handles all payment methods
+    // No custom payment selection needed
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
