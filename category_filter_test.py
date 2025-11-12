@@ -11,7 +11,7 @@ from datetime import datetime
 from collections import defaultdict
 
 # Backend URL from environment
-BACKEND_URL = "https://api-error-tracker-2.preview.emergentagent.com/api"
+BACKEND_URL = "https://order-tracker-161.preview.emergentagent.com/api"
 
 def test_category_filtering():
     """Test category filtering functionality"""

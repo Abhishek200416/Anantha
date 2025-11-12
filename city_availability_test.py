@@ -11,7 +11,7 @@ from datetime import datetime
 import time
 
 # Backend URL from environment
-BACKEND_URL = "https://api-error-tracker-2.preview.emergentagent.com/api"
+BACKEND_URL = "https://order-tracker-161.preview.emergentagent.com/api"
 
 def test_api_endpoint(method, endpoint, headers=None, data=None, params=None, description="", expected_status=None):
     """Test a single API endpoint"""
