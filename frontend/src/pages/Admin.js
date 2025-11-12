@@ -250,7 +250,9 @@ const CitySuggestionsSection = () => {
         description: "City suggestion deleted successfully"
       });
 
-      fetchCitySuggestions();
+      // Switch to "all" filter to show remaining cities after deletion
+      setStatusFilter('all');
+      // Refresh the list (will automatically fetch with new filter due to useEffect)
     } catch (error) {
       console.error('Failed to delete city suggestion:', error);
       toast({
