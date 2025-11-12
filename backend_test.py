@@ -4222,12 +4222,24 @@ def test_order_creation_with_email_and_razorpay():
             "cancel_reason": "Customer requested cancellation"
         }
         
-        success, cancel_response = test_api_endpoint(
-            "POST",
-            f"/orders/{order_id}/cancel",
-            data=cancel_data,
-            description="Cancel order and test cancellation email"
-        )
+        # Need admin token for cancellation
+        admin_token = admin_login()
+        if admin_token:
+            auth_headers = {
+                "Authorization": f"Bearer {admin_token}",
+                "Content-Type": "application/json"
+            }
+            
+            success, cancel_response = test_api_endpoint(
+                "PUT",
+                f"/orders/{order_id}/cancel",
+                headers=auth_headers,
+                data=cancel_data,
+                description="Cancel order and test cancellation email (admin endpoint)"
+            )
+        else:
+            print("❌ FAILURE: Could not get admin token for cancellation")
+            success = False
         
         if success:
             print(f"✅ SUCCESS: Order cancelled successfully")
