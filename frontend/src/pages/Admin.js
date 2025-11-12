@@ -199,7 +199,9 @@ const CitySuggestionsSection = () => {
         description: "City suggestion rejected"
       });
 
-      fetchCitySuggestions();
+      // Switch to "all" filter to show all cities including the newly rejected one
+      setStatusFilter('all');
+      // Refresh the list (will automatically fetch with new filter due to useEffect)
     } catch (error) {
       console.error('Failed to reject city suggestion:', error);
       toast({
