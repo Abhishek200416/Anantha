@@ -1711,51 +1711,278 @@ def test_enhanced_city_suggestions_system(admin_token):
     
     return test_results
 
+def test_order_status_update_emails(admin_token):
+    """Test order status update email functionality - CRITICAL EMAIL FIX VERIFICATION"""
+    print("\n" + "="*80)
+    print("📧 TESTING ORDER STATUS UPDATE EMAILS - CRITICAL FIX VERIFICATION")
+    print("="*80)
+    
+    auth_headers = {
+        "Authorization": f"Bearer {admin_token}",
+        "Content-Type": "application/json"
+    }
+    
+    test_results = []
+    
+    # Step 1: Create a test order first
+    print("\n--- Step 1: Create Test Order ---")
+    order_data = {
+        "customer_name": "Email Test Customer",
+        "email": "emailtest@example.com",
+        "phone": "9876543210",
+        "doorNo": "123",
+        "building": "Test Building",
+        "street": "Test Street",
+        "city": "Guntur",
+        "state": "Andhra Pradesh",
+        "pincode": "522001",
+        "location": "Guntur",
+        "items": [
+            {
+                "product_id": "1",
+                "name": "Test Product",
+                "image": "test.jpg",
+                "weight": "1 kg",
+                "price": 350.0,
+                "quantity": 1,
+                "description": "Test product for email testing"
+            }
+        ],
+        "subtotal": 350.0,
+        "delivery_charge": 49.0,
+        "total": 399.0,
+        "payment_method": "online",
+        "payment_sub_method": "paytm"
+    }
+    
+    success, order_response = test_api_endpoint(
+        "POST",
+        "/orders",
+        data=order_data,
+        description="Create test order for email testing"
+    )
+    
+    if success and order_response and "order_id" in order_response:
+        order_id = order_response["order_id"]
+        print(f"✅ SUCCESS: Test order created with ID: {order_id}")
+        test_results.append(("Create Test Order", True))
+        
+        # Check for order confirmation email log
+        try:
+            import subprocess
+            result = subprocess.run(
+                ["tail", "-n", "50", "/var/log/supervisor/backend.out.log"],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+            
+            if result.stdout and "Email sent successfully" in result.stdout:
+                print(f"✅ SUCCESS: Order confirmation email log found")
+                test_results.append(("Order Confirmation Email Log", True))
+            else:
+                print(f"⚠️  WARNING: Order confirmation email log not found")
+                test_results.append(("Order Confirmation Email Log", False))
+                
+        except Exception as e:
+            print(f"⚠️  WARNING: Could not check logs: {e}")
+            test_results.append(("Order Confirmation Email Log", False))
+    else:
+        print("❌ FAILED: Could not create test order")
+        test_results.append(("Create Test Order", False))
+        return test_results
+    
+    # Step 2: Test PUT /api/orders/{order_id}/status (CRITICAL TEST)
+    print("\n--- Step 2: Test Order Status Update via PUT /api/orders/{order_id}/status ---")
+    status_update_data = {
+        "status": "processing"
+    }
+    
+    success, response = test_api_endpoint(
+        "PUT",
+        f"/orders/{order_id}/status",
+        headers=auth_headers,
+        data=status_update_data,
+        description="Update order status to 'processing' - should trigger email"
+    )
+    
+    if success:
+        print(f"✅ SUCCESS: Order status updated successfully")
+        test_results.append(("Order Status Update API", True))
+        
+        # Check backend logs for email sending confirmation
+        print("\n🔍 Checking backend logs for email notification...")
+        try:
+            import subprocess
+            import time
+            time.sleep(2)  # Wait for email to be processed
+            
+            result = subprocess.run(
+                ["tail", "-n", "100", "/var/log/supervisor/backend.out.log"],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+            
+            if result.stdout:
+                if "Order status update email sent successfully" in result.stdout:
+                    print(f"✅ SUCCESS: Order status update email sent successfully")
+                    test_results.append(("Status Update Email Sent", True))
+                elif "Gmail credentials not configured" in result.stdout:
+                    print(f"❌ CRITICAL BUG: Gmail credentials not configured warning found")
+                    test_results.append(("Status Update Email Sent", False))
+                else:
+                    print(f"⚠️  WARNING: No specific email log found")
+                    print(f"Recent logs: {result.stdout[-500:]}")  # Show last 500 chars
+                    test_results.append(("Status Update Email Sent", False))
+            else:
+                print(f"⚠️  WARNING: No backend logs found")
+                test_results.append(("Status Update Email Sent", False))
+                
+        except Exception as e:
+            print(f"❌ ERROR: Could not check backend logs: {e}")
+            test_results.append(("Status Update Email Sent", False))
+    else:
+        print("❌ FAILED: Order status update API failed")
+        test_results.append(("Order Status Update API", False))
+        test_results.append(("Status Update Email Sent", False))
+    
+    # Step 3: Test PUT /api/orders/{order_id}/admin-update (CRITICAL TEST)
+    print("\n--- Step 3: Test Order Status Update via PUT /api/orders/{order_id}/admin-update ---")
+    admin_update_data = {
+        "order_status": "shipped",
+        "admin_notes": "Order shipped via courier",
+        "delivery_days": 2
+    }
+    
+    success, response = test_api_endpoint(
+        "PUT",
+        f"/orders/{order_id}/admin-update",
+        headers=auth_headers,
+        data=admin_update_data,
+        description="Update order status to 'shipped' via admin-update - should trigger email"
+    )
+    
+    if success:
+        print(f"✅ SUCCESS: Order admin update successful")
+        test_results.append(("Order Admin Update API", True))
+        
+        # Check backend logs for email sending confirmation
+        print("\n🔍 Checking backend logs for admin update email notification...")
+        try:
+            import subprocess
+            import time
+            time.sleep(2)  # Wait for email to be processed
+            
+            result = subprocess.run(
+                ["tail", "-n", "100", "/var/log/supervisor/backend.out.log"],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+            
+            if result.stdout:
+                if "Order status update email sent successfully" in result.stdout:
+                    print(f"✅ SUCCESS: Admin update email sent successfully")
+                    test_results.append(("Admin Update Email Sent", True))
+                elif "Gmail credentials not configured" in result.stdout:
+                    print(f"❌ CRITICAL BUG: Gmail credentials not configured warning found")
+                    test_results.append(("Admin Update Email Sent", False))
+                else:
+                    print(f"⚠️  WARNING: No specific admin update email log found")
+                    print(f"Recent logs: {result.stdout[-500:]}")  # Show last 500 chars
+                    test_results.append(("Admin Update Email Sent", False))
+            else:
+                print(f"⚠️  WARNING: No backend logs found")
+                test_results.append(("Admin Update Email Sent", False))
+                
+        except Exception as e:
+            print(f"❌ ERROR: Could not check backend logs: {e}")
+            test_results.append(("Admin Update Email Sent", False))
+    else:
+        print("❌ FAILED: Order admin update API failed")
+        test_results.append(("Order Admin Update API", False))
+        test_results.append(("Admin Update Email Sent", False))
+    
+    # Step 4: Check for any "Gmail credentials not configured" warnings
+    print("\n--- Step 4: Check for Gmail Credentials Warnings ---")
+    try:
+        import subprocess
+        result = subprocess.run(
+            ["grep", "-i", "gmail credentials not configured", "/var/log/supervisor/backend.out.log"],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        
+        if result.stdout:
+            print(f"❌ CRITICAL: Found Gmail credentials warnings:")
+            print(result.stdout)
+            test_results.append(("No Gmail Credentials Warnings", False))
+        else:
+            print(f"✅ SUCCESS: No Gmail credentials warnings found")
+            test_results.append(("No Gmail Credentials Warnings", True))
+            
+    except Exception as e:
+        print(f"⚠️  WARNING: Could not check for Gmail warnings: {e}")
+        test_results.append(("No Gmail Credentials Warnings", False))
+    
+    # Step 5: Verify Gmail credentials are loaded properly
+    print("\n--- Step 5: Verify Gmail Credentials Loading ---")
+    try:
+        import os
+        gmail_email = os.environ.get('GMAIL_EMAIL', '')
+        gmail_password = os.environ.get('GMAIL_APP_PASSWORD', '')
+        
+        if gmail_email and gmail_password:
+            print(f"✅ SUCCESS: Gmail credentials found in environment")
+            print(f"   - GMAIL_EMAIL: {gmail_email}")
+            print(f"   - GMAIL_APP_PASSWORD: {'*' * len(gmail_password)} (masked)")
+            test_results.append(("Gmail Credentials Available", True))
+        else:
+            print(f"❌ CRITICAL: Gmail credentials not found in environment")
+            print(f"   - GMAIL_EMAIL: '{gmail_email}'")
+            print(f"   - GMAIL_APP_PASSWORD: '{gmail_password}'")
+            test_results.append(("Gmail Credentials Available", False))
+            
+    except Exception as e:
+        print(f"❌ ERROR: Could not check Gmail credentials: {e}")
+        test_results.append(("Gmail Credentials Available", False))
+    
+    return test_results
+
 def main():
-    """Main testing function - ENHANCED CITY SUGGESTIONS SYSTEM TESTING"""
-    print("🚀 Starting Enhanced City Suggestions System Testing")
+    """Main test execution - CRITICAL EMAIL FIX VERIFICATION"""
+    print("🚀 STARTING CRITICAL EMAIL FIX VERIFICATION")
     print(f"Backend URL: {BACKEND_URL}")
     print(f"Test Time: {datetime.now()}")
-    print("="*80)
+    print("=" * 80)
     
-    all_test_results = []
+    # Track test results
+    test_results = []
     
-    # Test 1: Admin Authentication
-    print("\n" + "🔐" * 20 + " TEST 1: ADMIN AUTHENTICATION " + "🔐" * 20)
-    auth_success, admin_token = test_admin_authentication()
-    all_test_results.append(("Admin Authentication", auth_success))
+    # 1. Test Admin Authentication
+    admin_success, admin_token = test_admin_authentication()
+    test_results.append(("Admin Authentication", admin_success))
     
-    if not auth_success:
-        print("❌ CRITICAL: Cannot proceed without admin authentication")
+    if not admin_token:
+        print("\n❌ CRITICAL: Cannot proceed without admin authentication")
+        print_test_summary(test_results)
         return 1
     
-    # Test 2: Enhanced City Suggestions System
-    print("\n" + "🏙️" * 15 + " TEST 2: ENHANCED CITY SUGGESTIONS SYSTEM " + "🏙️" * 15)
-    city_suggestions_results = test_enhanced_city_suggestions_system(admin_token)
-    all_test_results.extend(city_suggestions_results)
+    # 2. Test Order Status Update Emails (CRITICAL TEST)
+    email_test_results = test_order_status_update_emails(admin_token)
+    test_results.extend(email_test_results)
     
-    # Summary
-    print("\n" + "="*80)
-    print("📊 FINAL TEST RESULTS SUMMARY")
-    print("="*80)
+    # Print final summary
+    print_test_summary(test_results)
     
-    passed_tests = 0
-    total_tests = len(all_test_results)
-    
-    for test_name, success in all_test_results:
-        status = "✅ PASSED" if success else "❌ FAILED"
-        print(f"{status}: {test_name}")
-        if success:
-            passed_tests += 1
-    
-    print(f"\n🎯 OVERALL RESULT: {passed_tests}/{total_tests} tests passed ({(passed_tests/total_tests)*100:.1f}%)")
-    
-    if passed_tests == total_tests:
-        print("🎉 ALL TESTS PASSED - Enhanced city suggestions system is working correctly!")
-        return 0
+    # Return appropriate exit code
+    failed_tests = [test for test, success in test_results if not success]
+    if failed_tests:
+        return 1
     else:
-        print("⚠️  SOME TESTS FAILED - Check individual test results above")
-        return 1
+        return 0
 
 if __name__ == "__main__":
     exit_code = main()
