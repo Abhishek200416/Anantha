@@ -20,7 +20,7 @@ import os
 import tempfile
 
 # Backend URL from environment
-BACKEND_URL = "https://payment-email-test.preview.emergentagent.com/api"
+BACKEND_URL = "https://vanishing-cities-fix.preview.emergentagent.com/api"
 ADMIN_PASSWORD = "admin123"
 
 def test_api_endpoint(method, endpoint, headers=None, data=None, description="", expected_status=None):
