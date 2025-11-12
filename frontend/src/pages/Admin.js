@@ -623,41 +623,6 @@ const CitySuggestionsSection = () => {
   );
 };
 
-// Pending Cities Component
-const PendingCitiesSection = () => {
-  const [pendingCities, setPendingCities] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [approving, setApproving] = useState(null);
-  const [showApproveModal, setShowApproveModal] = useState(false);
-  const [selectedCity, setSelectedCity] = useState(null);
-  const [approvalForm, setApprovalForm] = useState({
-    deliveryCharge: '',
-    freeDeliveryThreshold: ''
-  });
-
-  React.useEffect(() => {
-    fetchPendingCities();
-  }, []);
-
-  const fetchPendingCities = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`${BACKEND_URL}/api/admin/pending-cities`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setPendingCities(response.data);
-    } catch (error) {
-      console.error('Failed to fetch pending cities:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load pending cities",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const openApprovalModal = (city) => {
     setSelectedCity(city);
     setApprovalForm({
