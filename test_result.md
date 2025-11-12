@@ -1739,6 +1739,42 @@ frontend:
         agent: "main"
         comment: "Added 'Profile' tab in admin panel. Two sections: 1) Profile Information - Update mobile and email fields with Update button, 2) Change Password - Email field with 'Send OTP' button, OTP input field (shows after sending), New Password and Confirm Password fields, 'Verify OTP & Change Password' button. Auto-logout after successful password change. Form validation for password match and minimum 6 characters."
 
+  - task: "Remove City Not Listed Button from Checkout"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/Checkout.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Removed 'City Not Listed? Click Here' button from checkout page. Replaced with a helpful informational note in blue-themed box with MapPin icon. Note directs users to visit homepage to request their city, explaining that the team will contact them to add it to delivery locations. Better UX with clear guidance without interactive button."
+
+  - task: "Remove Pending Cities Section from Admin Panel"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/Admin.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Removed entire 'Pending Cities from Orders' section from Cities & States tab in admin panel. Removed PendingCitiesSection component (lines 626-885) including all approval modal functionality. Cities & States tab now only shows City Suggestions section. Simplified admin interface as per user request."
+
+  - task: "Track Order - Multiple Orders Display"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/TrackOrder.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Completely redesigned Track Order page to display ALL orders when searching by phone/email. Features: 1) Shows order count badge (e.g., '1 of 3 orders') when multiple orders exist, 2) Each order displays in collapsible card format with expand/collapse functionality, 3) First order auto-expanded for easy viewing, 4) Includes ALL order statuses (confirmed, processing, shipped, delivered, cancelled), 5) Blue info banner shows total count: 'Found X orders for this account (including cancelled orders)', 6) Click order header to expand/collapse details, 7) Complete order information shown when expanded. Now customers can see their full order history including cancelled orders in one view."
+
 metadata:
   created_by: "main_agent"
   version: "2.0"
