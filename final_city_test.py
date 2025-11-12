@@ -9,7 +9,7 @@ import json
 import time
 from datetime import datetime
 
-BACKEND_URL = "https://order-tracking-11.preview.emergentagent.com/api"
+BACKEND_URL = "https://payment-email-test.preview.emergentagent.com/api"
 
 def admin_login():
     """Login as admin and get auth token"""
