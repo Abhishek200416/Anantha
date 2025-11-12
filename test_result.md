@@ -842,6 +842,18 @@ backend:
         agent: "testing"
         comment: "✅ CITY APPROVAL ADDS TO LOCATIONS - VERIFIED WORKING: Testing confirmed that when a city suggestion is approved with delivery settings, it is automatically added to the delivery locations. **APPROVAL PROCESS TESTED:** Kadapa was approved with delivery_charge=99 and free_delivery_threshold=1000 via PUT /api/admin/city-suggestions/{id}/status. Backend logs confirm 'City Kadapa, Andhra Pradesh added to locations with charge ₹99' - city successfully added to locations collection. **INTEGRATION VERIFIED:** The approval process correctly: 1) Updates suggestion status to 'approved', 2) Adds city to locations collection with specified delivery charge and free delivery threshold, 3) Triggers email notification to customer, 4) Logs successful addition for audit trail. **CONCLUSION:** City approval workflow is fully functional - approved cities are automatically added to delivery locations and become available for customer orders."
 
+  - task: "Cities Disappearing After City Approval Bug Fix"
+    implemented: false
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL BUG CONFIRMED: Cities Disappearing After City Approval. **ISSUE 2 TESTING RESULTS:** 1) **INITIAL STATE VERIFIED** ✅ - GET /api/locations returns exactly 431 cities (217 AP + 214 Telangana) as expected, Sample cities confirmed present: Guntur, Vijayawada, Visakhapatnam, Hyderabad, Tirupati, etc., 2) **CITY SUGGESTION CREATED** ✅ - POST /api/suggest-city successfully creates suggestion for TestCity, Andhra Pradesh with ID 98d7dcaf-f2b6-43be-b947-90cbd2940c3d, 3) **CITY APPROVAL PROCESS** ✅ - PUT /api/admin/city-suggestions/{id}/status with status='approved', delivery_charge=99, free_delivery_threshold=1000 returns HTTP 200 success, 4) **CRITICAL BUG CONFIRMED** ❌ - After approval, GET /api/locations returns ONLY 1 city (TestCity) instead of 432 cities (431 existing + 1 new), ALL 431 existing cities have disappeared from the database, City count went from 431 → 1 (should be 431 → 432). **ROOT CAUSE:** The city approval process is clearing/overwriting the entire locations collection instead of adding the new city to existing locations. **IMPACT:** This is a critical data loss bug that makes all existing delivery locations unavailable after any city approval. **NEEDS IMMEDIATE FIX:** The approval logic in server.py must be modified to ADD cities to locations collection, not replace the entire collection."
+
   - task: "Database Population with All AP & Telangana Cities"
     implemented: true
     working: true
