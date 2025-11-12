@@ -3626,59 +3626,52 @@ def test_track_order_api():
     return test_results
 
 def main():
-    """Main testing function focused on city suggestions approval flow"""
-    print("🚀 COMPREHENSIVE CITY SUGGESTIONS APPROVAL FLOW TESTING")
+    """Main testing function focused on Track Order API testing"""
+    print("🚀 TRACK ORDER API - MULTIPLE ORDERS SUPPORT TESTING")
     print("=" * 80)
     
     # Track overall results
     test_results = []
     
-    # Test 1: Admin Authentication
-    print("\n🔐 STEP 1: ADMIN AUTHENTICATION")
-    admin_success, admin_token = test_admin_authentication()
-    test_results.append(("Admin Authentication", admin_success))
-    
-    if not admin_success or not admin_token:
-        print("❌ CRITICAL: Cannot proceed without admin authentication")
-        return False
-    
-    # Test 2: City Suggestions Approval Flow (Main Test)
-    print("\n🏙️ STEP 2: CITY SUGGESTIONS APPROVAL FLOW")
-    approval_flow_results = test_city_suggestions_approval_flow(admin_token)
-    test_results.extend(approval_flow_results)
-    
-    # Calculate overall success rate
-    total_tests = len(test_results)
-    passed_tests = sum(1 for _, success in test_results if success)
-    success_rate = (passed_tests / total_tests) * 100 if total_tests > 0 else 0
-    
-    # Print final summary
-    print("\n" + "=" * 80)
-    print("📊 CITY SUGGESTIONS APPROVAL FLOW TEST RESULTS")
-    print("=" * 80)
-    
-    for test_name, success in test_results:
-        status = "✅ PASS" if success else "❌ FAIL"
-        print(f"{status}: {test_name}")
-    
-    print(f"\n📈 OVERALL SUCCESS RATE: {passed_tests}/{total_tests} ({success_rate:.1f}%)")
-    
-    # Specific analysis for the vanishing cities issue
-    critical_tests = [
-        "All Cities Visible After Approval",
-        "Mixed Status Cities Visible", 
-        "All Test Cities Still Visible",
-        "All Status Types Visible",
-        "Remaining Cities Visible After Deletion"
-    ]
-    
-    critical_passed = sum(1 for test_name, success in test_results 
-                         if test_name in critical_tests and success)
-    critical_total = len([t for t, _ in test_results if t in critical_tests])
-    
-    print(f"\n🎯 CRITICAL VANISHING CITIES TESTS: {critical_passed}/{critical_total}")
-    
-    if critical_passed == critical_total:
+    try:
+        # Test 1: Track Order API - Multiple Orders Support (MAIN TEST)
+        print("\n📋 TESTING TRACK ORDER API - MULTIPLE ORDERS SUPPORT")
+        track_order_results = test_track_order_api()
+        test_results.extend(track_order_results)
+        
+        # Calculate overall success rate
+        total_tests = len(test_results)
+        passed_tests = sum(1 for _, success in test_results if success)
+        success_rate = (passed_tests / total_tests) * 100 if total_tests > 0 else 0
+        
+        # Print final summary
+        print("\n" + "=" * 80)
+        print("📊 TRACK ORDER API TEST RESULTS")
+        print("=" * 80)
+        
+        for test_name, success in test_results:
+            status = "✅ PASS" if success else "❌ FAIL"
+            print(f"{status}: {test_name}")
+        
+        print(f"\n📈 OVERALL SUCCESS RATE: {passed_tests}/{total_tests} ({success_rate:.1f}%)")
+        
+        # Analyze critical Track Order API functionality
+        critical_tests = [
+            "Search by Order ID",
+            "Search by Tracking Code", 
+            "Search by Phone Number",
+            "Search by Email",
+            "Order Not Found",
+            "Cancelled Orders Included"
+        ]
+        
+        critical_passed = sum(1 for test_name, success in test_results 
+                             if test_name in critical_tests and success)
+        critical_total = len([t for t, _ in test_results if t in critical_tests])
+        
+        print(f"\n🎯 CRITICAL TRACK ORDER API TESTS: {critical_passed}/{critical_total}")
+        
+        if critical_passed == critical_total:
         print("🎉 EXCELLENT: The vanishing cities bug appears to be FIXED!")
         print("   ✅ All cities remain visible after approval/rejection/deletion")
         print("   ✅ Backend API correctly returns all cities with 'all' filter")
