@@ -2770,19 +2770,6 @@ const Admin = () => {
                 </div>
                 <CitySuggestionsSection />
               </div>
-
-              {/* Pending Cities Section */}
-              <div className="border-t pt-8 mt-8">
-                <div className="flex justify-between items-center mb-6">
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-800">⏳ Pending Cities from Orders</h2>
-                    <p className="text-sm text-gray-600 mt-1">
-                      Cities entered by customers as "Others" during checkout - Review and approve to add to delivery list
-                    </p>
-                  </div>
-                </div>
-                <PendingCitiesSection />
-              </div>
             </div>
           )}
 
