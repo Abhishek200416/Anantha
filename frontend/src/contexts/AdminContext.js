@@ -386,6 +386,7 @@ export const AdminProvider = ({ children }) => {
       updateProduct,
       deleteProduct,
       deliveryLocations,
+      fetchDeliveryLocations,
       updateDeliveryLocation,
       deleteDeliveryLocation,
       states,
