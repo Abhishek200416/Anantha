@@ -496,6 +496,173 @@ const TrackOrder = () => {
         onConfirm={handleCancelOrder}
         orderDetails={order}
       />
+
+      {/* Payment Method Selection Modal */}
+      {showPaymentModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">Complete Payment</h2>
+              <p className="text-gray-600 mb-6">Select your payment method to complete the order</p>
+              
+              {/* Check if order is from Guntur for COD option */}
+              {(() => {
+                const isGuntur = order?.city === 'Guntur' && order?.state === 'Andhra Pradesh';
+                
+                return (
+                  <div className="space-y-4">
+                    {/* COD - Only for Guntur */}
+                    {isGuntur && (
+                      <div className="mb-4">
+                        <label className="flex items-center space-x-3 cursor-pointer p-4 border-2 rounded-lg hover:bg-gray-50 transition-all">
+                          <input
+                            type="radio"
+                            name="paymentMethod"
+                            value="cod"
+                            checked={paymentMethod === 'cod'}
+                            onChange={(e) => {
+                              setPaymentMethod(e.target.value);
+                              setPaymentSubMethod(''); // Clear sub-method for COD
+                            }}
+                            className="w-5 h-5 text-orange-600"
+                          />
+                          <div className="flex items-center space-x-3">
+                            <Truck className="h-6 w-6 text-green-600" />
+                            <span className="font-semibold text-lg">Cash on Delivery (COD)</span>
+                          </div>
+                        </label>
+                        {paymentMethod === 'cod' && (
+                          <div className="mt-2 ml-8 p-3 bg-green-50 border border-green-200 rounded-lg">
+                            <p className="text-sm text-green-700">
+                              💵 Pay with cash when your order is delivered.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
+                    {/* Online Payment */}
+                    <div className="mb-4">
+                      <label className="flex items-center space-x-3 cursor-pointer p-4 border-2 rounded-lg hover:bg-gray-50 transition-all">
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          value="online"
+                          checked={paymentMethod === 'online'}
+                          onChange={(e) => {
+                            setPaymentMethod(e.target.value);
+                            setPaymentSubMethod(''); // Clear sub-method when changing method
+                          }}
+                          className="w-5 h-5 text-orange-600"
+                        />
+                        <div className="flex items-center space-x-3">
+                          <CreditCard className="h-6 w-6 text-blue-600" />
+                          <span className="font-semibold text-lg">Online Payment (UPI)</span>
+                        </div>
+                      </label>
+                      {paymentMethod === 'online' && (
+                        <div className="mt-3 ml-8 p-4 bg-white border border-gray-200 rounded-lg">
+                          <p className="text-sm text-gray-600 mb-3 font-medium">Select UPI Payment Option:</p>
+                          <div className="grid grid-cols-2 gap-3">
+                            {['Paytm', 'PhonePe', 'Google Pay', 'BHIM UPI'].map((app) => (
+                              <label 
+                                key={app}
+                                className={`flex items-center space-x-2 p-3 border rounded-lg cursor-pointer transition-all ${
+                                  paymentSubMethod === app 
+                                    ? 'border-orange-500 bg-orange-50' 
+                                    : 'border-gray-200 hover:border-orange-300'
+                                }`}
+                              >
+                                <input
+                                  type="radio"
+                                  name="paymentSubMethod"
+                                  value={app}
+                                  checked={paymentSubMethod === app}
+                                  onChange={(e) => setPaymentSubMethod(e.target.value)}
+                                  className="w-4 h-4 text-orange-600"
+                                />
+                                <span className="text-sm font-medium">{app}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Card Payment */}
+                    <div>
+                      <label className="flex items-center space-x-3 cursor-pointer p-4 border-2 rounded-lg hover:bg-gray-50 transition-all">
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          value="card"
+                          checked={paymentMethod === 'card'}
+                          onChange={(e) => {
+                            setPaymentMethod(e.target.value);
+                            setPaymentSubMethod(''); // Clear sub-method when changing method
+                          }}
+                          className="w-5 h-5 text-orange-600"
+                        />
+                        <div className="flex items-center space-x-3">
+                          <CreditCard className="h-6 w-6 text-purple-600" />
+                          <span className="font-semibold text-lg">Card Payment</span>
+                        </div>
+                      </label>
+                      {paymentMethod === 'card' && (
+                        <div className="mt-3 ml-8 p-4 bg-white border border-gray-200 rounded-lg">
+                          <p className="text-sm text-gray-600 mb-3 font-medium">Select Card Type:</p>
+                          <div className="flex space-x-4">
+                            {['Debit Card', 'Credit Card'].map((cardType) => (
+                              <label 
+                                key={cardType}
+                                className={`flex items-center space-x-2 p-3 border rounded-lg cursor-pointer transition-all ${
+                                  paymentSubMethod === cardType 
+                                    ? 'border-orange-500 bg-orange-50' 
+                                    : 'border-gray-200 hover:border-orange-300'
+                                }`}
+                              >
+                                <input
+                                  type="radio"
+                                  name="paymentSubMethod"
+                                  value={cardType}
+                                  checked={paymentSubMethod === cardType}
+                                  onChange={(e) => setPaymentSubMethod(e.target.value)}
+                                  className="w-4 h-4 text-orange-600"
+                                />
+                                <span className="text-sm font-medium">{cardType}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
+              
+              {/* Action Buttons */}
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => {
+                    setShowPaymentModal(false);
+                    setPaymentMethod('online');
+                    setPaymentSubMethod('');
+                  }}
+                  className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCompletePayment}
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg font-semibold hover:from-green-600 hover:to-green-700 transition-all"
+                >
+                  Complete Payment
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
