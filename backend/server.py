@@ -911,11 +911,17 @@ async def create_order(order_data: OrderCreate, current_user: dict = Depends(get
         
         # Detect if this is a custom city request (city not in our delivery locations)
         custom_city_request = False
-        if not is_custom_location and order_data.city:
-            city_exists = await db.locations.find_one({"name": order_data.city})
+        if not is_custom_location and order_data.city and order_data.state:
+            # Check if city exists by matching both city name AND state
+            city_exists = await db.locations.find_one({
+                "name": order_data.city,
+                "state": order_data.state
+            })
             if not city_exists:
                 custom_city_request = True
                 print(f"🆕 CUSTOM CITY REQUEST: {order_data.city}, {order_data.state} - Awaiting approval")
+            else:
+                print(f"✅ EXISTING CITY CONFIRMED: {order_data.city}, {order_data.state}")
         
         # SERVER-SIDE DELIVERY CHARGE CALCULATION
         # For custom locations or custom city requests, delivery charge is 0 initially
