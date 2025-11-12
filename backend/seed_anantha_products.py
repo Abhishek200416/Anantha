@@ -12,8 +12,9 @@ load_dotenv()
 
 # MongoDB connection
 MONGO_URL = os.environ.get("MONGO_URL", "mongodb://localhost:27017")
+DB_NAME = os.environ.get("DB_NAME", "anantha_lakshmi_db")
 client = AsyncIOMotorClient(MONGO_URL)
-db = client.anantha_lakshmi
+db = client[DB_NAME]
 
 # All products with authentic names and prices from handwritten list
 PRODUCTS = [
