@@ -968,9 +968,10 @@ async def create_order(order_data: OrderCreate, current_user: dict = Depends(get
         # Calculate correct total
         calculated_total = order_data.subtotal + calculated_delivery_charge
         
-        # Determine payment status based on whether it's a custom city request
-        payment_status = "pending" if custom_city_request else "completed"
-        order_status = "pending" if custom_city_request else "confirmed"
+        # Determine payment status and order status
+        # For custom city requests or online payments, status is pending until verified
+        payment_status = "pending"
+        order_status = "pending" if custom_city_request else "pending"  # All orders start as pending until payment verified
         
         # Create order with SERVER-CALCULATED values
         order = {
