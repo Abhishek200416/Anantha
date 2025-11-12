@@ -275,6 +275,18 @@ backend:
         agent: "testing"
         comment: "✅ ORDER ANALYTICS API WORKING PERFECTLY. Tested: 1) GET /api/orders/analytics/summary with admin authentication - Successfully returns comprehensive analytics data including total_orders (1), total_sales (349.0), active_orders (1), cancelled_orders (0), completed_orders (0), monthly_sales and monthly_orders breakdown, top_products list with proper counts, 2) Authentication verification - Correctly returns 401 when no authentication provided, 3) Data accuracy - Analytics properly reflects created test order and calculates correct totals. Admin analytics endpoint is production-ready and provides valuable business insights."
 
+  - task: "Track Order API - Multiple Orders Support"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Enhanced GET /api/orders/track/{identifier} endpoint to return ALL orders when searching by phone/email. Now returns {orders: [], total: count} format. When searching by order_id or tracking_code, returns single order in array. When searching by phone or email, returns all orders for that customer sorted by newest first, including cancelled orders. This allows customers to see their complete order history."
+
 frontend:
   - task: "Home Page with Product Catalog"
     implemented: true
