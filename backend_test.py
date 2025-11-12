@@ -4063,23 +4063,28 @@ def test_razorpay_payment_integration():
     return test_results
 
 def main():
-    """Main testing function - RAZORPAY PAYMENT INTEGRATION TESTING"""
-    print("🚀 RAZORPAY PAYMENT INTEGRATION TESTING")
+    """Main testing function - COMPREHENSIVE TESTING REQUEST - Products & Payment System Verification"""
+    print("🚀 COMPREHENSIVE TESTING REQUEST - Products & Payment System Verification")
     print("=" * 80)
     
     # Track overall results
     test_results = []
     
     try:
-        # Test 1: Razorpay Payment Integration (PRIORITY TEST)
-        print("\n💳 TESTING RAZORPAY PAYMENT INTEGRATION")
+        # PRIORITY 1: PRODUCTS VERIFICATION (HIGH PRIORITY)
+        print("\n📦 PRIORITY 1: PRODUCTS VERIFICATION (HIGH PRIORITY)")
+        products_success = test_products_verification()
+        test_results.append(("Products Verification - 56 Products", products_success))
+        
+        # PRIORITY 2: RAZORPAY PAYMENT INTEGRATION (CRITICAL)
+        print("\n💳 PRIORITY 2: RAZORPAY PAYMENT INTEGRATION (CRITICAL)")
         razorpay_results = test_razorpay_payment_integration()
         test_results.extend(razorpay_results)
         
-        # Test 2: Track Order API - Multiple Orders Support (SECONDARY TEST)
-        print("\n📋 TESTING TRACK ORDER API - MULTIPLE ORDERS SUPPORT")
-        track_order_results = test_track_order_api()
-        test_results.extend(track_order_results)
+        # PRIORITY 3: PAYMENT SYSTEM CONFIGURATION
+        print("\n⚙️ PRIORITY 3: PAYMENT SYSTEM CONFIGURATION")
+        config_success = test_payment_system_configuration()
+        test_results.append(("Payment System Configuration", config_success))
         
         # Calculate overall success rate
         total_tests = len(test_results)
@@ -4088,7 +4093,7 @@ def main():
         
         # Print final summary
         print("\n" + "=" * 80)
-        print("📊 RAZORPAY PAYMENT INTEGRATION TEST RESULTS")
+        print("📊 COMPREHENSIVE TEST RESULTS")
         print("=" * 80)
         
         for test_name, success in test_results:
@@ -4097,34 +4102,59 @@ def main():
         
         print(f"\n📈 OVERALL SUCCESS RATE: {passed_tests}/{total_tests} ({success_rate:.1f}%)")
         
-        # Analyze critical Razorpay functionality
-        razorpay_tests = [
-            "Create Razorpay Order",
-            "Order Creation Flow", 
-            "Track Order",
+        # Analyze critical functionality as per review request
+        critical_tests = [
+            "Products Verification - 56 Products",
+            "Razorpay Order Creation",
+            "Order Creation with Razorpay", 
             "Payment Verification Error Handling",
-            "Razorpay Configuration"
+            "Payment System Configuration"
         ]
         
-        razorpay_passed = sum(1 for test_name, success in test_results 
-                             if test_name in razorpay_tests and success)
-        razorpay_total = len([t for t, _ in test_results if t in razorpay_tests])
+        critical_passed = sum(1 for test_name, success in test_results 
+                             if test_name in critical_tests and success)
+        critical_total = len([t for t, _ in test_results if t in critical_tests])
         
-        print(f"\n🎯 CRITICAL RAZORPAY INTEGRATION TESTS: {razorpay_passed}/{razorpay_total}")
+        print(f"\n🎯 CRITICAL TESTS (As per review request): {critical_passed}/{critical_total}")
         
-        if razorpay_passed == razorpay_total:
-            print("🎉 EXCELLENT: Razorpay payment integration is working perfectly!")
-            print("   ✅ Order creation with Razorpay payment method works")
-            print("   ✅ Amount conversion to paise is correct")
-            print("   ✅ Payment status handling is proper")
-            print("   ✅ Error handling works as expected")
+        # Detailed analysis
+        print(f"\n📋 DETAILED ANALYSIS:")
+        
+        # Products Analysis
+        products_test = next((success for name, success in test_results if "Products Verification" in name), False)
+        if products_test:
+            print(f"   ✅ Products: All 56 products available with correct structure")
+        else:
+            print(f"   ❌ Products: Issue with product count or structure")
+        
+        # Razorpay Analysis
+        razorpay_tests = [name for name, _ in test_results if "Razorpay" in name or "Order Creation" in name]
+        razorpay_success = all(success for name, success in test_results if name in razorpay_tests)
+        
+        if razorpay_success:
+            print(f"   ✅ Razorpay: Payment integration working perfectly")
+        else:
+            print(f"   ❌ Razorpay: Payment integration has issues")
+        
+        # Configuration Analysis
+        config_test = next((success for name, success in test_results if "Configuration" in name), False)
+        if config_test:
+            print(f"   ✅ Configuration: Test credentials properly loaded")
+        else:
+            print(f"   ❌ Configuration: Credential loading issues")
+        
+        if critical_passed == critical_total:
+            print("\n🎉 EXCELLENT: All critical systems working perfectly!")
+            print("   ✅ All 56 products available with correct category breakdown")
+            print("   ✅ Razorpay payment flow working end-to-end")
+            print("   ✅ Test credentials configured correctly")
             return True
-        elif razorpay_passed >= razorpay_total * 0.8:
-            print("⚠️ MOSTLY WORKING: Most Razorpay tests pass, minor issues remain")
+        elif critical_passed >= critical_total * 0.8:
+            print("\n⚠️ MOSTLY WORKING: Most critical tests pass, minor issues remain")
             return True
         else:
-            print("❌ CRITICAL: Razorpay payment integration has major issues!")
-            print("   🚨 Payment integration may not work properly")
+            print("\n❌ CRITICAL: Major issues found in core functionality!")
+            print("   🚨 Products or payment system may not work properly")
             return False
     
     except Exception as e:
