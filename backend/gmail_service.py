@@ -405,6 +405,8 @@ async def send_city_rejection_email(to_email: str, city_data: dict, has_payment:
 async def send_order_cancellation_email(to_email: str, order_data: dict, cancellation_fee: float = 20.0):
     """Send email notification when an order is cancelled"""
     try:
+        GMAIL_EMAIL, GMAIL_APP_PASSWORD = get_gmail_credentials()
+        
         if not GMAIL_EMAIL or not GMAIL_APP_PASSWORD:
             logger.warning("Gmail credentials not configured. Email not sent.")
             return False
