@@ -701,9 +701,10 @@ const PendingCitiesSection = () => {
         description: `${selectedCity.city_name} has been added to delivery locations with ₹${approvalForm.deliveryCharge} charge`
       });
 
-      // Close modal and refresh
+      // Close modal and refresh both pending cities and delivery locations
       closeApprovalModal();
       fetchPendingCities();
+      fetchDeliveryLocations(); // CRITICAL FIX: Refresh all cities list to show existing + newly approved
     } catch (error) {
       console.error('Failed to approve city:', error);
       toast({
