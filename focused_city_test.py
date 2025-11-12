@@ -9,7 +9,7 @@ import json
 import time
 from datetime import datetime
 
-BACKEND_URL = "https://vanishing-cities-fix.preview.emergentagent.com/api"
+BACKEND_URL = "https://city-approval-fix.preview.emergentagent.com/api"
 
 def admin_login():
     """Login as admin and get auth token"""

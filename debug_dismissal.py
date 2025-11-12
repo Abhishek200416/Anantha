@@ -7,7 +7,7 @@ import requests
 import json
 from datetime import datetime, timezone, timedelta
 
-BACKEND_URL = "https://vanishing-cities-fix.preview.emergentagent.com/api"
+BACKEND_URL = "https://city-approval-fix.preview.emergentagent.com/api"
 
 def debug_dismissal():
     # Login
