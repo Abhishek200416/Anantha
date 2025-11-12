@@ -3625,6 +3625,230 @@ def test_track_order_api():
     
     return test_results
 
+def test_razorpay_payment_integration():
+    """Test Razorpay payment integration APIs as requested in review"""
+    print("\n" + "="*80)
+    print("💳 TESTING RAZORPAY PAYMENT INTEGRATION")
+    print("="*80)
+    
+    test_results = []
+    
+    # Test 1: Create Razorpay Order API
+    print("\n--- Test 1: Create Razorpay Order API ---")
+    razorpay_order_data = {
+        "amount": 500,
+        "currency": "INR", 
+        "receipt": "test_order_123"
+    }
+    
+    success, response_data = test_api_endpoint(
+        "POST",
+        "/payment/create-razorpay-order",
+        data=razorpay_order_data,
+        description="Create Razorpay order for ₹500"
+    )
+    
+    if success and response_data:
+        # Verify response structure
+        required_fields = ["razorpay_order_id", "amount", "currency", "key_id"]
+        missing_fields = [field for field in required_fields if field not in response_data]
+        
+        if not missing_fields:
+            # Verify amount conversion to paise
+            expected_amount_paise = 500 * 100  # 50000 paise
+            actual_amount = response_data.get("amount")
+            
+            if actual_amount == expected_amount_paise:
+                print(f"✅ SUCCESS: Amount correctly converted to paise (₹500 = {actual_amount} paise)")
+                print(f"   - Razorpay Order ID: {response_data.get('razorpay_order_id')}")
+                print(f"   - Currency: {response_data.get('currency')}")
+                print(f"   - Key ID: {response_data.get('key_id')}")
+                test_results.append(("Create Razorpay Order", True))
+            else:
+                print(f"❌ FAILED: Amount conversion incorrect. Expected {expected_amount_paise}, got {actual_amount}")
+                test_results.append(("Create Razorpay Order", False))
+        else:
+            print(f"❌ FAILED: Missing required fields: {missing_fields}")
+            test_results.append(("Create Razorpay Order", False))
+    else:
+        print(f"❌ FAILED: Razorpay order creation failed")
+        test_results.append(("Create Razorpay Order", False))
+    
+    # Test 2: Order Creation Flow with Guest Checkout
+    print("\n--- Test 2: Order Creation Flow (Guest Checkout) ---")
+    order_data = {
+        "user_id": "guest",
+        "customer_name": "Rajesh Kumar",
+        "email": "rajesh.kumar@example.com",
+        "phone": "9876543210",
+        "address": "Complete Address",
+        "doorNo": "123",
+        "building": "Sai Residency",
+        "street": "MG Road",
+        "city": "Guntur",
+        "state": "Andhra Pradesh",
+        "pincode": "522001",
+        "location": "Guntur",
+        "items": [
+            {
+                "product_id": "1",
+                "name": "Immunity Dry Fruits Laddu",
+                "image": "test.jpg",
+                "weight": "1 kg",
+                "price": 300,
+                "quantity": 1,
+                "description": "Healthy immunity boosting laddu with dry fruits"
+            }
+        ],
+        "subtotal": 300,
+        "delivery_charge": 49,
+        "total": 349,
+        "payment_method": "razorpay",
+        "payment_sub_method": "upi"
+    }
+    
+    success, order_response = test_api_endpoint(
+        "POST",
+        "/orders",
+        data=order_data,
+        description="Create order with Razorpay payment method"
+    )
+    
+    created_order_id = None
+    if success and order_response:
+        # Verify order creation response
+        required_fields = ["order_id", "tracking_code", "message"]
+        missing_fields = [field for field in required_fields if field not in order_response]
+        
+        if not missing_fields:
+            created_order_id = order_response.get("order_id")
+            tracking_code = order_response.get("tracking_code")
+            
+            # Verify payment status is pending (no email sent until payment verified)
+            if "order" in order_response:
+                order_details = order_response["order"]
+                payment_status = order_details.get("payment_status")
+                order_status = order_details.get("order_status")
+                
+                if payment_status == "pending" and order_status == "pending":
+                    print(f"✅ SUCCESS: Order created with pending status (no confirmation email sent)")
+                    print(f"   - Order ID: {created_order_id}")
+                    print(f"   - Tracking Code: {tracking_code}")
+                    print(f"   - Payment Status: {payment_status}")
+                    print(f"   - Order Status: {order_status}")
+                    test_results.append(("Order Creation Flow", True))
+                else:
+                    print(f"❌ FAILED: Incorrect order status. Payment: {payment_status}, Order: {order_status}")
+                    test_results.append(("Order Creation Flow", False))
+            else:
+                print(f"✅ SUCCESS: Order created successfully")
+                print(f"   - Order ID: {created_order_id}")
+                print(f"   - Tracking Code: {tracking_code}")
+                test_results.append(("Order Creation Flow", True))
+        else:
+            print(f"❌ FAILED: Missing required fields in order response: {missing_fields}")
+            test_results.append(("Order Creation Flow", False))
+    else:
+        print(f"❌ FAILED: Order creation failed")
+        test_results.append(("Order Creation Flow", False))
+    
+    # Test 3: Track Order API
+    print("\n--- Test 3: Track Order API ---")
+    if created_order_id:
+        success, track_response = test_api_endpoint(
+            "GET",
+            f"/orders/track/{created_order_id}",
+            description=f"Track order by order ID: {created_order_id}"
+        )
+        
+        if success and track_response:
+            # Verify tracking response structure
+            if "orders" in track_response and "total" in track_response:
+                orders = track_response.get("orders", [])
+                total = track_response.get("total", 0)
+                
+                if len(orders) == 1 and total == 1:
+                    tracked_order = orders[0]
+                    if tracked_order.get("order_id") == created_order_id:
+                        print(f"✅ SUCCESS: Order tracking working correctly")
+                        print(f"   - Found order: {tracked_order.get('order_id')}")
+                        print(f"   - Customer: {tracked_order.get('customer_name')}")
+                        print(f"   - Status: {tracked_order.get('order_status')}")
+                        print(f"   - Payment Status: {tracked_order.get('payment_status')}")
+                        test_results.append(("Track Order", True))
+                    else:
+                        print(f"❌ FAILED: Wrong order returned")
+                        test_results.append(("Track Order", False))
+                else:
+                    print(f"❌ FAILED: Incorrect tracking response structure")
+                    test_results.append(("Track Order", False))
+            else:
+                print(f"❌ FAILED: Invalid tracking response format")
+                test_results.append(("Track Order", False))
+        else:
+            print(f"❌ FAILED: Order tracking failed")
+            test_results.append(("Track Order", False))
+    else:
+        print(f"⚠️  SKIPPED: No order ID available for tracking test")
+        test_results.append(("Track Order", False))
+    
+    # Test 4: Payment Verification API (Basic Error Check)
+    print("\n--- Test 4: Payment Verification API (Error Handling) ---")
+    # Test with empty body to verify proper error handling
+    success, verify_response = test_api_endpoint(
+        "POST",
+        "/payment/verify-razorpay-payment",
+        data={},
+        description="Test payment verification with missing fields (should return 400)",
+        expected_status=400
+    )
+    
+    if success and verify_response:
+        # Check if proper error message is returned
+        detail = verify_response.get("detail", "")
+        if "Missing required payment verification fields" in detail:
+            print(f"✅ SUCCESS: Payment verification properly handles missing fields")
+            print(f"   - Error message: {detail}")
+            test_results.append(("Payment Verification Error Handling", True))
+        else:
+            print(f"❌ FAILED: Unexpected error message: {detail}")
+            test_results.append(("Payment Verification Error Handling", False))
+    else:
+        print(f"❌ FAILED: Payment verification error handling failed")
+        test_results.append(("Payment Verification Error Handling", False))
+    
+    # Test 5: Verify Razorpay credentials are configured
+    print("\n--- Test 5: Verify Razorpay Configuration ---")
+    # Test another Razorpay order creation to verify credentials
+    test_order_data = {
+        "amount": 100,
+        "currency": "INR",
+        "receipt": "config_test_456"
+    }
+    
+    success, config_response = test_api_endpoint(
+        "POST",
+        "/payment/create-razorpay-order",
+        data=test_order_data,
+        description="Verify Razorpay credentials are working"
+    )
+    
+    if success and config_response:
+        key_id = config_response.get("key_id", "")
+        if key_id.startswith("rzp_test_"):
+            print(f"✅ SUCCESS: Razorpay test credentials configured correctly")
+            print(f"   - Key ID: {key_id}")
+            print(f"   - Test mode confirmed (rzp_test_ prefix)")
+            test_results.append(("Razorpay Configuration", True))
+        else:
+            print(f"❌ FAILED: Unexpected key ID format: {key_id}")
+            test_results.append(("Razorpay Configuration", False))
+    else:
+        print(f"❌ FAILED: Razorpay configuration test failed")
+        test_results.append(("Razorpay Configuration", False))
+    
+    return test_results
+
 def main():
     """Main testing function focused on Track Order API testing"""
     print("🚀 TRACK ORDER API - MULTIPLE ORDERS SUPPORT TESTING")
