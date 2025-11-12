@@ -234,6 +234,83 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-red-50">
+      {/* Custom Location Notification */}
+      {locationNotification && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 animate-slide-down">
+          <div className={`
+            flex items-start space-x-3 p-4 rounded-xl shadow-2xl backdrop-blur-sm border-2
+            ${locationNotification.type === 'success' 
+              ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-300' 
+              : locationNotification.type === 'warning'
+              ? 'bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-300'
+              : 'bg-gradient-to-r from-red-50 to-pink-50 border-red-300'
+            }
+            max-w-md mx-4 min-w-[300px] sm:min-w-[400px]
+          `}>
+            {/* Icon */}
+            <div className={`
+              flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center
+              ${locationNotification.type === 'success'
+                ? 'bg-green-500'
+                : locationNotification.type === 'warning'
+                ? 'bg-yellow-500'
+                : 'bg-red-500'
+              }
+            `}>
+              {locationNotification.type === 'success' ? (
+                <MapPin className="w-5 h-5 text-white" />
+              ) : (
+                <span className="text-white text-xl">⚠️</span>
+              )}
+            </div>
+            
+            {/* Content */}
+            <div className="flex-1">
+              <div className={`
+                font-semibold text-sm
+                ${locationNotification.type === 'success'
+                  ? 'text-green-900'
+                  : locationNotification.type === 'warning'
+                  ? 'text-yellow-900'
+                  : 'text-red-900'
+                }
+              `}>
+                {locationNotification.city && locationNotification.type === 'success' && (
+                  <span className="text-lg">📍 {locationNotification.city}</span>
+                )}
+              </div>
+              <p className={`
+                text-sm mt-1
+                ${locationNotification.type === 'success'
+                  ? 'text-green-700'
+                  : locationNotification.type === 'warning'
+                  ? 'text-yellow-700'
+                  : 'text-red-700'
+                }
+              `}>
+                {locationNotification.message}
+              </p>
+            </div>
+            
+            {/* Close button */}
+            <button
+              onClick={() => setLocationNotification(null)}
+              className={`
+                flex-shrink-0 p-1 rounded-lg hover:bg-white/50 transition-colors
+                ${locationNotification.type === 'success'
+                  ? 'text-green-600'
+                  : locationNotification.type === 'warning'
+                  ? 'text-yellow-600'
+                  : 'text-red-600'
+                }
+              `}
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Hero Section */}
       <section className="relative py-8 md:py-20 px-4 overflow-hidden">
         <div className="container mx-auto text-center">
