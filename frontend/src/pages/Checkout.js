@@ -680,6 +680,25 @@ const Checkout = () => {
       return;
     }
 
+    // CRITICAL: Verify that selected city exists in delivery locations
+    // Checkout is ONLY for ordering existing cities, NOT for city requests
+    if (!showCustomCityInput && formData.city && formData.state) {
+      const cityExists = deliveryLocations.find(loc => 
+        loc.name.toLowerCase() === formData.city.toLowerCase() && 
+        loc.state === formData.state
+      );
+      
+      if (!cityExists) {
+        toast({
+          title: "City Not Available",
+          description: `We don't currently deliver to ${formData.city}, ${formData.state}. Please select a city from the dropdown list. If you'd like to request delivery to your city, please visit our homepage.`,
+          variant: "destructive",
+          duration: 8000
+        });
+        return;
+      }
+    }
+
     // Check if all products are available for delivery to the selected city
     const unavailableProducts = [];
     for (const item of cart) {
