@@ -288,7 +288,7 @@ const TrackOrder = () => {
                     </div>
                     {canCompletePayment(order) && (
                       <button
-                        onClick={handleCompletePayment}
+                        onClick={() => setShowPaymentModal(true)}
                         className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg transition-all font-medium shadow-md text-sm whitespace-nowrap"
                       >
                         <CreditCard className="h-4 w-4" />
