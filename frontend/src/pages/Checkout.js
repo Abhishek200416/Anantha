@@ -692,6 +692,7 @@ const Checkout = () => {
 
     const fullAddress = `${formData.doorNo}, ${formData.building}, ${formData.street}, ${formData.city}, ${formData.state} - ${formData.pincode}`;
     const finalDeliveryCharge = calculateDeliveryCharge();
+    const orderTotal = getCartTotal() + finalDeliveryCharge;
 
     const orderData = {
       user_id: user?.id || 'guest',
@@ -717,9 +718,9 @@ const Checkout = () => {
       })),
       subtotal: getCartTotal(),
       delivery_charge: finalDeliveryCharge,
-      total: getCartTotal() + finalDeliveryCharge,
-      payment_method: formData.paymentMethod,
-      payment_sub_method: formData.paymentSubMethod,
+      total: orderTotal,
+      payment_method: 'razorpay',
+      payment_sub_method: 'upi',
       is_custom_location: showCustomCityInput,
       custom_city: showCustomCityInput ? customCity : null,
       custom_state: showCustomCityInput ? (customCityState || formData.state) : null,
@@ -727,30 +728,94 @@ const Checkout = () => {
     };
 
     try {
+      // Step 1: Create order in database
       const token = localStorage.getItem('token');
-      const response = await axios.post(`${API}/orders`, orderData, {
+      const orderResponse = await axios.post(`${API}/orders`, orderData, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      const result = response.data;
-      clearCart();
+      const orderResult = orderResponse.data;
+      const orderId = orderResult.order_id;
 
-      // Check if this is a custom city request
-      if (result.custom_city_request) {
+      // Check if this is a custom city request (no payment needed yet)
+      if (orderResult.custom_city_request) {
+        clearCart();
         toast({
           title: "Order Created - Awaiting City Approval",
-          description: `Order ID: ${result.order_id}\n\nYour city is being reviewed for delivery. You'll receive an email notification within 10-15 minutes.\n\nYou can track your order using your mobile number: ${formData.phone}\n\nPayment can be completed after city approval.`,
+          description: `Order ID: ${orderId}\n\nYour city is being reviewed for delivery. You'll receive an email notification within 10-15 minutes.\n\nYou can track your order using your mobile number: ${formData.phone}\n\nPayment can be completed after city approval.`,
           duration: 10000
         });
-      } else {
-        toast({
-          title: "Order Placed Successfully!",
-          description: `Order ID: ${result.order_id}\n\nCheck your email for order confirmation and tracking code.`,
-          duration: 6000
-        });
+        navigate('/order-success', { state: { orderData: orderResult } });
+        return;
       }
 
-      navigate('/order-success', { state: { orderData: result } });
+      // Step 2: Create Razorpay order
+      const razorpayOrderResponse = await axios.post(`${API}/payment/create-razorpay-order`, {
+        amount: orderTotal,
+        currency: 'INR',
+        receipt: orderId
+      });
+
+      const { razorpay_order_id, key_id } = razorpayOrderResponse.data;
+
+      // Step 3: Open Razorpay checkout
+      const options = {
+        key: key_id,
+        amount: orderTotal * 100, // Amount in paise
+        currency: 'INR',
+        name: 'Anantha Home Foods',
+        description: `Order ${orderId}`,
+        order_id: razorpay_order_id,
+        prefill: {
+          name: formData.name,
+          email: formData.email,
+          contact: formData.phone
+        },
+        theme: {
+          color: '#ea580c'
+        },
+        handler: async function (response) {
+          // Payment successful, verify on backend
+          try {
+            await axios.post(`${API}/payment/verify-razorpay-payment`, {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              order_id: orderId
+            });
+
+            clearCart();
+            toast({
+              title: "Payment Successful!",
+              description: `Order ID: ${orderId}\n\nYour order has been confirmed. Check your email for details.`,
+              duration: 6000
+            });
+            navigate('/order-success', { state: { orderData: orderResult } });
+          } catch (verifyError) {
+            console.error('Payment verification error:', verifyError);
+            toast({
+              title: "Payment Verification Failed",
+              description: "Your payment was received but verification failed. Please contact support with your Order ID: " + orderId,
+              variant: "destructive",
+              duration: 8000
+            });
+          }
+        },
+        modal: {
+          ondismiss: function() {
+            toast({
+              title: "Payment Cancelled",
+              description: "You cancelled the payment. Your order is saved and you can complete payment later from Track Order page.",
+              variant: "default",
+              duration: 6000
+            });
+          }
+        }
+      };
+
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
+
     } catch (error) {
       console.error('Order error:', error);
       const errorMsg = error.response?.data?.detail || 
