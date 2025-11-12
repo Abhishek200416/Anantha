@@ -914,6 +914,31 @@ backend:
         agent: "main"
         comment: "🐛 CRITICAL BUG FIX - CITIES DISAPPEARING AFTER APPROVAL: USER REPORTED ISSUE: After approving a city and refreshing the page, only the newly approved city shows up, all 431 existing cities disappear from the Cities & States tab in admin panel. ROOT CAUSE IDENTIFIED: In Admin.js line 706, after approving a city via handleApproveCity(), only fetchPendingCities() was called but NOT fetchDeliveryLocations(). This meant the deliveryLocations state was never refreshed to include the newly approved city along with existing cities. FIXES IMPLEMENTED: 1) EXPORTED fetchDeliveryLocations FROM AdminContext (/app/frontend/src/contexts/AdminContext.js line 389) - Added fetchDeliveryLocations to the context provider value so it can be called from Admin.js. 2) IMPORTED fetchDeliveryLocations IN ADMIN.JS (line 922) - Added fetchDeliveryLocations to the destructured useAdmin() hook. 3) CALL fetchDeliveryLocations AFTER APPROVAL (/app/frontend/src/pages/Admin.js line 708) - After approving city, now calls BOTH fetchPendingCities() AND fetchDeliveryLocations() to refresh both lists. HOW IT WORKS NOW: When admin approves a city → Backend adds city to locations → Frontend calls fetchDeliveryLocations() → GET /api/locations fetches ALL cities from database (existing 431 + newly approved) → All cities display correctly in admin panel. NEEDS RETESTING to verify all cities remain visible after approval."
 
+  - task: "Razorpay Payment Integration"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py, /app/backend/.env"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "✅ RAZORPAY PAYMENT GATEWAY INTEGRATION COMPLETE: Implemented Razorpay as the main payment gateway for the application. BACKEND IMPLEMENTATION: 1) RAZORPAY SDK: Added razorpay import and initialized client with test credentials (key_id: rzp_test_Renc645PexAmXU, key_secret: ReA5MNv3beAt068So4iYNq8s) stored in .env file, 2) CREATE RAZORPAY ORDER API: POST /api/payment/create-razorpay-order - Creates Razorpay order with amount in paise, returns razorpay_order_id and key_id for frontend checkout, 3) VERIFY PAYMENT API: POST /api/payment/verify-razorpay-payment - Verifies payment signature using HMAC SHA256, updates order payment_status to 'completed' and order_status to 'confirmed', stores razorpay_order_id and razorpay_payment_id, sends confirmation email after successful verification, 4) ORDER CREATION FLOW: All orders now created with payment_status='pending' and order_status='pending', confirmation email sent only after payment verification (not on order creation), 5) PAYMENT VERIFICATION: Uses HMAC signature verification for security, validates razorpay_order_id|razorpay_payment_id against signature. FRONTEND IMPLEMENTATION: 1) RAZORPAY SCRIPT: Added Razorpay checkout.js script to index.html, 2) CHECKOUT FLOW: Modified handleSubmit in Checkout.js to create order first, then create Razorpay order, open Razorpay checkout modal with customer details prefilled, 3) PAYMENT HANDLERS: Success handler - verifies payment on backend and redirects to success page, Dismiss handler - shows message that payment can be completed later from Track Order page, 4) UPI REDIRECTION: Razorpay modal supports UPI, card, and all payment methods with proper redirection. All services restarted successfully. NEEDS TESTING."
+
+frontend:
+  - task: "Reorder Functionality"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/TrackOrder.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "✅ REORDER FUNCTIONALITY IMPLEMENTED: Added ability for customers to reorder items from previous orders. FEATURES: 1) REORDER BUTTON: Added 'Reorder' button with refresh icon to each order card in Track Order page, button appears for all orders (delivered, cancelled, pending), 2) REORDER FUNCTION: handleReorder() function iterates through all order items and adds them to cart with original quantities, prepares cart items with proper structure (id, name, image, description, weight, price, quantity), calls addToCart() for each item via CartContext, 3) USER FEEDBACK: Shows toast notification with count of items added (e.g., '5 item(s) from Order #AL202512345 have been added to your cart'), automatically redirects to checkout page after 1 second delay, 4) CART INTEGRATION: Uses useCart hook from CartContext, maintains cart state properly, items added with correct weight and price selections. Customer can now quickly reorder their favorite items from order history with one click!"
+
 metadata:
   created_by: "main_agent"
   version: "1.0"
