@@ -1161,6 +1161,105 @@ async def track_order(identifier: str):
     
     return {"orders": orders, "total": len(orders)}
 
+# ============= RAZORPAY PAYMENT APIS =============
+
+@api_router.post("/payment/create-razorpay-order")
+async def create_razorpay_order(data: dict):
+    """Create Razorpay order for payment"""
+    try:
+        amount = data.get("amount")  # Amount in rupees
+        currency = data.get("currency", "INR")
+        receipt = data.get("receipt", f"order_{uuid.uuid4().hex[:12]}")
+        
+        if not amount:
+            raise HTTPException(status_code=400, detail="Amount is required")
+        
+        # Convert amount to paise (Razorpay requires amount in smallest currency unit)
+        amount_in_paise = int(float(amount) * 100)
+        
+        # Create Razorpay order
+        razorpay_order = razorpay_client.order.create({
+            "amount": amount_in_paise,
+            "currency": currency,
+            "receipt": receipt,
+            "payment_capture": 1  # Auto capture payment
+        })
+        
+        logger.info(f"Razorpay order created: {razorpay_order['id']}")
+        
+        return {
+            "razorpay_order_id": razorpay_order["id"],
+            "amount": razorpay_order["amount"],
+            "currency": razorpay_order["currency"],
+            "key_id": os.environ.get('RAZORPAY_KEY_ID', '')
+        }
+    
+    except Exception as e:
+        logger.error(f"Error creating Razorpay order: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to create payment order: {str(e)}")
+
+@api_router.post("/payment/verify-razorpay-payment")
+async def verify_razorpay_payment(data: dict):
+    """Verify Razorpay payment signature"""
+    try:
+        razorpay_order_id = data.get("razorpay_order_id")
+        razorpay_payment_id = data.get("razorpay_payment_id")
+        razorpay_signature = data.get("razorpay_signature")
+        order_id = data.get("order_id")
+        
+        if not all([razorpay_order_id, razorpay_payment_id, razorpay_signature, order_id]):
+            raise HTTPException(status_code=400, detail="Missing required payment verification fields")
+        
+        # Verify signature
+        generated_signature = hmac.new(
+            os.environ.get('RAZORPAY_KEY_SECRET', '').encode('utf-8'),
+            f"{razorpay_order_id}|{razorpay_payment_id}".encode('utf-8'),
+            hashlib.sha256
+        ).hexdigest()
+        
+        if generated_signature != razorpay_signature:
+            logger.error(f"Payment signature verification failed for order {order_id}")
+            raise HTTPException(status_code=400, detail="Invalid payment signature")
+        
+        # Update order payment status
+        result = await db.orders.update_one(
+            {"order_id": order_id},
+            {"$set": {
+                "payment_status": "completed",
+                "razorpay_order_id": razorpay_order_id,
+                "razorpay_payment_id": razorpay_payment_id,
+                "payment_verified_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Order not found")
+        
+        # Get updated order
+        order = await db.orders.find_one({"order_id": order_id}, {"_id": 0})
+        
+        # Send confirmation email
+        if order and order.get("email"):
+            try:
+                send_order_confirmation_email_gmail(order)
+                logger.info(f"Order confirmation email sent to {order.get('email')} for order {order_id}")
+            except Exception as email_error:
+                logger.error(f"Failed to send confirmation email: {str(email_error)}")
+        
+        logger.info(f"Payment verified and order {order_id} updated successfully")
+        
+        return {
+            "success": True,
+            "message": "Payment verified successfully",
+            "order_id": order_id
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error verifying payment: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to verify payment: {str(e)}")
+
 @api_router.get("/orders/user/{user_id}")
 async def get_user_orders(user_id: str, current_user: dict = Depends(get_current_user)):
     """Get all orders for a user"""
