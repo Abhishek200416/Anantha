@@ -1458,6 +1458,45 @@ async def complete_payment(order_id: str, data: dict):
         logger.error(f"Error completing payment: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to complete payment: {str(e)}")
 
+
+@api_router.post("/orders/{order_id}/payment-cancel")
+async def cancel_order_payment(order_id: str, data: dict):
+    """Cancel order immediately when payment is cancelled (no auth required)"""
+    try:
+        # Get the order
+        order = await db.orders.find_one({"order_id": order_id}, {"_id": 0})
+        if not order:
+            raise HTTPException(status_code=404, detail="Order not found")
+        
+        # Only allow cancellation if payment is still pending
+        if order.get("payment_status") != "pending":
+            raise HTTPException(status_code=400, detail="Cannot cancel order with non-pending payment")
+        
+        cancel_reason = data.get("cancel_reason", "Payment cancelled by customer")
+        
+        # Update order to cancelled status
+        result = await db.orders.update_one(
+            {"order_id": order_id},
+            {"$set": {
+                "cancelled": True,
+                "cancel_reason": cancel_reason,
+                "order_status": "cancelled",
+                "payment_status": "cancelled"
+            }}
+        )
+        
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Order not found")
+        
+        print(f"🚫 ORDER CANCELLED: {order_id} - Reason: {cancel_reason}")
+        
+        return {"message": "Order cancelled successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error cancelling order: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to cancel order: {str(e)}")
+
 @api_router.put("/orders/{order_id}/admin-update")
 async def update_order_admin_fields(order_id: str, data: dict, current_user: dict = Depends(get_current_user)):
     """Update admin fields like notes and delivery days"""
