@@ -29,7 +29,7 @@ async def send_order_confirmation_email_gmail(to_email: str, order_data: dict):
             items_html += f'''
             <div style="padding: 10px; border-bottom: 1px solid #e5e7eb;">
                 <p><strong>{item["name"]}</strong> ({item["weight"]})</p>
-                <p>Quantity: {item["quantity"]} × ₹{item["price"]} = ₹{item["quantity"] * item["price"]}</p>
+                <p>Quantity: {item["quantity"]} × Rs.{item["price"]} = Rs.{item["quantity"] * item["price"]}</p>
             </div>
             '''
         
@@ -47,7 +47,7 @@ async def send_order_confirmation_email_gmail(to_email: str, order_data: dict):
         <html>
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
             <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-                <h2 style="color: #f97316; text-align: center;">🎉 Order Confirmed!</h2>
+                <h2 style="color: #f97316; text-align: center;"> Order Confirmed!</h2>
                 <p>Dear {order_data["customer_name"]},</p>
                 <p>Thank you for your order from Anantha Lakshmi Traditional Foods!</p>
                 
@@ -56,7 +56,7 @@ async def send_order_confirmation_email_gmail(to_email: str, order_data: dict):
                     <p><strong>Order ID:</strong> {order_data["order_id"]}</p>
                     <p><strong>Tracking Code:</strong> {order_data["tracking_code"]}</p>
                     <p><strong>Order Date:</strong> {order_data["order_date"]}</p>
-                    <p><strong>Total Amount:</strong> ₹{order_data["total"]}</p>
+                    <p><strong>Total Amount:</strong> Rs.{order_data["total"]}</p>
                 </div>
                 
                 <div style="background-color: #f0fdf4; padding: 15px; border-radius: 8px; margin: 20px 0;">
@@ -120,11 +120,11 @@ async def send_order_status_update_email(to_email: str, order_data: dict, old_st
         
         # Status display names with emojis
         status_display = {
-            'confirmed': '✅ Confirmed',
+            'confirmed': ' Confirmed',
             'processing': '🔄 Processing',
             'shipped': '🚚 Shipped',
             'delivered': '📦 Delivered',
-            'cancelled': '❌ Cancelled'
+            'cancelled': ' Cancelled'
         }
         
         # Status color mapping
@@ -170,7 +170,7 @@ async def send_order_status_update_email(to_email: str, order_data: dict, old_st
                     <p><strong>Address:</strong><br>{address_html}<br>
                     {order_data.get("location", "")}</p>
                     <p><strong>Phone:</strong> {order_data.get("phone", "")}</p>
-                    <p><strong>Total Amount:</strong> ₹{order_data.get("total", 0)}</p>
+                    <p><strong>Total Amount:</strong> Rs.{order_data.get("total", 0)}</p>
                 </div>
                 
                 <div style="background-color: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0;">
@@ -216,7 +216,7 @@ async def send_city_approval_email(to_email: str, city_data: dict):
             
         # Create message
         msg = MIMEMultipart('alternative')
-        msg['Subject'] = f'Great News! We now deliver to {city_data["city"]}! 🎉'
+        msg['Subject'] = f'Great News! We now deliver to {city_data["city"]}! '
         msg['From'] = f'Anantha Home Foods <{GMAIL_EMAIL}>'
         msg['To'] = to_email
         
@@ -224,13 +224,13 @@ async def send_city_approval_email(to_email: str, city_data: dict):
         <html>
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
             <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-                <h2 style="color: #16a34a; text-align: center;">🎉 Exciting News!</h2>
+                <h2 style="color: #16a34a; text-align: center;"> Exciting News!</h2>
                 <p>Dear {city_data.get("customer_name", "Valued Customer")},</p>
                 <p>We're thrilled to inform you that we now deliver to <strong>{city_data["city"]}, {city_data["state"]}</strong>!</p>
                 
                 <div style="background-color: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center;">
                     <h3 style="color: #16a34a; margin: 0; font-size: 24px;">
-                        ✅ City Added
+                         City Added
                     </h3>
                     <p style="margin-top: 15px; font-size: 18px; color: #166534;">
                         <strong>{city_data["city"]}, {city_data["state"]}</strong>
@@ -238,13 +238,13 @@ async def send_city_approval_email(to_email: str, city_data: dict):
                 </div>
                 
                 <div style="background-color: #fff7ed; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                    <h3 style="color: #ea580c; margin-top: 0;">📍 Delivery Information</h3>
+                    <h3 style="color: #ea580c; margin-top: 0;"> Delivery Information</h3>
                     <p>Thanks to your suggestion, we've added {city_data["city"]} to our delivery locations!</p>
                     <p>You can now enjoy our delicious traditional foods delivered right to your doorstep.</p>
                 </div>
                 
                 <div style="background-color: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                    <h4 style="margin-top: 0;">🛍️ Start Shopping!</h4>
+                    <h4 style="margin-top: 0;"> Start Shopping!</h4>
                     <p>Visit our website to browse our complete collection of:</p>
                     <ul style="margin: 10px 0;">
                         <li>Traditional Laddus & Chikkis</li>
@@ -312,7 +312,7 @@ async def send_city_rejection_email(to_email: str, city_data: dict, has_payment:
         if has_payment:
             refund_section = f'''
                 <div style="background-color: #fef2f2; padding: 20px; border-radius: 8px; margin: 20px 0; border: 2px solid #fca5a5;">
-                    <h3 style="color: #dc2626; margin: 0;">💰 Refund Information</h3>
+                    <h3 style="color: #dc2626; margin: 0;"> Refund Information</h3>
                     <p style="margin-top: 15px; font-weight: bold;">
                         Since you have already made a payment for delivery to {city_data["city"]}, we will process a full refund.
                     </p>
@@ -320,7 +320,7 @@ async def send_city_rejection_email(to_email: str, city_data: dict, has_payment:
                         <strong>Refund Timeline:</strong> Your payment will be refunded within 2-3 working days.
                     </p>
                     <p style="background-color: #fee2e2; padding: 15px; border-radius: 6px; margin-top: 10px;">
-                        <strong>⚠️ IMPORTANT:</strong> Please reply to this email with your UPI details so we can process the refund quickly:
+                        <strong> IMPORTANT:</strong> Please reply to this email with your UPI details so we can process the refund quickly:
                     </p>
                     <ul style="margin: 10px 0 0 20px;">
                         <li>UPI ID (e.g., yourname@paytm, yourname@okaxis)</li>
@@ -338,7 +338,7 @@ async def send_city_rejection_email(to_email: str, city_data: dict, has_payment:
                 <p>Thank you for your interest in getting Anantha Home Foods delivered to <strong>{city_data["city"]}, {city_data["state"]}</strong>.</p>
                 
                 <div style="background-color: #fff7ed; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                    <h3 style="color: #ea580c; margin: 0;">📍 Current Status</h3>
+                    <h3 style="color: #ea580c; margin: 0;"> Current Status</h3>
                     <p style="margin-top: 15px;">
                         We appreciate your suggestion! Unfortunately, we are not able to deliver to <strong>{city_data["city"]}</strong> at this time due to logistical constraints.
                     </p>
@@ -419,17 +419,17 @@ async def send_order_cancellation_email(to_email: str, order_data: dict, cancell
                     <p style="margin-top: 15px;">
                         <strong>Order ID:</strong> {order_data["order_id"]}<br>
                         <strong>Tracking Code:</strong> {order_data.get("tracking_code", "N/A")}<br>
-                        <strong>Total Amount:</strong> ₹{order_data.get("total", 0)}
+                        <strong>Total Amount:</strong> Rs.{order_data.get("total", 0)}
                     </p>
                 </div>
                 
                 {"" if order_data.get("payment_status") != "completed" else f'''
                 <div style="background-color: #fff7ed; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                    <h3 style="color: #ea580c; margin: 0;">💰 Refund Information</h3>
+                    <h3 style="color: #ea580c; margin: 0;"> Refund Information</h3>
                     <p style="margin-top: 15px;">
-                        <strong>Order Total:</strong> ₹{order_data.get("total", 0)}<br>
-                        <strong>Cancellation Fee:</strong> ₹{cancellation_fee}<br>
-                        <strong>Refund Amount:</strong> ₹{refund_amount}
+                        <strong>Order Total:</strong> Rs.{order_data.get("total", 0)}<br>
+                        <strong>Cancellation Fee:</strong> Rs.{cancellation_fee}<br>
+                        <strong>Refund Amount:</strong> Rs.{refund_amount}
                     </p>
                     <p style="margin-top: 10px; font-style: italic;">
                         Your refund will be processed within 2-3 business days to the original payment method.
@@ -490,16 +490,16 @@ async def send_payment_completion_email(to_email: str, order_data: dict):
         <html>
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
             <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-                <h2 style="color: #16a34a; text-align: center;">✅ Payment Confirmed!</h2>
+                <h2 style="color: #16a34a; text-align: center;"> Payment Confirmed!</h2>
                 <p>Dear {order_data.get("customer_name", "Valued Customer")},</p>
                 <p>We have successfully received your payment for order <strong>#{order_data["order_id"]}</strong>.</p>
                 
                 <div style="background-color: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center;">
                     <h3 style="color: #16a34a; margin: 0; font-size: 24px;">
-                        ✅ Payment Complete
+                         Payment Complete
                     </h3>
                     <p style="margin-top: 15px; font-size: 18px; color: #166534;">
-                        <strong>₹{order_data.get("total", 0)}</strong>
+                        <strong>Rs.{order_data.get("total", 0)}</strong>
                     </p>
                 </div>
                 
@@ -516,7 +516,7 @@ async def send_payment_completion_email(to_email: str, order_data: dict):
                 </div>
                 
                 <div style="background-color: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                    <h4 style="margin-top: 0;">📍 Track Your Order</h4>
+                    <h4 style="margin-top: 0;"> Track Your Order</h4>
                     <p>You can track your order anytime using:</p>
                     <ul>
                         <li>Your phone number: {order_data.get("phone", "")}</li>
