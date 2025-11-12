@@ -4474,9 +4474,9 @@ def main():
     guntur_test = next((success for name, success in test_summary if "Order Creation for Guntur" in name), False)
     print(f"   {'✅' if guntur_test else '❌'} Guntur recognized as existing city: {guntur_test}")
     
-    # Check if order confirmation email is sent
-    email_test = next((success for name, success in test_summary if "Email Confirmation Sent" in name), False)
-    print(f"   {'✅' if email_test else '❌'} Order confirmation email sent: {email_test}")
+    # Check if city recognition works
+    city_test = next((success for name, success in test_summary if "City Recognition" in name), False)
+    print(f"   {'✅' if city_test else '❌'} City recognition working: {city_test}")
     
     # Check if Razorpay order creation works
     razorpay_test = next((success for name, success in test_summary if "Razorpay Order Creation" in name), False)
