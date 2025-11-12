@@ -256,8 +256,8 @@ const CitySuggestionsSection = () => {
 
       // Switch to "all" filter and refresh to show remaining cities after deletion
       setStatusFilter('all');
-      // Small delay to ensure state updates, then fetch
-      setTimeout(() => fetchCitySuggestions(), 100);
+      // Explicitly fetch with 'all' filter to avoid stale closure issue
+      await fetchCitySuggestions('all');
     } catch (error) {
       console.error('Failed to delete city suggestion:', error);
       toast({
