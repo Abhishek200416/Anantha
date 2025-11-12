@@ -1048,6 +1048,74 @@ agent_communication:
     **TESTING NEEDED:**
     1. Backend: Test order status update emails (PUT /api/orders/{order_id}/status and PUT /api/orders/{order_id}/admin-update)
     2. Frontend: Test location detection on home page to verify custom notifications appear correctly"
+  - agent: "main"
+    message: "✅ RAZORPAY PAYMENT INTEGRATION & REORDER FUNCTIONALITY COMPLETE:
+    
+    **USER REQUIREMENTS IMPLEMENTED:**
+    1. ✅ Order Tracking - Show ALL order history when searching by phone/email (already working)
+    2. ✅ Reorder Functionality - Add items from previous orders back to cart
+    3. ✅ Email Notifications - Already working for order confirmations and status updates
+    4. ✅ Razorpay Integration - Integrated as MAIN payment gateway
+    5. ✅ UPI Payment Flow - Razorpay modal with UPI/Card/Other payment options
+    
+    **RAZORPAY PAYMENT INTEGRATION:**
+    **Backend Changes:**
+    - Added razorpay SDK import and client initialization with test credentials
+    - Added RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to .env file
+    - POST /api/payment/create-razorpay-order - Creates Razorpay order and returns order details
+    - POST /api/payment/verify-razorpay-payment - Verifies payment signature and updates order status
+    - Modified order creation to set payment_status='pending' (payment done after order creation)
+    - Confirmation emails now sent only after payment verification (not on order creation)
+    - Payment verification updates order_status to 'confirmed' and payment_status to 'completed'
+    
+    **Frontend Changes:**
+    - Added Razorpay checkout script to index.html
+    - Updated Checkout.js handleSubmit to:
+      1. Create order in database first
+      2. Create Razorpay order via API
+      3. Open Razorpay checkout modal with prefilled customer details
+      4. Handle payment success - verify on backend and redirect to success page
+      5. Handle payment cancellation - show message that payment can be completed later
+    - Razorpay modal supports UPI, cards, net banking, and wallet payments
+    - Proper error handling for payment failures
+    
+    **REORDER FUNCTIONALITY:**
+    **Frontend Changes:**
+    - Added 'Reorder' button to each order card in Track Order page
+    - Button appears for all orders (delivered, cancelled, pending)
+    - handleReorder() function adds all order items back to cart with original quantities
+    - Shows success toast with item count
+    - Automatically redirects to checkout page after adding items
+    - Imports useCart hook and useNavigate from react-router-dom
+    - Added RefreshCw icon from lucide-react
+    
+    **PAYMENT FLOW:**
+    1. Customer adds items to cart and goes to checkout
+    2. Fills address and contact details
+    3. Clicks 'Place Order' - order created with pending payment status
+    4. Razorpay modal opens with payment options (UPI/Card/Net Banking/Wallets)
+    5. Customer completes payment
+    6. Backend verifies payment signature
+    7. Order status updated to 'confirmed', payment_status to 'completed'
+    8. Confirmation email sent to customer
+    9. Customer redirected to order success page
+    
+    **TEST CREDENTIALS:**
+    - Razorpay Key ID: rzp_test_Renc645PexAmXU
+    - Razorpay Key Secret: ReA5MNv3beAt068So4iYNq8s
+    
+    **FILES MODIFIED:**
+    Backend:
+    - /app/backend/server.py (Razorpay integration, payment APIs)
+    - /app/backend/.env (Razorpay credentials)
+    - /app/backend/requirements.txt (razorpay already installed)
+    
+    Frontend:
+    - /app/frontend/public/index.html (Razorpay script)
+    - /app/frontend/src/pages/Checkout.js (Razorpay checkout flow)
+    - /app/frontend/src/pages/TrackOrder.js (Reorder functionality)
+    
+    All services restarted successfully. Ready for testing!"
   - agent: "testing"
     message: "✅ COMPREHENSIVE BACKEND API TESTING COMPLETED - EXCELLENT SUCCESS (4/5 TESTS PASSED - 80% SUCCESS): Tested all recent fixes as requested in review. RESULTS: **1) ADMIN AUTHENTICATION** ✅ - POST /api/auth/admin-login with password 'admin123': Successfully returns JWT token (192 chars) with proper admin user object (id: admin, email: admin@ananthalakshmi.com, name: Admin, is_admin: true), authentication working perfectly. **2) CITY SUGGESTIONS API** ✅ - GET /api/admin/city-suggestions: Successfully returns proper JSON array (empty array is normal when no suggestions exist), endpoint accessible with correct /api prefix, admin authentication required and working. **3) PRODUCTS API** ✅ - GET /api/products: Successfully returns exactly 56 products with correct category distribution (laddus-chikkis: 8, sweets: 10, hot-items: 10, snacks: 3, pickles: 9, powders: 12, spices: 4), all products have proper structure with required fields (id, name, category, description, image, prices array with 3 tiers, isBestSeller, isNew, tag), product seeding completed successfully. **4) NOTIFICATIONS COUNT API** ✅ - GET /api/admin/notifications/count with admin token: Successfully returns proper JSON structure with all required fields (bug_reports: 0, city_suggestions: 0, new_orders: 0, total: 0), total calculation correct, admin authentication working. **5) ERROR HANDLING** ⚠️ - Invalid admin password: Returns 401 with proper JSON detail field ✅, Missing required fields: Returns 422 with detailed validation errors ✅, Unauthorized access: Returns 401 with proper error message ✅, Invalid product endpoint: Returns 405 Method Not Allowed (minor issue - endpoint doesn't exist). CONCLUSION: All critical backend APIs are working correctly with proper JSON responses, authentication, and validation. The 56 products are successfully seeded and categorized. All recent fixes verified working."
   - agent: "testing"
