@@ -1129,7 +1129,9 @@ async def create_order(order_data: OrderCreate, current_user: dict = Depends(get
     except HTTPException:
         raise
     except Exception as e:
+        import traceback
         logger.error(f"Error creating order: {str(e)}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"Failed to create order: {str(e)}")
 
 @api_router.get("/orders/track/{identifier}")
