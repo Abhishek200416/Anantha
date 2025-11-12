@@ -16,6 +16,8 @@ def get_gmail_credentials():
 async def send_order_confirmation_email_gmail(to_email: str, order_data: dict):
     """Send order confirmation email using Gmail SMTP"""
     try:
+        GMAIL_EMAIL, GMAIL_APP_PASSWORD = get_gmail_credentials()
+        
         if not GMAIL_EMAIL or not GMAIL_APP_PASSWORD:
             logger.warning("Gmail credentials not configured. Email not sent.")
             logger.info(f"Would send email to: {to_email} for order: {order_data['order_id']}")
