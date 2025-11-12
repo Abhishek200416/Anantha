@@ -3875,7 +3875,7 @@ def main():
         
         # Print final summary
         print("\n" + "=" * 80)
-        print("📊 TRACK ORDER API TEST RESULTS")
+        print("📊 RAZORPAY PAYMENT INTEGRATION TEST RESULTS")
         print("=" * 80)
         
         for test_name, success in test_results:
@@ -3884,34 +3884,35 @@ def main():
         
         print(f"\n📈 OVERALL SUCCESS RATE: {passed_tests}/{total_tests} ({success_rate:.1f}%)")
         
-        # Analyze critical Track Order API functionality
-        critical_tests = [
-            "Search by Order ID",
-            "Search by Tracking Code", 
-            "Search by Phone Number",
-            "Search by Email",
-            "Order Not Found",
-            "Cancelled Orders Included"
+        # Analyze critical Razorpay functionality
+        razorpay_tests = [
+            "Create Razorpay Order",
+            "Order Creation Flow", 
+            "Track Order",
+            "Payment Verification Error Handling",
+            "Razorpay Configuration"
         ]
         
-        critical_passed = sum(1 for test_name, success in test_results 
-                             if test_name in critical_tests and success)
-        critical_total = len([t for t, _ in test_results if t in critical_tests])
+        razorpay_passed = sum(1 for test_name, success in test_results 
+                             if test_name in razorpay_tests and success)
+        razorpay_total = len([t for t, _ in test_results if t in razorpay_tests])
         
-        print(f"\n🎯 CRITICAL TRACK ORDER API TESTS: {critical_passed}/{critical_total}")
+        print(f"\n🎯 CRITICAL RAZORPAY INTEGRATION TESTS: {razorpay_passed}/{razorpay_total}")
         
-        if critical_passed == critical_total:
-        print("🎉 EXCELLENT: The vanishing cities bug appears to be FIXED!")
-        print("   ✅ All cities remain visible after approval/rejection/deletion")
-        print("   ✅ Backend API correctly returns all cities with 'all' filter")
-        return True
-    elif critical_passed >= critical_total * 0.8:
-        print("⚠️ MOSTLY FIXED: Most critical tests pass, minor issues remain")
-        return True
-    else:
-        print("❌ CRITICAL: Vanishing cities bug still exists!")
-        print("   🚨 Cities are disappearing after approval/rejection/deletion")
-        return False
+        if razorpay_passed == razorpay_total:
+            print("🎉 EXCELLENT: Razorpay payment integration is working perfectly!")
+            print("   ✅ Order creation with Razorpay payment method works")
+            print("   ✅ Amount conversion to paise is correct")
+            print("   ✅ Payment status handling is proper")
+            print("   ✅ Error handling works as expected")
+            return True
+        elif razorpay_passed >= razorpay_total * 0.8:
+            print("⚠️ MOSTLY WORKING: Most Razorpay tests pass, minor issues remain")
+            return True
+        else:
+            print("❌ CRITICAL: Razorpay payment integration has major issues!")
+            print("   🚨 Payment integration may not work properly")
+            return False
 
 if __name__ == "__main__":
     exit_code = main()
