@@ -137,7 +137,17 @@ User requested the following changes:
 1. Remove "City Not Listed? Click Here" button from Checkout - Replace with informational note ✅
 2. Remove "Pending Cities from Orders" section from Admin Panel (Cities & States tab) ✅
 3. Track Order Enhancement - Show ALL orders (including cancelled) when searching by phone/email with count display ✅
-4. Previous products and functionality - Keep as is ✅"
+4. Previous products and functionality - Keep as is ✅
+
+LATEST SESSION - Razorpay Payment Integration & Reorder Functionality:
+User requested:
+1. Order Tracking - Show ALL order history when searching by phone/email ✅
+2. Reorder Functionality - Add button to reorder items from previous orders ✅
+3. Email Notifications - Already working for order status changes ✅
+4. Razorpay Integration - Integrate as MAIN payment gateway with test credentials ✅
+   - Test Key ID: rzp_test_Renc645PexAmXU
+   - Test Key Secret: ReA5MNv3beAt068So4iYNq8s
+5. UPI Payment Flow - Razorpay modal with redirection for UPI payments ✅"
 
 backend:
   - task: "Admin Authentication (JWT Token)"
