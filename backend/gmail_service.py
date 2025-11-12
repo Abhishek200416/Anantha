@@ -307,6 +307,8 @@ async def send_city_rejection_email(to_email: str, city_data: dict, has_payment:
         has_payment: True if customer has already made payment for this city
     """
     try:
+        GMAIL_EMAIL, GMAIL_APP_PASSWORD = get_gmail_credentials()
+        
         if not GMAIL_EMAIL or not GMAIL_APP_PASSWORD:
             logger.warning("Gmail credentials not configured. Email not sent.")
             return False
