@@ -869,9 +869,9 @@ const Checkout = () => {
           ondismiss: async function() {
             // Payment cancelled or closed - Cancel the order
             try {
-              const token = localStorage.getItem('token');
-              await axios.put(`${API}/orders/${orderId}/cancel`, {}, {
-                headers: { Authorization: `Bearer ${token}` }
+              // Call the payment-cancel endpoint (no auth required for immediate cancellation)
+              await axios.post(`${API}/orders/${orderId}/payment-cancel`, {
+                cancel_reason: "Payment cancelled by customer"
               });
               
               toast({
@@ -884,7 +884,7 @@ const Checkout = () => {
               console.error('Failed to cancel order:', error);
               toast({
                 title: "Payment Cancelled",
-                description: "Payment was not completed. Please contact support if needed.",
+                description: "Payment was not completed. The order has been marked as cancelled.",
                 variant: "default",
                 duration: 6000
               });
