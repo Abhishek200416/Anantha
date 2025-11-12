@@ -1175,11 +1175,18 @@ async def update_order_status(order_id: str, data: dict, current_user: dict = De
     # Send email notification if status changed and email exists
     if old_status != status and order.get("email"):
         try:
+            logger.info(f"Attempting to send order status update email to {order.get('email')} for order {order_id}")
             # Update order data with new status for email
             order["order_status"] = status
-            await send_order_status_update_email(order["email"], order, old_status, status)
+            email_sent = await send_order_status_update_email(order["email"], order, old_status, status)
+            if email_sent:
+                logger.info(f"✅ Order status update email sent successfully to {order.get('email')}")
+            else:
+                logger.warning(f"⚠️ Order status update email function returned False for {order.get('email')}")
         except Exception as e:
-            logger.error(f"Failed to send order status update email: {str(e)}")
+            logger.error(f"❌ Failed to send order status update email: {str(e)}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
             # Don't fail the request if email fails
     
     return {"message": "Order status updated successfully"}
