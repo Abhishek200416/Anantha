@@ -699,6 +699,210 @@ def test_notifications_count_api(admin_token):
     print(f"❌ FAILED: Notifications count API failed")
     return False
 
+def test_razorpay_payment_integration():
+    """Test complete Razorpay payment flow as specified in review request"""
+    print("\n" + "="*80)
+    print("💳 RAZORPAY PAYMENT INTEGRATION (CRITICAL)")
+    print("="*80)
+    
+    test_results = []
+    
+    # A. Create Razorpay Order
+    print("\n--- A. Create Razorpay Order ---")
+    razorpay_order_data = {
+        "amount": 500,
+        "currency": "INR", 
+        "receipt": "test_order_123"
+    }
+    
+    success, response_data = test_api_endpoint(
+        "POST",
+        "/payment/create-razorpay-order",
+        data=razorpay_order_data,
+        description="Create Razorpay order with ₹500 amount"
+    )
+    
+    if success and response_data:
+        # Verify response structure
+        required_fields = ["razorpay_order_id", "amount", "currency", "key_id"]
+        missing_fields = [field for field in required_fields if field not in response_data]
+        
+        if not missing_fields:
+            razorpay_order_id = response_data.get("razorpay_order_id")
+            amount = response_data.get("amount")
+            currency = response_data.get("currency")
+            key_id = response_data.get("key_id")
+            
+            print(f"✅ SUCCESS: Razorpay order created successfully")
+            print(f"   - Order ID: {razorpay_order_id}")
+            print(f"   - Amount: {amount} paise (₹{amount/100})")
+            print(f"   - Currency: {currency}")
+            print(f"   - Key ID: {key_id}")
+            
+            # Verify amount conversion (₹500 = 50000 paise)
+            if amount == 50000:
+                print(f"✅ SUCCESS: Amount correctly converted to paise (₹500 = 50000 paise)")
+            else:
+                print(f"❌ FAILURE: Amount conversion incorrect (expected 50000, got {amount})")
+                test_results.append(("Razorpay Order Creation", False))
+                return test_results
+            
+            # Verify test credentials
+            if key_id.startswith("rzp_test_"):
+                print(f"✅ SUCCESS: Test credentials confirmed (key_id starts with 'rzp_test_')")
+                test_results.append(("Razorpay Order Creation", True))
+            else:
+                print(f"❌ FAILURE: Key ID doesn't start with 'rzp_test_': {key_id}")
+                test_results.append(("Razorpay Order Creation", False))
+                return test_results
+        else:
+            print(f"❌ FAILURE: Missing required fields: {missing_fields}")
+            test_results.append(("Razorpay Order Creation", False))
+            return test_results
+    else:
+        print(f"❌ FAILURE: Could not create Razorpay order")
+        test_results.append(("Razorpay Order Creation", False))
+        return test_results
+    
+    # B. Order Creation with Razorpay
+    print("\n--- B. Order Creation with Razorpay Payment Method ---")
+    order_data = {
+        "customer_name": "Rajesh Kumar",
+        "email": "rajesh.kumar@example.com",
+        "phone": "9876543210",
+        "doorNo": "12-34",
+        "building": "Sai Residency",
+        "street": "MG Road",
+        "city": "Guntur",
+        "state": "Andhra Pradesh",
+        "pincode": "522001",
+        "items": [
+            {
+                "product_id": "1",
+                "name": "Immunity Dry Fruits Laddu",
+                "image": "https://example.com/laddu.jpg",
+                "weight": "1 kg",
+                "price": 450.0,
+                "quantity": 1,
+                "description": "Healthy dry fruits laddu"
+            }
+        ],
+        "subtotal": 450.0,
+        "delivery_charge": 49.0,
+        "total": 499.0,
+        "payment_method": "razorpay",
+        "payment_sub_method": "upi"
+    }
+    
+    success, order_response = test_api_endpoint(
+        "POST",
+        "/orders",
+        data=order_data,
+        description="Create order with Razorpay payment method"
+    )
+    
+    if success and order_response:
+        order_id = order_response.get("order_id")
+        tracking_code = order_response.get("tracking_code")
+        
+        print(f"✅ SUCCESS: Order created with Razorpay payment method")
+        print(f"   - Order ID: {order_id}")
+        print(f"   - Tracking Code: {tracking_code}")
+        
+        # Verify payment status is pending
+        if "order" in order_response:
+            order_details = order_response["order"]
+            payment_status = order_details.get("payment_status")
+            order_status = order_details.get("order_status")
+            
+            if payment_status == "pending":
+                print(f"✅ SUCCESS: Payment status is 'pending' as expected")
+            else:
+                print(f"❌ FAILURE: Payment status should be 'pending', got '{payment_status}'")
+            
+            if order_status == "pending":
+                print(f"✅ SUCCESS: Order status is 'pending' as expected")
+            else:
+                print(f"❌ FAILURE: Order status should be 'pending', got '{order_status}'")
+        
+        test_results.append(("Order Creation with Razorpay", True))
+    else:
+        print(f"❌ FAILURE: Could not create order with Razorpay payment method")
+        test_results.append(("Order Creation with Razorpay", False))
+        return test_results
+    
+    # C. Payment Verification Endpoint
+    print("\n--- C. Payment Verification Endpoint ---")
+    
+    # Test with missing fields (should return 400 error)
+    incomplete_verification_data = {
+        "razorpay_order_id": "order_test123",
+        # Missing required fields intentionally
+    }
+    
+    success, error_response = test_api_endpoint(
+        "POST",
+        "/payment/verify-razorpay-payment",
+        data=incomplete_verification_data,
+        description="Test payment verification with missing fields (should return 400)",
+        expected_status=400
+    )
+    
+    if success and error_response:
+        if "Missing required payment verification fields" in str(error_response.get("detail", "")):
+            print(f"✅ SUCCESS: Payment verification correctly handles missing fields")
+            test_results.append(("Payment Verification Error Handling", True))
+        else:
+            print(f"❌ FAILURE: Unexpected error message: {error_response}")
+            test_results.append(("Payment Verification Error Handling", False))
+    else:
+        print(f"❌ FAILURE: Payment verification endpoint didn't return expected 400 error")
+        test_results.append(("Payment Verification Error Handling", False))
+    
+    return test_results
+
+def test_payment_system_configuration():
+    """Test Razorpay payment system configuration"""
+    print("\n" + "="*80)
+    print("⚙️  PAYMENT SYSTEM CONFIGURATION")
+    print("="*80)
+    
+    # Test that Razorpay credentials are properly loaded
+    print("\n--- Razorpay Credentials Verification ---")
+    
+    # Create a test order to verify credentials are working
+    test_order_data = {
+        "amount": 100,
+        "currency": "INR",
+        "receipt": "config_test_001"
+    }
+    
+    success, response_data = test_api_endpoint(
+        "POST",
+        "/payment/create-razorpay-order",
+        data=test_order_data,
+        description="Test Razorpay client initialization with credentials"
+    )
+    
+    if success and response_data:
+        key_id = response_data.get("key_id")
+        
+        # Verify test credentials
+        expected_key_id = "rzp_test_Renc645PexAmXU"
+        if key_id == expected_key_id:
+            print(f"✅ SUCCESS: Razorpay credentials properly loaded")
+            print(f"   - Key ID: {key_id} ✓")
+            print(f"   - Test mode confirmed (rzp_test_ prefix)")
+            return True
+        else:
+            print(f"❌ FAILURE: Unexpected Key ID")
+            print(f"   - Expected: {expected_key_id}")
+            print(f"   - Got: {key_id}")
+            return False
+    else:
+        print(f"❌ FAILURE: Razorpay client not properly initialized")
+        return False
+
 def test_error_handling():
     """Test error handling with invalid data to ensure proper JSON responses"""
     print("\n" + "="*80)
