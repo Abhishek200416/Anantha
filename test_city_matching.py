@@ -23,16 +23,17 @@ def test_order_creation(city, state):
         "pincode": "522001",
         "items": [
             {
-                "id": "test_product_1",
-                "name": "Test Product",
-                "price": 500,
+                "product_id": "product_1762952759",
+                "name": "Immunity Dry Fruits Laddu",
+                "price": 550,
                 "quantity": 1,
-                "weight": "1 kg"
+                "weight": "1 kg",
+                "image": "https://images.pexels.com/photos/8887055/pexels-photo-8887055.jpeg"
             }
         ],
-        "subtotal": 500,
+        "subtotal": 550,
         "delivery_charge": 49,
-        "total": 549,
+        "total": 599,
         "payment_method": "razorpay",
         "payment_sub_method": "upi"
     }
