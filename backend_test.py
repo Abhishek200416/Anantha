@@ -3913,6 +3913,12 @@ def main():
             print("❌ CRITICAL: Razorpay payment integration has major issues!")
             print("   🚨 Payment integration may not work properly")
             return False
+    
+    except Exception as e:
+        print(f"\n❌ CRITICAL ERROR during testing: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return False
 
 if __name__ == "__main__":
     exit_code = main()
