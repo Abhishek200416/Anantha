@@ -1,63 +1,42 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Truck, MapPin, CreditCard, Mail, Phone, Home, Building2, Navigation, Plus, Minus, Edit2, X, Sparkles, Trash2, Info } from 'lucide-react';
+import axios from 'axios';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
-import { toast } from '../hooks/use-toast';
-import axios from 'axios';
-import AddCityModal from '../components/AddCityModal';
-import CustomCityModal from '../components/CustomCityModal';
+import { useToast } from '../components/ui/use-toast';
+import { ShoppingBag, MapPin, Phone, Mail, CreditCard, Wallet, User, Home, Building, MapPinned, Navigation, Sparkles, Trash2, Edit, Check } from 'lucide-react';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
-const API = `${BACKEND_URL}/api`;
+const API = import.meta.env.REACT_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
 
-// Load Razorpay Checkout script dynamically
-const loadRazorpayScript = () => {
-  return new Promise((resolve) => {
-    // Check if Razorpay is already loaded
-    if (window.Razorpay) {
-      resolve(true);
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-    script.async = true;
-    script.onload = () => {
-      resolve(true);
-    };
-    script.onerror = () => {
-      resolve(false);
-    };
-    document.body.appendChild(script);
-  });
-};
-
-const Checkout = () => {
-  const { cart, getCartTotal, clearCart, updateQuantity, removeFromCart, addToCart } = useCart();
-  const { user } = useAuth();
+function Checkout() {
   const navigate = useNavigate();
-  const [searchIdentifier, setSearchIdentifier] = useState('');
-  const [searching, setSearching] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    doorNo: '',
-    building: '',
-    street: '',
-    city: '',
-    state: '',
-    pincode: '',
-    location: '',
-    paymentMethod: 'online',
-    paymentSubMethod: ''
-  });
-  const [errors, setErrors] = useState({});
+  const { cart, clearCart, updateCartItem, removeFromCart, cartTotal } = useCart();
+  const { user } = useAuth();
+  const { toast } = useToast();
+
+  // Form state
+  const [customerName, setCustomerName] = useState(user?.name || '');
+  const [customerEmail, setCustomerEmail] = useState(user?.email || '');
+  const [customerPhone, setCustomerPhone] = useState(user?.phone || '');
+  
+  // Structured address fields
+  const [doorNo, setDoorNo] = useState('');
+  const [building, setBuilding] = useState('');
+  const [street, setStreet] = useState('');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
+  const [pincode, setPincode] = useState('');
+  
+  const [paymentMethod, setPaymentMethod] = useState('razorpay');
+  const [paymentSubMethod, setPaymentSubMethod] = useState('upi');
+  const [loading, setLoading] = useState(false);
   const [deliveryCharge, setDeliveryCharge] = useState(0);
   const [deliveryLocations, setDeliveryLocations] = useState([]);
   const [detectingLocation, setDetectingLocation] = useState(false);
-  const [stateCities, setStateCities] = useState({
+  const [previousSearchQuery, setPreviousSearchQuery] = useState('');
+  const [previousSearchResults, setPreviousSearchResults] = useState([]);
+  const [showPreviousResults, setShowPreviousResults] = useState(false);
+  const [locationsByState, setLocationsByState] = useState({
     "Andhra Pradesh": [],
     "Telangana": []
   });
@@ -70,33 +49,37 @@ const Checkout = () => {
   const [customCity, setCustomCity] = useState('');
   const [customCityState, setCustomCityState] = useState('');
   const [customCityDeliveryCharge, setCustomCityDeliveryCharge] = useState(199);
-  const [customCityDistance, setCustomCityDistance] = useState(null);
-  const [calculatingCustomCity, setCalculatingCustomCity] = useState(false);
-  const [showAddCityModal, setShowAddCityModal] = useState(false);
-  const [showCustomCityModal, setShowCustomCityModal] = useState(false);
 
   useEffect(() => {
-    fetchDeliveryLocations();
+    if (cart.length === 0) {
+      navigate('/');
+      return;
+    }
+    
     fetchAllProducts();
+    fetchDeliveryLocations();
     fetchFreeDeliverySettings();
+    loadPreviousOrderData();
   }, []);
 
-  const fetchFreeDeliverySettings = async () => {
-    try {
-      const response = await axios.get(`${API}/settings/free-delivery`);
-      setFreeDeliverySettings(response.data);
-    } catch (error) {
-      console.error('Failed to fetch free delivery settings:', error);
-    }
-  };
+  useEffect(() => {
+    calculateDeliveryCharge();
+  }, [city, deliveryLocations, freeDeliverySettings, cartTotal]);
 
   const fetchAllProducts = async () => {
     try {
       const response = await axios.get(`${API}/products`);
       setAllProducts(response.data);
-      // Get best sellers for recommendations
-      const bestSellers = response.data.filter(p => p.isBestSeller).slice(0, 4);
-      setRecommendations(bestSellers);
+      
+      // Get random recommendations (excluding items in cart)
+      const cartProductIds = cart.map(item => item.id);
+      const availableProducts = response.data.filter(p => !cartProductIds.includes(p.id));
+      
+      // Shuffle and get random 4 products
+      const shuffled = [...availableProducts].sort(() => Math.random() - 0.5);
+      const randomRecommendations = shuffled.slice(0, 4);
+      
+      setRecommendations(randomRecommendations);
     } catch (error) {
       console.error('Failed to fetch products:', error);
     }
@@ -108,545 +91,257 @@ const Checkout = () => {
       const locations = response.data;
       console.log('📦 Fetched delivery locations:', locations.length);
       setDeliveryLocations(locations);
-      
-      const apCities = [];
-      const telCities = [];
-      
+
+      // Group locations by state
+      const groupedByState = {
+        "Andhra Pradesh": [],
+        "Telangana": []
+      };
+
       locations.forEach(loc => {
-        const cityName = loc.name;
-        const state = loc.state || "Andhra Pradesh";
-        
-        if (state === "Andhra Pradesh" && !apCities.includes(cityName)) {
-          apCities.push(cityName);
-        } else if (state === "Telangana" && !telCities.includes(cityName)) {
-          telCities.push(cityName);
+        if (groupedByState[loc.state]) {
+          groupedByState[loc.state].push(loc);
         }
       });
-      
-      setStateCities({
-        "Andhra Pradesh": [...new Set(apCities)].sort(),
-        "Telangana": [...new Set(telCities)].sort()
-      });
+
+      // Sort each state's cities alphabetically
+      groupedByState["Andhra Pradesh"].sort((a, b) => a.name.localeCompare(b.name));
+      groupedByState["Telangana"].sort((a, b) => a.name.localeCompare(b.name));
+
+      setLocationsByState(groupedByState);
     } catch (error) {
-      console.error('Failed to fetch delivery locations:', error);
+      console.error('Failed to fetch locations:', error);
     }
   };
 
-  const handleQuantityChange = (index, delta) => {
-    const item = cart[index];
-    const newQuantity = (item.quantity || 1) + delta;
-    
-    if (newQuantity < 1) {
-      if (window.confirm(`Remove ${item.name} from cart?`)) {
-        removeFromCart(item.id, item.weight || item.selectedWeight);
-      }
+  const fetchFreeDeliverySettings = async () => {
+    try {
+      const response = await axios.get(`${API}/settings/free-delivery`);
+      setFreeDeliverySettings(response.data);
+    } catch (error) {
+      console.error('Failed to fetch free delivery settings:', error);
+    }
+  };
+
+  const loadPreviousOrderData = () => {
+    // Check if there's a phone number stored in localStorage from previous orders
+    const storedPhone = localStorage.getItem('lastOrderPhone');
+    if (storedPhone && !customerPhone) {
+      setCustomerPhone(storedPhone);
+    }
+  };
+
+  const handlePreviousOrderSearch = async () => {
+    if (!previousSearchQuery.trim()) {
+      toast({
+        title: "Search Required",
+        description: "Please enter phone number or email to search previous orders",
+        variant: "destructive"
+      });
       return;
     }
-    
-    updateQuantity(item.id, item.weight || item.selectedWeight, newQuantity);
-  };
 
-  const handleWeightEdit = (index) => {
-    const item = cart[index];
-    setEditingItemIndex(index);
-    setSelectedWeight(item.weight || item.selectedWeight);
-  };
-
-  const handleWeightChange = (index) => {
-    const item = cart[index];
-    const weight = selectedWeight;
-    
-    // Find the new price for selected weight
-    const product = allProducts.find(p => p.id === item.id);
-    if (product) {
-      const priceInfo = product.prices.find(p => p.weight === weight);
-      if (priceInfo) {
-        // Remove old item and add with new weight
-        removeFromCart(item.id, item.weight || item.selectedWeight);
-        
-        // Update cart with new weight (this will be handled by CartContext)
-        const updatedItem = {
-          ...item,
-          weight: weight,
-          selectedWeight: weight,
-          price: priceInfo.price,
-          selectedPrice: priceInfo.price
-        };
-        
-        // Add back with new weight
+    try {
+      const response = await axios.get(`${API}/orders/track/${previousSearchQuery.trim()}`);
+      if (response.data.orders && response.data.orders.length > 0) {
+        setPreviousSearchResults(response.data.orders);
+        setShowPreviousResults(true);
         toast({
-          title: "Weight Updated",
-          description: `Updated to ${weight} - ₹${priceInfo.price}`
+          title: "Orders Found",
+          description: `Found ${response.data.total} order(s) for ${previousSearchQuery}`,
+        });
+      } else {
+        toast({
+          title: "No Orders Found",
+          description: "No previous orders found with this phone or email",
+          variant: "destructive"
         });
       }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch previous orders",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const fillFromPreviousOrder = (order) => {
+    setCustomerName(order.customer_name || '');
+    setCustomerEmail(order.email || '');
+    setCustomerPhone(order.phone || '');
+    
+    // Handle both old and new address formats
+    if (order.doorNo) {
+      // New structured format
+      setDoorNo(order.doorNo || '');
+      setBuilding(order.building || '');
+      setStreet(order.street || '');
+      setCity(order.city || '');
+      setState(order.state || '');
+      setPincode(order.pincode || '');
+    } else if (order.address) {
+      // Old single address format - try to parse it
+      setStreet(order.address);
+      setCity(order.location || '');
     }
     
-    setEditingItemIndex(null);
-    setSelectedWeight('');
+    setShowPreviousResults(false);
+    toast({
+      title: "Address Filled",
+      description: "Previous order details have been filled in the form",
+    });
   };
 
   const calculateDeliveryCharge = () => {
-    const subtotal = getCartTotal();
-    
-    // Get city-specific threshold with state match
-    const selectedCity = deliveryLocations.find(loc => 
-      loc.name.toLowerCase() === formData.city.toLowerCase() && 
-      loc.state === formData.state
-    );
-    
-    // Use city-specific threshold if available, otherwise fall back to global
-    const threshold = selectedCity?.free_delivery_threshold || freeDeliverySettings.threshold;
-    
-    // Check if free delivery is enabled and threshold is met
-    if (threshold && subtotal >= threshold) {
-      console.log(`🎁 FREE DELIVERY: ${formData.city} - Subtotal ₹${subtotal} >= Threshold ₹${threshold}`);
-      return 0;
-    }
-    
-    console.log(`💰 DELIVERY CHARGE: ${formData.city} - ₹${deliveryCharge} (Threshold: ₹${threshold || 'Not set'})`);
-    return deliveryCharge;
-  };
-
-  const isFreeDeliveryApplicable = () => {
-    const subtotal = getCartTotal();
-    
-    // Get city-specific threshold with state match
-    const selectedCity = deliveryLocations.find(loc => 
-      loc.name.toLowerCase() === formData.city.toLowerCase() && 
-      loc.state === formData.state
-    );
-    
-    const threshold = selectedCity?.free_delivery_threshold || freeDeliverySettings.threshold;
-    
-    return threshold && subtotal >= threshold;
-  };
-
-  const getRemainingForFreeDelivery = () => {
-    const subtotal = getCartTotal();
-    
-    // Get city-specific threshold with state match
-    const selectedCity = deliveryLocations.find(loc => 
-      loc.name.toLowerCase() === formData.city.toLowerCase() && 
-      loc.state === formData.state
-    );
-    
-    const threshold = selectedCity?.free_delivery_threshold || freeDeliverySettings.threshold;
-    
-    return threshold ? threshold - subtotal : 0;
-  };
-
-  const validateForm = () => {
-    const newErrors = {};
-    if (!formData.name.trim()) newErrors.name = 'Name is required';
-    if (!formData.email.trim()) newErrors.email = 'Email is required';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = 'Enter valid email address';
-    if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
-    else if (!/^\d{10}$/.test(formData.phone)) newErrors.phone = 'Enter valid 10-digit phone number';
-    
-    if (!formData.doorNo.trim()) newErrors.doorNo = 'Door number is required';
-    if (!formData.building.trim()) newErrors.building = 'Building/House name is required';
-    if (!formData.street.trim()) newErrors.street = 'Street/Area is required';
-    if (!formData.state.trim()) newErrors.state = 'State is required';
-    // Validate city - either from dropdown or custom
-    if (!showCustomCityInput && !formData.city.trim()) newErrors.city = 'City is required';
-    if (showCustomCityInput && !customCity.trim()) newErrors.city = 'Please enter your city name';
-    if (!formData.pincode.trim()) newErrors.pincode = 'Pincode is required';
-    else if (!/^\d{6}$/.test(formData.pincode)) newErrors.pincode = 'Enter valid 6-digit pincode';
-    
-    // Payment validation - not required as Razorpay modal handles all payment methods
-    // No custom payment selection needed
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSearchUserDetails = async () => {
-    if (!searchIdentifier.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter phone number or email",
-        variant: "destructive"
-      });
+    if (!city) {
+      setDeliveryCharge(0);
       return;
     }
 
-    setSearching(true);
-    try {
-      const response = await axios.get(`${API}/user-details/${searchIdentifier.trim()}`);
-      
-      if (response.data) {
-        const details = response.data;
-        const cityValue = details.city || formData.city;
-        setFormData(prev => ({
-          ...prev,
-          name: details.customer_name || prev.name,
-          email: details.email || prev.email,
-          phone: details.phone || prev.phone,
-          doorNo: details.doorNo || prev.doorNo,
-          building: details.building || prev.building,
-          street: details.street || prev.street,
-          city: cityValue,
-          state: details.state || prev.state,
-          pincode: details.pincode || prev.pincode,
-          location: details.location || cityValue || prev.location
-        }));
-        
-        if (cityValue) {
-          const selectedLocation = deliveryLocations.find(loc => loc.name === cityValue);
-          if (selectedLocation) {
-            setDeliveryCharge(selectedLocation.charge);
-          } else {
-            setDeliveryCharge(99);
-          }
-        }
-        
-        toast({
-          title: "Details Found!",
-          description: "Your saved details have been filled. Please verify and update if needed."
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "No Details Found",
-        description: "No saved details found for this phone/email. Please enter manually.",
-        variant: "destructive"
-      });
-    } finally {
-      setSearching(false);
+    // Check if city exists in delivery locations
+    const location = deliveryLocations.find(
+      loc => loc.name.toLowerCase() === city.toLowerCase()
+    );
+
+    if (!location) {
+      // City not found in delivery locations
+      setDeliveryCharge(0);
+      return;
     }
+
+    // Check for free delivery
+    if (freeDeliverySettings.enabled && cartTotal >= freeDeliverySettings.threshold) {
+      setDeliveryCharge(0);
+      return;
+    }
+
+    // Use the delivery charge from the location
+    setDeliveryCharge(location.delivery_charge || 0);
   };
 
-  const detectCurrentLocation = () => {
-    // Check if geolocation is available
+  const detectCurrentLocation = async () => {
     if (!navigator.geolocation) {
       toast({
-        title: "Not Supported",
-        description: "Geolocation is not supported by your browser. Please enter address manually.",
+        title: "Location Not Supported",
+        description: "Your browser doesn't support geolocation",
         variant: "destructive"
       });
       return;
     }
 
     setDetectingLocation(true);
-    
-    // Show initial notification
-    toast({
-      title: "Requesting Location",
-      description: "Please allow location access in your browser to detect your address..."
-    });
-
-    // Geolocation options for better cross-browser compatibility
-    const geoOptions = {
-      enableHighAccuracy: true,
-      timeout: 15000, // 15 seconds timeout
-      maximumAge: 0 // Don't use cached position
-    };
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
         
-        console.log('📍 Location acquired:', { latitude, longitude });
-        
         try {
-          // Add User-Agent to prevent being blocked
+          // Use OpenStreetMap Nominatim API for reverse geocoding
           const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`,
-            {
-              headers: {
-                'Accept': 'application/json',
-                'User-Agent': 'AnanthaLakshmiApp/1.0'
-              }
-            }
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
           );
-          
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          
           const data = await response.json();
           
-          console.log('🗺️ Location API Full Response:', JSON.stringify(data, null, 2));
-          
-          if (data && data.address) {
-            const addr = data.address;
-            console.log('📍 Address fields received:', JSON.stringify(addr, null, 2));
-            console.log('🔍 Individual address components:');
-            console.log('   - road:', addr.road);
-            console.log('   - street:', addr.street);
-            console.log('   - neighbourhood:', addr.neighbourhood);
-            console.log('   - suburb:', addr.suburb);
-            console.log('   - locality:', addr.locality);
-            console.log('   - hamlet:', addr.hamlet);
-            console.log('   - quarter:', addr.quarter);
-            console.log('   - residential:', addr.residential);
-            console.log('   - commercial:', addr.commercial);
-            console.log('   - village:', addr.village);
-            console.log('   - town:', addr.town);
-            console.log('   - city:', addr.city);
-            console.log('   - district:', addr.district);
-            console.log('   - county:', addr.county);
+          if (data.address) {
+            // Build a detailed street address from multiple components
+            const streetParts = [];
+            if (data.address.road) streetParts.push(data.address.road);
+            if (data.address.neighbourhood) streetParts.push(data.address.neighbourhood);
+            if (data.address.suburb) streetParts.push(data.address.suburb);
+            if (data.address.hamlet) streetParts.push(data.address.hamlet);
+            const detectedStreet = streetParts.join(', ');
             
-            // Enhanced address extraction with comprehensive fallbacks
-            const streetOptions = [
-              addr.road,
-              addr.street, 
-              addr.pedestrian,
-              addr.footway,
-              addr.path,
-              addr.cycleway,
-              addr.neighbourhood,
-              addr.suburb,
-              addr.quarter,
-              addr.locality,
-              addr.residential,
-              addr.commercial,
-              addr.industrial,
-              addr.place,
-              addr.hamlet,
-              addr.village
-            ].filter(Boolean);
+            // Try to use neighbourhood or suburb for building
+            const detectedBuilding = data.address.neighbourhood || data.address.suburb || '';
             
-            console.log('🛣️ ALL street options found:', streetOptions);
+            const detectedPincode = data.address.postcode || '';
+            const detectedState = data.address.state || '';
             
-            // Improved city detection - prioritize larger administrative divisions
+            // Smart city detection - try to match against known delivery cities
             let detectedCity = '';
+            const apiCity = data.address.city || data.address.town || data.address.village || '';
             
-            // First try to find matching city from our delivery locations
-            const possibleCities = [
-              addr.city,
-              addr.town,
-              addr.municipality,
-              addr.county,
-              addr.district,
-              addr.city_district,
-              addr.village,
-              addr.subdistrict
-            ].filter(Boolean);
+            // First try exact match from delivery locations
+            const exactMatch = deliveryLocations.find(
+              loc => loc.name.toLowerCase() === apiCity.toLowerCase() && 
+                     loc.state.toLowerCase() === detectedState.toLowerCase()
+            );
             
-            console.log('🏙️ Possible cities from API:', possibleCities);
-            console.log('📍 Our delivery cities:', deliveryLocations.map(l => l.name));
-            
-            // Try to match with our delivery locations database
-            for (const possibleCity of possibleCities) {
-              const matchedLocation = deliveryLocations.find(loc => 
-                loc.name.toLowerCase() === possibleCity.toLowerCase() ||
-                possibleCity.toLowerCase().includes(loc.name.toLowerCase()) ||
-                loc.name.toLowerCase().includes(possibleCity.toLowerCase())
+            if (exactMatch) {
+              detectedCity = exactMatch.name;
+            } else {
+              // Try partial match
+              const partialMatch = deliveryLocations.find(
+                loc => loc.name.toLowerCase().includes(apiCity.toLowerCase()) ||
+                       apiCity.toLowerCase().includes(loc.name.toLowerCase())
               );
               
-              if (matchedLocation) {
-                detectedCity = matchedLocation.name;
-                console.log('✅ Matched city from database:', detectedCity);
-                break;
+              if (partialMatch) {
+                detectedCity = partialMatch.name;
+              } else {
+                // Use API city as fallback
+                detectedCity = apiCity;
               }
             }
             
-            // If no match found, use the first major city option
-            if (!detectedCity) {
-              detectedCity = addr.city || addr.town || addr.municipality || addr.county || addr.district || '';
-              console.log('⚠️ Using fallback city:', detectedCity);
-            }
-            
-            const buildingOptions = [
-              addr.building,
-              addr.house,
-              addr.apartment,
-              addr.amenity,
-              addr.shop,
-              addr.office
-            ].filter(Boolean);
-            
-            // DETAILED STREET ADDRESS - Use multiple components for complete address
-            let detectedStreet = '';
-            
-            // Build detailed street address from available components
-            const streetComponents = [];
-            
-            // Add road/street name if available
-            if (addr.road || addr.street) {
-              streetComponents.push(addr.road || addr.street);
-            }
-            
-            // Add neighbourhood/suburb/locality for more detail
-            if (addr.neighbourhood) {
-              streetComponents.push(addr.neighbourhood);
-            } else if (addr.suburb) {
-              streetComponents.push(addr.suburb);
-            } else if (addr.locality) {
-              streetComponents.push(addr.locality);
-            }
-            
-            // Add hamlet/village_quarter for very specific location
-            if (addr.hamlet) {
-              streetComponents.push(addr.hamlet);
-            } else if (addr.quarter) {
-              streetComponents.push(addr.quarter);
-            }
-            
-            // Join all components with comma
-            detectedStreet = streetComponents.join(', ');
-            
-            // Fallback if no street found - use any available location detail
-            if (!detectedStreet) {
-              detectedStreet = addr.residential || addr.commercial || addr.industrial || 
-                             addr.pedestrian || addr.place || '';
-            }
-            
-            console.log('🛣️ Detected street components:', streetComponents);
-            console.log('📍 Final street address:', detectedStreet);
-            
-            const detectedAddress = {
-              doorNo: addr.house_number || addr.housenumber || addr.building_number || addr.unit || '',
-              building: buildingOptions[0] || '',
-              street: detectedStreet,
+            console.log('🌍 Location detected:', {
               city: detectedCity,
-              state: addr.state || addr.state_district || addr.region || addr.province || '',
-              pincode: addr.postcode || addr.postal_code || addr.zip || ''
-            };
-            
-            console.log('🔍 Extracted address:', detectedAddress);
-            
-            // Update form data - OVERWRITE with detected data (don't preserve old values)
-            setFormData(prev => {
-              const newData = {
-                ...prev,
-                // ALWAYS use detected data if available, otherwise keep previous
-                doorNo: detectedAddress.doorNo ? detectedAddress.doorNo : prev.doorNo,
-                building: detectedAddress.building ? detectedAddress.building : prev.building,
-                street: detectedAddress.street ? detectedAddress.street : prev.street,
-                city: detectedAddress.city ? detectedAddress.city : prev.city,
-                state: detectedAddress.state ? detectedAddress.state : prev.state,
-                pincode: detectedAddress.pincode ? detectedAddress.pincode : prev.pincode,
-                location: detectedAddress.city ? detectedAddress.city : prev.location
-              };
-              
-              console.log('📝 Updated form data:', newData);
-              console.log('🆕 New street value:', newData.street);
-              console.log('🆕 New building value:', newData.building);
-              console.log('🆕 New door value:', newData.doorNo);
-              return newData;
+              state: detectedState,
+              pincode: detectedPincode,
+              street: detectedStreet,
+              building: detectedBuilding,
+              raw: data.address
             });
             
-            // Auto-select delivery location and update delivery charge
-            if (detectedAddress.city && detectedAddress.state) {
-              console.log('🔍 Looking for delivery location:', detectedAddress.city, detectedAddress.state);
-              
-              const selectedLocation = deliveryLocations.find(loc => 
-                loc.name.toLowerCase() === detectedAddress.city.toLowerCase() && 
-                loc.state === detectedAddress.state
-              );
-              
-              if (selectedLocation) {
-                console.log('✅ Found matching location:', selectedLocation);
-                setDeliveryCharge(selectedLocation.charge);
-                
-                // Update form with matched city and state
-                setFormData(prev => ({
-                  ...prev,
-                  city: selectedLocation.name,
-                  state: selectedLocation.state,
-                  location: selectedLocation.name
-                }));
-              } else {
-                console.log('⚠️ No exact match found, searching for partial match...');
-                // Try partial match
-                const partialMatch = deliveryLocations.find(loc => 
-                  loc.name.toLowerCase().includes(detectedAddress.city.toLowerCase()) ||
-                  detectedAddress.city.toLowerCase().includes(loc.name.toLowerCase())
-                );
-                
-                if (partialMatch) {
-                  console.log('✅ Found partial match:', partialMatch);
-                  setDeliveryCharge(partialMatch.charge);
-                  setFormData(prev => ({
-                    ...prev,
-                    city: partialMatch.name,
-                    state: partialMatch.state,
-                    location: partialMatch.name
-                  }));
-                } else {
-                  console.log('⚠️ No delivery location found for:', detectedAddress.city);
-                }
-              }
-            }
+            // Update form fields with detected values (ALWAYS overwrite)
+            if (detectedStreet) setStreet(detectedStreet);
+            if (detectedBuilding) setBuilding(detectedBuilding);
+            if (detectedCity) setCity(detectedCity);
+            if (detectedState) setState(detectedState);
+            if (detectedPincode) setPincode(detectedPincode);
             
-            // Show which fields were detected
-            const detectedFieldNames = [];
-            if (detectedAddress.doorNo) detectedFieldNames.push('Door No');
-            if (detectedAddress.building) detectedFieldNames.push('Building');
-            if (detectedAddress.street) detectedFieldNames.push('Street/Area');
-            if (detectedAddress.city) detectedFieldNames.push('City');
-            if (detectedAddress.state) detectedFieldNames.push('State');
-            if (detectedAddress.pincode) detectedFieldNames.push('Pincode');
-            
-            console.log('✅ Detected fields:', detectedFieldNames);
-            
-            const filledFields = detectedFieldNames.length;
-            
-            // Show detailed feedback about what was detected
-            if (filledFields > 0) {
-              // Build detailed description of what was filled
-              let detailsList = '';
-              if (detectedAddress.street) detailsList += `\n📍 Street: ${detectedAddress.street}`;
-              if (detectedAddress.building) detailsList += `\n🏢 Building: ${detectedAddress.building}`;
-              if (detectedAddress.doorNo) detailsList += `\n🚪 Door No: ${detectedAddress.doorNo}`;
-              if (detectedAddress.city) detailsList += `\n🏙️ City: ${detectedAddress.city}`;
-              if (detectedAddress.state) detailsList += `\n🗺️ State: ${detectedAddress.state}`;
-              if (detectedAddress.pincode) detailsList += `\n📮 Pincode: ${detectedAddress.pincode}`;
-              
-              toast({
-                title: "✅ Location Detected Successfully!",
-                description: `${filledFields} field(s) auto-filled:${detailsList}\n\nPlease verify the details and complete any missing fields.`,
-                variant: "default",
-                duration: 8000
-              });
-            } else {
-              // Show location name even if fields couldn't be extracted
-              const locationName = data.display_name || 'Unknown location';
-              toast({
-                title: "Location Found",
-                description: `📍 ${locationName}\n\nCouldn't auto-fill address fields. Please enter manually.`,
-                variant: "destructive",
-                duration: 5000
-              });
-            }
-          } else {
-            throw new Error('No address data in response');
+            // Show detailed notification
+            toast({
+              title: "📍 Location Detected",
+              description: (
+                <div className="space-y-1 text-sm">
+                  {detectedStreet && <div>Street: {detectedStreet}</div>}
+                  {detectedBuilding && <div>Building: {detectedBuilding}</div>}
+                  {detectedCity && <div>City: {detectedCity}</div>}
+                  {detectedState && <div>State: {detectedState}</div>}
+                  {detectedPincode && <div>Pincode: {detectedPincode}</div>}
+                  <div className="mt-2 text-amber-600">Please verify and adjust if needed</div>
+                </div>
+              ),
+              duration: 8000,
+            });
           }
         } catch (error) {
-          console.error('❌ Location API error:', error);
-          console.error('Error details:', error.message);
-          
+          console.error('Reverse geocoding error:', error);
           toast({
-            title: "Address Lookup Failed",
-            description: `📍 Coordinates: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}\n\nCouldn't fetch address details. Please enter manually.\n\nError: ${error.message || 'Unknown error'}`,
-            variant: "destructive",
-            duration: 7000
+            title: "Location Error",
+            description: "Failed to get address details",
+            variant: "destructive"
           });
         } finally {
           setDetectingLocation(false);
         }
       },
       (error) => {
-        console.error('❌ Geolocation error:', error);
         setDetectingLocation(false);
-        
-        // Provide specific error messages based on error code
-        let errorMessage = "Unable to detect location. ";
+        let errorMessage = "Failed to get location";
         
         switch(error.code) {
           case error.PERMISSION_DENIED:
-            errorMessage += "Location access was denied. Please allow location access in your browser settings and try again.";
+            errorMessage = "Location permission denied. Please enable location access in your browser.";
             break;
           case error.POSITION_UNAVAILABLE:
-            errorMessage += "Location information is unavailable. Please check your device settings and try again.";
+            errorMessage = "Location information unavailable";
             break;
           case error.TIMEOUT:
-            errorMessage += "Location request timed out. Please try again or enter address manually.";
+            errorMessage = "Location request timed out";
             break;
-          default:
-            errorMessage += "An unknown error occurred. Please enter address manually.";
         }
         
         toast({
@@ -655,377 +350,214 @@ const Checkout = () => {
           variant: "destructive"
         });
       },
-      geoOptions
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
     );
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!validateForm()) {
+    if (cart.length === 0) {
       toast({
-        title: "Error",
-        description: "Please fill all required fields correctly.",
+        title: "Cart is empty",
+        description: "Please add items to cart before placing order",
         variant: "destructive"
       });
       return;
     }
 
-    if (!cart || cart.length === 0) {
+    // Validate all required fields
+    if (!customerName || !customerEmail || !customerPhone || !doorNo || !street || !city || !state || !pincode) {
       toast({
-        title: "Error",
-        description: "Your cart is empty.",
+        title: "Missing Information",
+        description: "Please fill in all required fields",
         variant: "destructive"
       });
       return;
     }
 
-    // CRITICAL: Verify that selected city exists in delivery locations
-    // Checkout is ONLY for ordering existing cities, NOT for city requests
-    if (!showCustomCityInput && formData.city && formData.state) {
-      const cityExists = deliveryLocations.find(loc => 
-        loc.name.toLowerCase() === formData.city.toLowerCase() && 
-        loc.state === formData.state
-      );
-      
-      if (!cityExists) {
-        toast({
-          title: "City Not Available",
-          description: `We don't currently deliver to ${formData.city}, ${formData.state}. Please select a city from the dropdown list. If you'd like to request delivery to your city, please visit our homepage.`,
-          variant: "destructive",
-          duration: 8000
-        });
-        return;
-      }
-    }
+    // Validate city exists in delivery locations
+    const cityExists = deliveryLocations.some(
+      loc => loc.name.toLowerCase() === city.toLowerCase() && 
+             loc.state.toLowerCase() === state.toLowerCase()
+    );
 
-    // Check if all products are available for delivery to the selected city
-    const unavailableProducts = [];
-    for (const item of cart) {
-      const available_cities = item.available_cities;
-      if (available_cities && Array.isArray(available_cities) && available_cities.length > 0) {
-        // If product has city restrictions, check if the selected city is in the list
-        if (!available_cities.includes(formData.city)) {
-          unavailableProducts.push(item.name);
-        }
-      }
-    }
-
-    if (unavailableProducts.length > 0) {
+    if (!cityExists) {
       toast({
-        title: "Delivery Not Available",
-        description: `The following products are not available for delivery to ${formData.city}: ${unavailableProducts.join(', ')}. Please remove them from cart or choose a different city.`,
+        title: "City Not Available",
+        description: `We don't currently deliver to ${city}. Please select a city from the dropdown list.`,
         variant: "destructive"
       });
       return;
     }
 
-    const fullAddress = `${formData.doorNo}, ${formData.building}, ${formData.street}, ${formData.city}, ${formData.state} - ${formData.pincode}`;
-    const finalDeliveryCharge = calculateDeliveryCharge();
-    const orderTotal = getCartTotal() + finalDeliveryCharge;
-
-    const orderData = {
-      user_id: user?.id || 'guest',
-      customer_name: formData.name,
-      email: formData.email,
-      phone: formData.phone,
-      address: fullAddress,
-      doorNo: formData.doorNo,
-      building: formData.building,
-      street: formData.street,
-      city: formData.city,
-      state: formData.state,
-      pincode: formData.pincode,
-      location: formData.location || formData.city,
-      items: cart.map(item => ({
-        product_id: String(item.id || ''),
-        name: item.name || '',
-        image: item.image || '',
-        weight: item.weight || item.selectedWeight || (item.prices && item.prices.length > 0 ? item.prices[0].weight : ''),
-        price: parseFloat(item.price || item.selectedPrice || (item.prices && item.prices.length > 0 ? item.prices[0].price : 0)),
-        quantity: parseInt(item.quantity) || 1,
-        description: item.description || ''
-      })),
-      subtotal: getCartTotal(),
-      delivery_charge: finalDeliveryCharge,
-      total: orderTotal,
-      payment_method: 'razorpay',
-      payment_sub_method: 'upi',
-      is_custom_location: showCustomCityInput,
-      custom_city: showCustomCityInput ? customCity : null,
-      custom_state: showCustomCityInput ? (customCityState || formData.state) : null,
-      distance_from_guntur: showCustomCityInput ? customCityDistance : null
-    };
+    setLoading(true);
 
     try {
-      // Step 1: Create order in database
-      const token = localStorage.getItem('token');
-      const orderResponse = await axios.post(`${API}/orders`, orderData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      // Create order with pending payment status
+      const orderData = {
+        customer_name: customerName,
+        email: customerEmail,
+        phone: customerPhone,
+        doorNo: doorNo,
+        building: building,
+        street: street,
+        city: city,
+        state: state,
+        pincode: pincode,
+        location: city,
+        items: cart.map(item => ({
+          product_id: item.id,
+          name: item.name,
+          weight: item.selectedPrice.weight,
+          price: item.selectedPrice.price,
+          quantity: item.quantity,
+          image: item.image
+        })),
+        subtotal: cartTotal,
+        delivery_charge: deliveryCharge,
+        total: cartTotal + deliveryCharge,
+        payment_method: paymentMethod,
+        payment_sub_method: paymentSubMethod,
+        payment_status: 'pending',
+        order_status: 'pending'
+      };
 
-      const orderResult = orderResponse.data;
-      const orderId = orderResult.order_id;
+      console.log('📦 Creating order with data:', orderData);
+      const orderResponse = await axios.post(`${API}/orders`, orderData);
+      const { order_id, tracking_code } = orderResponse.data;
 
-      // Step 2: Create Razorpay order
+      console.log('✅ Order created:', order_id);
+
+      // Store phone for next time
+      localStorage.setItem('lastOrderPhone', customerPhone);
+
+      // Create Razorpay order
       const razorpayOrderResponse = await axios.post(`${API}/payment/create-razorpay-order`, {
-        amount: orderTotal,
+        amount: cartTotal + deliveryCharge,
         currency: 'INR',
-        receipt: orderId
+        receipt: order_id
       });
 
       const { razorpay_order_id, key_id } = razorpayOrderResponse.data;
 
-      // Step 3: Load Razorpay script and open checkout (Official Razorpay UI)
-      const scriptLoaded = await loadRazorpayScript();
-      
-      if (!scriptLoaded) {
-        toast({
-          title: "Payment Error",
-          description: "Failed to load payment gateway. Please check your internet connection and try again.",
-          variant: "destructive",
-          duration: 6000
-        });
-        return;
-      }
-
-      // Official Razorpay Checkout Options
+      // Initialize Razorpay
       const options = {
-        key: key_id, // Razorpay API Key
-        amount: orderTotal * 100, // Amount in paise (multiply by 100)
+        key: key_id,
+        amount: (cartTotal + deliveryCharge) * 100, // Amount in paise
         currency: 'INR',
-        name: 'Anantha Home Foods',
-        description: `Order #${orderId}`,
-        image: '/logo.png', // Your logo
-        order_id: razorpay_order_id, // Order ID from backend
-        prefill: {
-          name: formData.name,
-          email: formData.email,
-          contact: formData.phone
-        },
-        notes: {
-          order_id: orderId,
-          customer_name: formData.name
-        },
-        theme: {
-          color: '#ea580c' // Orange theme matching your app
-        },
-        config: {
-          display: {
-            blocks: {
-              upi: {
-                name: 'Pay using UPI',
-                instruments: [
-                  {
-                    method: 'upi'
-                  }
-                ]
-              },
-              card: {
-                name: 'Pay using Cards',
-                instruments: [
-                  {
-                    method: 'card'
-                  }
-                ]
-              }
-            },
-            sequence: ['block.upi', 'block.card'],
-            preferences: {
-              show_default_blocks: false // Hide default payment methods (Netbanking, Wallets, etc.)
-            }
-          }
-        },
+        name: 'Anantha Lakshmi',
+        description: 'Food Order Payment',
+        order_id: razorpay_order_id,
         handler: async function (response) {
-          // Payment successful callback
-          console.log('Payment Success Response:', response);
           try {
-            // Verify payment signature on backend
+            // Verify payment
             await axios.post(`${API}/payment/verify-razorpay-payment`, {
+              order_id: order_id,
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-              order_id: orderId
+              razorpay_signature: response.razorpay_signature
             });
 
+            // Clear cart and navigate to tracking
             clearCart();
             toast({
-              title: "Payment Successful! 🎉",
-              description: `Order ID: ${orderId}\n\nYour order has been confirmed. Check your email for details.`,
-              duration: 6000
+              title: "Order Placed Successfully! 🎉",
+              description: `Your order has been confirmed. Tracking code: ${tracking_code}`,
             });
-            navigate('/order-success', { state: { orderData: orderResult } });
-          } catch (verifyError) {
-            console.error('Payment verification error:', verifyError);
+            navigate(`/track-order?code=${tracking_code}`);
+          } catch (error) {
+            console.error('Payment verification failed:', error);
             toast({
               title: "Payment Verification Failed",
-              description: "Your payment was received but verification failed. Please contact support with your Order ID: " + orderId,
-              variant: "destructive",
-              duration: 8000
+              description: "Please contact support with your order ID: " + order_id,
+              variant: "destructive"
             });
           }
         },
         modal: {
           ondismiss: async function() {
-            // Payment cancelled or closed - Cancel the order
+            // Cancel order if payment modal is dismissed
             try {
-              // Call the payment-cancel endpoint (no auth required for immediate cancellation)
-              await axios.post(`${API}/orders/${orderId}/payment-cancel`, {
-                cancel_reason: "Payment cancelled by customer"
-              });
-              
+              await axios.post(`${API}/orders/${order_id}/payment-cancel`);
               toast({
                 title: "Order Cancelled",
                 description: "Payment was cancelled. Your order has been cancelled and will not be processed.",
-                variant: "default",
-                duration: 6000
+                variant: "destructive"
               });
+              setTimeout(() => {
+                navigate('/');
+              }, 2000);
             } catch (error) {
               console.error('Failed to cancel order:', error);
-              toast({
-                title: "Payment Cancelled",
-                description: "Payment was not completed. The order has been marked as cancelled.",
-                variant: "default",
-                duration: 6000
-              });
             }
-            
-            // Navigate to home page after dismissal
-            setTimeout(() => {
-              navigate('/');
-            }, 2000);
           }
+        },
+        prefill: {
+          name: customerName,
+          email: customerEmail,
+          contact: customerPhone
+        },
+        theme: {
+          color: '#f97316' // Orange color matching app theme
         }
       };
 
-      // Open Official Razorpay Checkout Modal
-      const razorpayCheckout = new window.Razorpay(options);
-      razorpayCheckout.open();
+      const rzp = new window.Razorpay(options);
+      rzp.open();
 
     } catch (error) {
-      console.error('Order error:', error);
-      const errorMsg = error.response?.data?.detail || 
-                       (error.response?.data?.message) ||
-                       "Failed to place order. Please try again.";
+      console.error('❌ Order creation failed:', error);
       toast({
-        title: "Error",
-        description: Array.isArray(errorMsg) ? errorMsg[0]?.msg || errorMsg[0] : errorMsg,
+        title: "Order Failed",
+        description: error.response?.data?.detail || "Failed to create order. Please try again.",
         variant: "destructive"
       });
-    }
-  };
-
-  const calculateCustomCityDelivery = async (cityName, stateName) => {
-    setCalculatingCustomCity(true);
-    try {
-      const response = await axios.post(`${API}/calculate-custom-city-delivery`, {
-        city_name: cityName,
-        state_name: stateName
-      });
-      
-      setCustomCityDeliveryCharge(response.data.delivery_charge);
-      setCustomCityDistance(response.data.distance_from_guntur_km);
-      setDeliveryCharge(response.data.delivery_charge);
-      
-      toast({
-        title: "Delivery Charge Calculated",
-        description: response.data.distance_from_guntur_km 
-          ? `₹${response.data.delivery_charge} for ${cityName} (${response.data.distance_from_guntur_km}km from Guntur)`
-          : `₹${response.data.delivery_charge} for ${cityName}`
-      });
-    } catch (error) {
-      console.error('Failed to calculate custom city delivery:', error);
-      setCustomCityDeliveryCharge(199);
-      setDeliveryCharge(199);
-      toast({
-        title: "Using Default Charge",
-        description: `₹199 delivery charge for ${cityName}`,
-        variant: "default"
-      });
     } finally {
-      setCalculatingCustomCity(false);
+      setLoading(false);
     }
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    
-    if (name === 'state') {
-      setFormData(prev => ({ ...prev, [name]: value, city: '' }));
-      setDeliveryCharge(0);
-      setShowCustomCityInput(false);
-      setCustomCity('');
-      if (errors.city) {
-        setErrors(prev => ({ ...prev, city: '' }));
-      }
-    } else if (name === 'city') {
-      setFormData(prev => ({ ...prev, [name]: value, location: value }));
-      
-      // Find location with matching city name and state
-      const currentState = formData.state;
-      const selectedLocation = deliveryLocations.find(loc => 
-        loc.name === value && loc.state === currentState
-      );
-      
-      console.log('🏙️ City selected:', value, 'State:', currentState);
-      console.log('📍 All locations:', deliveryLocations.length);
-      console.log('📍 Found location:', selectedLocation);
-      
-      if (selectedLocation && selectedLocation.charge !== undefined) {
-        const charge = Number(selectedLocation.charge);
-        console.log('💰 Setting delivery charge:', charge);
-        setDeliveryCharge(charge);
-      } else {
-        console.log('⚠️ Location not found or no charge, using default: 99');
-        setDeliveryCharge(99);
-      }
-    } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
-    }
-    
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
-    }
+  const handleEditWeight = (index) => {
+    const item = cart[index];
+    setEditingItemIndex(index);
+    setSelectedWeight(item.selectedPrice.weight);
   };
 
-  const handleCustomCityModalSubmit = async (cityName, phone, email) => {
-    // Set custom city and enable custom city mode
-    setCustomCity(cityName);
-    setCustomCityState(formData.state);
-    setShowCustomCityInput(true);
-    setFormData(prev => ({ ...prev, city: '', location: '' }));
-    setDeliveryCharge(0);
-    
-    // Save city suggestion with contact info to backend
-    try {
-      await axios.post(`${API}/city-suggestions`, {
-        city_name: cityName,
-        state: formData.state,
-        phone: phone,
-        email: email
+  const handleSaveWeight = (index) => {
+    const item = cart[index];
+    const newPrice = item.prices.find(p => p.weight === selectedWeight);
+    if (newPrice) {
+      updateCartItem(index, { selectedPrice: newPrice });
+      toast({
+        title: "Weight Updated",
+        description: `Changed to ${newPrice.weight}`,
       });
-    } catch (error) {
-      console.error('Failed to save city suggestion:', error);
     }
-    
-    toast({
-      title: "Custom City Added",
-      description: `${cityName} has been added. We'll contact you at ${phone} or ${email} to confirm the exact location. Delivery charges will be calculated within 5-10 minutes.`,
-    });
+    setEditingItemIndex(null);
+    setSelectedWeight('');
   };
 
-  const scrollToProduct = (productId) => {
-    navigate('/');
-    setTimeout(() => {
-      const element = document.getElementById(`product-${productId}`);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        element.classList.add('ring-4', 'ring-orange-400', 'ring-offset-2');
-        setTimeout(() => {
-          element.classList.remove('ring-4', 'ring-orange-400', 'ring-offset-2');
-        }, 2000);
-      }
-    }, 300);
+  const handleCancelEdit = () => {
+    setEditingItemIndex(null);
+    setSelectedWeight('');
+  };
+
+  const handleQuantityChange = (index, newQuantity) => {
+    if (newQuantity < 1) return;
+    updateCartItem(index, { quantity: newQuantity });
+  };
+
+  const handleRemoveItem = (index) => {
+    removeFromCart(index);
+    toast({
+      title: "Item Removed",
+      description: "Item has been removed from cart",
+    });
   };
 
   const handleAddRecommendation = (product) => {
@@ -1034,601 +566,436 @@ const Checkout = () => {
       const selectedPrice = product.prices[0];
       addToCart(product, selectedPrice);
       toast({
-        title: "Added to Cart!",
-        description: `${product.name} (${selectedPrice.weight}) added to cart`
+        title: "Added to Cart",
+        description: `${product.name} (${selectedPrice.weight}) added to cart`,
       });
+      
+      // Refresh recommendations to exclude newly added item
+      fetchAllProducts();
     }
   };
 
-  const finalDeliveryCharge = calculateDeliveryCharge();
-  const totalAmount = getCartTotal() + finalDeliveryCharge;
+  const addToCart = (product, selectedPrice) => {
+    const { addToCart: addToCartFn } = useCart();
+    addToCartFn(product, selectedPrice);
+  };
 
-  if (!cart || cart.length === 0) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-red-50 flex items-center justify-center px-4">
-        <div className="text-center">
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4">Your cart is empty</h2>
-          <button
-            onClick={() => navigate('/')}
-            className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-3 rounded-lg hover:from-orange-600 hover:to-red-600 text-sm sm:text-base"
-          >
-            Continue Shopping
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const total = cartTotal + deliveryCharge;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-red-50 py-4 sm:py-8 overflow-x-hidden">
-      <div className="container mx-auto px-3 sm:px-4 max-w-7xl overflow-x-hidden">
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-6 sm:mb-8 bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
-          Checkout
-        </h1>
+    <div className="min-w-screen bg-gradient-to-br from-orange-50 via-white to-red-50 py-4 sm:py-8 px-2 sm:px-4 overflow-x-hidden">
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-4 sm:mb-8">
+          <h1 className="text-2xl sm:text-4xl font-bold text-gray-800 mb-1 sm:mb-2">
+            Checkout
+          </h1>
+          <p className="text-gray-600 text-xs sm:text-base">Complete your order</p>
+        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8">
-          {/* Checkout Form - Keeping the same as before */}
-          <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">Delivery Details</h2>
-            
-            {/* Previous Details Search */}
-            <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">Have you ordered before?</h3>
-              <div className="flex flex-col sm:flex-row gap-2">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
+          {/* Left Column - Form */}
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+            {/* Previous Order Search */}
+            <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6">
+              <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3 sm:mb-4">Quick Fill from Previous Order</h3>
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                 <input
                   type="text"
-                  value={searchIdentifier}
-                  onChange={(e) => setSearchIdentifier(e.target.value)}
+                  value={previousSearchQuery}
+                  onChange={(e) => setPreviousSearchQuery(e.target.value)}
                   placeholder="Enter phone number or email"
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm sm:text-base"
                 />
                 <button
-                  onClick={handleSearchUserDetails}
-                  disabled={searching}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 w-full sm:w-auto"
+                  type="button"
+                  onClick={handlePreviousOrderSearch}
+                  className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium text-sm sm:text-base whitespace-nowrap"
                 >
-                  {searching ? 'Searching...' : 'Search'}
+                  Search
                 </button>
+              </div>
+
+              {showPreviousResults && previousSearchResults.length > 0 && (
+                <div className="mt-4 space-y-2">
+                  <p className="text-xs sm:text-sm text-gray-600">Found {previousSearchResults.length} previous order(s). Click to use:</p>
+                  {previousSearchResults.slice(0, 3).map((order) => (
+                    <button
+                      key={order.order_id}
+                      type="button"
+                      onClick={() => fillFromPreviousOrder(order)}
+                      className="w-full text-left p-2 sm:p-3 border border-gray-200 rounded-lg hover:border-orange-400 hover:bg-orange-50 transition-all text-xs sm:text-sm"
+                    >
+                      <div className="font-medium text-gray-800">{order.customer_name}</div>
+                      <div className="text-gray-600">
+                        {order.doorNo && `${order.doorNo}, `}
+                        {order.street && `${order.street}, `}
+                        {order.city || order.location}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Customer Information */}
+            <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6">
+              <div className="flex items-center space-x-2 mb-3 sm:mb-4">
+                <User className="h-4 w-4 sm:h-5 sm:w-5 text-orange-500" />
+                <h3 className="text-base sm:text-lg font-bold text-gray-800">Customer Information</h3>
+              </div>
+              <div className="space-y-3 sm:space-y-4">
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                    Full Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                    className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm sm:text-base"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                    Email Address *
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-2 sm:left-3 top-2.5 sm:top-3 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
+                    <input
+                      type="email"
+                      value={customerEmail}
+                      onChange={(e) => setCustomerEmail(e.target.value)}
+                      className="w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm sm:text-base"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                    Phone Number *
+                  </label>
+                  <div className="relative">
+                    <Phone className="absolute left-2 sm:left-3 top-2.5 sm:top-3 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
+                    <input
+                      type="tel"
+                      value={customerPhone}
+                      onChange={(e) => setCustomerPhone(e.target.value)}
+                      className="w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm sm:text-base"
+                      required
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Name */}
-              <div>
-                <label className="block text-gray-700 font-medium mb-2">Full Name *</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 ${
-                    errors.name ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  placeholder="Enter your full name"
-                />
-                {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
-              </div>
-
-              {/* Email */}
-              <div>
-                <label className="block text-gray-700 font-medium mb-2 flex items-center space-x-2">
-                  <Mail className="h-4 w-4" />
-                  <span>Email Address *</span>
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 ${
-                    errors.email ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  placeholder="your.email@example.com"
-                />
-                {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
-              </div>
-
-              {/* Phone */}
-              <div>
-                <label className="block text-gray-700 font-medium mb-2 flex items-center space-x-2">
-                  <Phone className="h-4 w-4" />
-                  <span>Phone Number *</span>
-                </label>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  maxLength="10"
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 ${
-                    errors.phone ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  placeholder="10-digit mobile number"
-                />
-                {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
-              </div>
-
-              {/* Address Section */}
-              <div className="pt-4 border-t">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
-                  <h3 className="text-lg font-bold text-gray-800 flex items-center space-x-2">
-                    <Home className="h-5 w-5" />
-                    <span>Delivery Address</span>
-                  </h3>
-                  <button
-                    type="button"
-                    onClick={detectCurrentLocation}
-                    disabled={detectingLocation}
-                    className="flex items-center justify-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all disabled:opacity-50 text-sm w-full sm:w-auto"
-                  >
-                    <Navigation className="h-4 w-4" />
-                    <span>{detectingLocation ? 'Detecting...' : 'Detect Location'}</span>
-                  </button>
+            {/* Delivery Address */}
+            <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6">
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <div className="flex items-center space-x-2">
+                  <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-orange-500" />
+                  <h3 className="text-base sm:text-lg font-bold text-gray-800">Delivery Address</h3>
                 </div>
+                <button
+                  type="button"
+                  onClick={detectCurrentLocation}
+                  disabled={detectingLocation}
+                  className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-1.5 sm:py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-xs sm:text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Navigation className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span>{detectingLocation ? 'Detecting...' : 'Detect Location'}</span>
+                </button>
+              </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Door No */}
+              <div className="space-y-3 sm:space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                   <div>
-                    <label className="block text-gray-700 font-medium mb-2">Door No *</label>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                      Door No / Flat No *
+                    </label>
                     <input
                       type="text"
-                      name="doorNo"
-                      value={formData.doorNo}
-                      onChange={handleChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 ${
-                        errors.doorNo ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                      placeholder="12-34"
+                      value={doorNo}
+                      onChange={(e) => setDoorNo(e.target.value)}
+                      placeholder="e.g., 123, A-4"
+                      className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm sm:text-base"
+                      required
                     />
-                    {errors.doorNo && <p className="text-red-500 text-sm mt-1">{errors.doorNo}</p>}
                   </div>
 
-                  {/* Building */}
                   <div>
-                    <label className="block text-gray-700 font-medium mb-2">Building/House *</label>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                      Building / House Name
+                    </label>
                     <input
                       type="text"
-                      name="building"
-                      value={formData.building}
-                      onChange={handleChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 ${
-                        errors.building ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                      placeholder="Apartment/House name"
+                      value={building}
+                      onChange={(e) => setBuilding(e.target.value)}
+                      placeholder="e.g., Sunshine Apartments"
+                      className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm sm:text-base"
                     />
-                    {errors.building && <p className="text-red-500 text-sm mt-1">{errors.building}</p>}
                   </div>
                 </div>
 
-                {/* Street */}
-                <div className="mt-4">
-                  <label className="block text-gray-700 font-medium mb-2">Street/Area *</label>
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                    Street / Area / Landmark *
+                  </label>
                   <input
                     type="text"
-                    name="street"
-                    value={formData.street}
-                    onChange={handleChange}
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 ${
-                      errors.street ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder="Street name or area"
+                    value={street}
+                    onChange={(e) => setStreet(e.target.value)}
+                    placeholder="e.g., MG Road, Near City Mall"
+                    className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm sm:text-base"
+                    required
                   />
-                  {errors.street && <p className="text-red-500 text-sm mt-1">{errors.street}</p>}
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-                  {/* State */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                   <div>
-                    <label className="block text-gray-700 font-medium mb-2">State *</label>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                      State *
+                    </label>
                     <select
-                      name="state"
-                      value={formData.state}
-                      onChange={handleChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 ${
-                        errors.state ? 'border-red-500' : 'border-gray-300'
-                      }`}
+                      value={state}
+                      onChange={(e) => {
+                        setState(e.target.value);
+                        setCity(''); // Reset city when state changes
+                      }}
+                      className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm sm:text-base"
+                      required
                     >
                       <option value="">Select State</option>
                       <option value="Andhra Pradesh">Andhra Pradesh</option>
                       <option value="Telangana">Telangana</option>
                     </select>
-                    {errors.state && <p className="text-red-500 text-sm mt-1">{errors.state}</p>}
                   </div>
 
-                  {/* City */}
                   <div>
-                    <label className="block text-gray-700 font-medium mb-2">City *</label>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                      City *
+                    </label>
                     <select
-                      name="city"
-                      value={formData.city}
-                      onChange={handleChange}
-                      disabled={!formData.state}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 ${
-                        errors.city ? 'border-red-500' : 'border-gray-300'
-                      } ${!formData.state ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm sm:text-base"
+                      required
+                      disabled={!state}
                     >
-                      <option value="">
-                        {formData.state ? 'Select City' : 'Select State First'}
-                      </option>
-                      {formData.state && stateCities[formData.state] && 
-                        stateCities[formData.state].map((city, index) => {
-                          const locationData = deliveryLocations.find(loc => loc.name === city && loc.state === formData.state);
-                          const charge = locationData && locationData.charge !== undefined ? locationData.charge : 99;
-                          return (
-                            <option key={`${formData.state}-${city}-${index}`} value={city}>
-                              {city} - ₹{charge}
-                            </option>
-                          );
-                        })
-                      }
+                      <option value="">Select City</option>
+                      {state && locationsByState[state]?.map((location) => (
+                        <option key={location.name} value={location.name}>
+                          {location.name} (₹{location.delivery_charge})
+                        </option>
+                      ))}
                     </select>
-                    {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
-                    
-                    {/* City delivery info */}
-                    {formData.city && formData.state && !showCustomCityInput && (
-                      <div className="mt-2 space-y-1">
-                        {(() => {
-                          const loc = deliveryLocations.find(l => l.name === formData.city && l.state === formData.state);
-                          const currentCharge = loc && loc.charge !== undefined ? loc.charge : deliveryCharge || 99;
-                          const threshold = loc?.free_delivery_threshold;
-                          const cartTotal = getCartTotal();
-                          const qualifiesForFree = threshold && cartTotal >= threshold;
-                          
-                          return (
-                            <>
-                              <p className={`text-sm ${qualifiesForFree ? 'text-green-600 font-semibold' : 'text-green-600'}`}>
-                                {qualifiesForFree ? (
-                                  <>✓ Delivery Charge: <span className="line-through">₹{currentCharge}</span> <span className="font-bold">FREE! 🎉</span></>
-                                ) : (
-                                  <>✓ Delivery Charge: ₹{currentCharge}</>
-                                )}
-                              </p>
-                              {threshold && (
-                                <p className="text-sm text-blue-600">
-                                  {qualifiesForFree ? (
-                                    <>🎁 You qualify for FREE delivery in {formData.city}!</>
-                                  ) : (
-                                    <>🎁 Free delivery on orders above ₹{threshold} for {formData.city}</>
-                                  )}
-                                </p>
-                              )}
-                            </>
-                          );
-                        })()}
-                      </div>
-                    )}
-
-                    {/* Custom City Selected Message */}
-                    {showCustomCityInput && customCity && (
-                      <div className="mt-3 p-4 bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-300 rounded-lg">
-                        <div className="flex items-start gap-3">
-                          <MapPin className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                          <div>
-                            <p className="text-sm font-semibold text-green-900">
-                              ✓ Thank you for adding: <span className="font-bold">{customCity}, {customCityState || formData.state}</span>
-                            </p>
-                            <p className="text-xs text-gray-700 mt-2 font-medium">
-                              📦 Please complete your order. We'll contact you within <span className="font-bold text-green-700">5-10 minutes</span> to confirm delivery charges and delivery availability to your location.
-                            </p>
-                            <p className="text-xs text-green-800 mt-1 font-semibold">
-                              Thank you for your patience! 🙏
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* City Not Listed Note */}
-                    {formData.state && (
-                      <div className="mt-3 p-4 bg-amber-50 border-l-4 border-amber-500 rounded-lg">
-                        <div className="flex items-start gap-3">
-                          <Info className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                          <div>
-                            <p className="text-sm font-medium text-amber-900">City not in the list?</p>
-                            <p className="text-sm text-amber-700 mt-1">
-                              This checkout is only for ordering to existing delivery cities. To request delivery to a new city, please visit our <span className="font-semibold">homepage</span> and submit a city request there.
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </div>
 
-                {/* Pincode */}
-                <div className="mt-4">
-                  <label className="block text-gray-700 font-medium mb-2">Pincode *</label>
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                    Pincode *
+                  </label>
                   <input
                     type="text"
-                    name="pincode"
-                    value={formData.pincode}
-                    onChange={handleChange}
+                    value={pincode}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                      setPincode(value);
+                    }}
+                    placeholder="e.g., 500001"
+                    className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm sm:text-base"
                     maxLength="6"
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 ${
-                      errors.pincode ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder="6-digit pincode"
+                    required
                   />
-                  {errors.pincode && <p className="text-red-500 text-sm mt-1">{errors.pincode}</p>}
                 </div>
               </div>
 
-              {/* Payment Information */}
-              <div className="pt-4 border-t">
-                <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3 sm:mb-4">Payment</h3>
-                
-                {(() => {
-                  // Check if city is in delivery locations (not a custom city)
-                  const isCustomCity = formData.city && formData.state && !deliveryLocations.some(loc => 
-                    loc.name === formData.city && loc.state === formData.state
-                  );
-                  
-                  // Custom cities don't require immediate payment
-                  if (isCustomCity) {
-                    return (
-                      <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                        <div className="flex items-start space-x-3">
-                          <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                          <p className="text-sm text-blue-800">
-                            <span className="font-semibold">City Under Review:</span> Your city is being reviewed for delivery. Payment can be completed after city approval. You'll receive an email notification within 10-15 minutes.
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  }
-                  
-                  // Regular cities - show Razorpay payment info
-                  return (
-                    <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg">
-                      <div className="flex items-start space-x-3">
-                        <CreditCard className="h-6 w-6 text-blue-600 flex-shrink-0" />
-                        <div className="flex-1">
-                          <p className="font-semibold text-gray-800 mb-2">Secure Payment via Razorpay</p>
-                          <p className="text-sm text-gray-600 mb-3">
-                            Pay securely with multiple payment options
-                          </p>
-                          <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
-                            <div className="flex items-center space-x-1">
-                              <span className="text-green-600">✓</span>
-                              <span>UPI (PhonePe, GPay, Paytm)</span>
-                            </div>
-                            <div className="flex items-center space-x-1">
-                              <span className="text-green-600">✓</span>
-                              <span>Credit/Debit Cards</span>
-                            </div>
-                            <div className="flex items-center space-x-1">
-                              <span className="text-green-600">✓</span>
-                              <span>Net Banking</span>
-                            </div>
-                            <div className="flex items-center space-x-1">
-                              <span className="text-green-600">✓</span>
-                              <span>Wallets</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })()}
+              {/* Info note */}
+              <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                <p className="text-xs sm:text-sm text-amber-800">
+                  <strong>Note:</strong> This checkout is only for ordering to existing delivery cities. If your city is not listed, please go to the homepage to request delivery in your area.
+                </p>
+              </div>
+            </div>
+
+            {/* Payment Method - Razorpay Info */}
+            <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6">
+              <div className="flex items-center space-x-2 mb-3 sm:mb-4">
+                <Wallet className="h-4 w-4 sm:h-5 sm:w-5 text-orange-500" />
+                <h3 className="text-base sm:text-lg font-bold text-gray-800">Payment Method</h3>
               </div>
 
-              {/* Test Payment Information */}
-              <div className="mb-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
-                <div className="flex items-start gap-3">
-                  <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-indigo-200 rounded-xl p-4">
+                <div className="flex items-start space-x-3">
+                  <CreditCard className="h-6 w-6 text-indigo-600 flex-shrink-0 mt-1" />
                   <div>
-                    <p className="text-sm font-medium text-blue-900">Razorpay Test Mode</p>
-                    <p className="text-sm text-blue-700 mt-1">
-                      After clicking "Place Order", complete the test payment in the Razorpay modal to see order confirmation. 
-                      Or close the modal to save order as pending (you can track with your phone number).
+                    <h4 className="font-semibold text-indigo-900 mb-2">Secure Payment via Razorpay</h4>
+                    <p className="text-sm text-indigo-700 mb-3">
+                      After placing your order, you'll be redirected to Razorpay's secure payment gateway where you can choose from multiple payment options:
                     </p>
+                    <ul className="space-y-1 text-sm text-indigo-700">
+                      <li className="flex items-center space-x-2">
+                        <span className="text-indigo-500">•</span>
+                        <span><strong>UPI:</strong> PhonePe, Google Pay, Paytm, BHIM</span>
+                      </li>
+                      <li className="flex items-center space-x-2">
+                        <span className="text-indigo-500">•</span>
+                        <span><strong>Cards:</strong> Credit & Debit Cards (Visa, Mastercard, RuPay)</span>
+                      </li>
+                      <li className="flex items-center space-x-2">
+                        <span className="text-indigo-500">•</span>
+                        <span><strong>Net Banking:</strong> All major banks supported</span>
+                      </li>
+                      <li className="flex items-center space-x-2">
+                        <span className="text-indigo-500">•</span>
+                        <span><strong>Wallets:</strong> Paytm, Mobikwik, Freecharge, etc.</span>
+                      </li>
+                    </ul>
                   </div>
                 </div>
               </div>
-
-              <button
-                type="submit"
-                className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-3 sm:py-4 rounded-xl font-semibold hover:from-green-700 hover:to-green-800 transition-all transform hover:scale-105 shadow-lg flex items-center justify-center space-x-2 text-sm sm:text-base"
-              >
-                <Truck className="h-4 w-4 sm:h-5 sm:w-5" />
-                <span>Place Order</span>
-              </button>
-            </form>
+            </div>
           </div>
 
-          {/* Order Summary with Edit Features */}
-          <div>
-            <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 mb-4 sm:mb-6">
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">Order Summary</h2>
-              
-              {/* Cart Items with Edit Options */}
-              <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
+          {/* Right Column - Order Summary */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 sticky top-4">
+              <div className="flex items-center space-x-2 mb-3 sm:mb-4">
+                <ShoppingBag className="h-4 w-4 sm:h-5 sm:w-5 text-orange-500" />
+                <h3 className="text-base sm:text-lg font-bold text-gray-800">Order Summary</h3>
+              </div>
+
+              {/* Cart Items */}
+              <div className="space-y-3 max-h-96 overflow-y-auto">
                 {cart.map((item, index) => (
-                  <div key={index} className="border-b pb-3 sm:pb-4">
-                    <div className="flex items-start gap-2 sm:gap-3">
-                      <img src={item.image} alt={item.name} className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 object-cover rounded-lg flex-shrink-0" />
-                      <div className="flex-1 min-w-0 overflow-hidden">
-                        <h3 className="font-semibold text-gray-800 text-xs sm:text-sm md:text-base truncate">{item.name}</h3>
-                        <div className="flex items-center space-x-2 mt-1">
-                          <p className="text-xs text-gray-600">{item.weight || item.selectedWeight}</p>
-                          {allProducts.find(p => p.id === item.id)?.prices?.length > 1 && (
-                            <button
-                              onClick={() => handleWeightEdit(index)}
-                              className="text-blue-600 hover:text-blue-700"
-                              title="Change weight"
-                            >
-                              <Edit2 className="h-3 w-3" />
-                            </button>
-                          )}
-                        </div>
-                        
-                        {/* Weight Edit Modal */}
-                        {editingItemIndex === index && (
-                          <div className="mt-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                            <p className="text-xs font-semibold text-gray-700 mb-2">Select Weight:</p>
-                            <select
-                              value={selectedWeight}
-                              onChange={(e) => setSelectedWeight(e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                            >
-                              {allProducts.find(p => p.id === item.id)?.prices?.map((priceInfo, idx) => (
-                                <option key={idx} value={priceInfo.weight}>
-                                  {priceInfo.weight} - ₹{priceInfo.price}
-                                </option>
-                              ))}
-                            </select>
-                            <div className="flex space-x-2 mt-2">
-                              <button
-                                onClick={() => handleWeightChange(index)}
-                                className="flex-1 px-3 py-1 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700"
-                              >
-                                Update
-                              </button>
-                              <button
-                                onClick={() => setEditingItemIndex(null)}
-                                className="flex-1 px-3 py-1 bg-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-400"
-                              >
-                                Cancel
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                        
-                        {/* Quantity Controls & Delete Button */}
-                        <div className="flex items-center justify-between mt-2 gap-2">
-                          <div className="flex items-center space-x-2">
-                            <button
-                              onClick={() => handleQuantityChange(index, -1)}
-                              className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center bg-gray-200 rounded-full hover:bg-gray-300 transition-colors flex-shrink-0"
-                            >
-                              <Minus className="h-3 w-3" />
-                            </button>
-                            <span className="font-semibold text-gray-700 text-sm min-w-[20px] text-center">{item.quantity}</span>
-                            <button
-                              onClick={() => handleQuantityChange(index, 1)}
-                              className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center bg-orange-500 text-white rounded-full hover:bg-orange-600 transition-colors flex-shrink-0"
-                            >
-                              <Plus className="h-3 w-3" />
-                            </button>
-                          </div>
-                          <button
-                            onClick={() => {
-                              if (window.confirm(`Remove ${item.name} from cart?`)) {
-                                removeFromCart(item.id, item.weight || item.selectedWeight);
-                                toast({
-                                  title: "Item Removed",
-                                  description: `${item.name} removed from cart`
-                                });
-                              }
-                            }}
-                            className="flex items-center space-x-1 px-2 py-1 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors text-xs flex-shrink-0"
-                            title="Remove item"
+                  <div key={index} className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 border border-gray-200 rounded-lg">
+                    <img 
+                      src={item.image} 
+                      alt={item.name}
+                      className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded-lg flex-shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-gray-800 text-xs sm:text-sm truncate">{item.name}</h4>
+                      {editingItemIndex === index ? (
+                        <div className="mt-1 sm:mt-2 flex items-center gap-1 sm:gap-2">
+                          <select
+                            value={selectedWeight}
+                            onChange={(e) => setSelectedWeight(e.target.value)}
+                            className="text-xs p-1 border border-gray-300 rounded"
                           >
-                            <Trash2 className="h-3 w-3" />
-                            <span className="hidden sm:inline">Delete</span>
+                            {item.prices.map((price) => (
+                              <option key={price.weight} value={price.weight}>
+                                {price.weight} - ₹{price.price}
+                              </option>
+                            ))}
+                          </select>
+                          <button
+                            onClick={() => handleSaveWeight(index)}
+                            className="p-1 bg-green-500 text-white rounded hover:bg-green-600"
+                          >
+                            <Check className="h-3 w-3" />
+                          </button>
+                          <button
+                            onClick={handleCancelEdit}
+                            className="p-1 bg-gray-500 text-white rounded hover:bg-gray-600"
+                          >
+                            ×
                           </button>
                         </div>
+                      ) : (
+                        <div className="flex items-center gap-2 mt-1">
+                          <p className="text-xs sm:text-sm text-gray-600">
+                            {item.selectedPrice.weight}
+                          </p>
+                          <button
+                            onClick={() => handleEditWeight(index)}
+                            className="p-1 text-blue-500 hover:text-blue-700"
+                            title="Change weight"
+                          >
+                            <Edit className="h-3 w-3" />
+                          </button>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2 mt-1 sm:mt-2">
+                        <div className="flex items-center border border-gray-300 rounded">
+                          <button
+                            onClick={() => handleQuantityChange(index, item.quantity - 1)}
+                            className="px-1.5 sm:px-2 py-0.5 sm:py-1 text-gray-600 hover:bg-gray-100 text-xs sm:text-sm"
+                          >
+                            −
+                          </button>
+                          <span className="px-1.5 sm:px-3 py-0.5 sm:py-1 border-x border-gray-300 text-xs sm:text-sm">
+                            {item.quantity}
+                          </span>
+                          <button
+                            onClick={() => handleQuantityChange(index, item.quantity + 1)}
+                            className="px-1.5 sm:px-2 py-0.5 sm:py-1 text-gray-600 hover:bg-gray-100 text-xs sm:text-sm"
+                          >
+                            +
+                          </button>
+                        </div>
+                        <button
+                          onClick={() => handleRemoveItem(index)}
+                          className="p-1 text-red-500 hover:text-red-700"
+                          title="Remove item"
+                        >
+                          <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                        </button>
                       </div>
-                      <p className="font-bold text-orange-600 text-xs sm:text-sm flex-shrink-0 whitespace-nowrap">₹{(item.price || item.selectedPrice || 0) * (item.quantity || 1)}</p>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <p className="font-semibold text-gray-800 text-xs sm:text-sm">
+                        ₹{(item.selectedPrice.price * item.quantity).toFixed(2)}
+                      </p>
                     </div>
                   </div>
                 ))}
               </div>
 
-              {/* Free Delivery Progress or Success */}
-              {formData.city && (() => {
-                const selectedCity = deliveryLocations.find(loc => 
-                  loc.name.toLowerCase() === formData.city.toLowerCase() && 
-                  loc.state === formData.state
-                );
-                const threshold = selectedCity?.free_delivery_threshold;
-                
-                if (!threshold) return null;
-                
-                if (isFreeDeliveryApplicable()) {
-                  return (
-                    <div className="mb-6 p-4 bg-gradient-to-r from-green-100 to-emerald-100 rounded-lg border-2 border-green-400">
-                      <div className="flex items-center space-x-2">
-                        <Truck className="h-6 w-6 text-green-700" />
-                        <div>
-                          <p className="text-base font-bold text-green-800">
-                            🎉 Congratulations! You qualify for FREE delivery!
-                          </p>
-                          <p className="text-sm text-green-700 mt-1">
-                            Your order of ₹{getCartTotal()} exceeds the ₹{threshold} threshold for {formData.city}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                }
-                
-                const remaining = getRemainingForFreeDelivery();
-                if (remaining > 0) {
-                  return (
-                    <div className="mb-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <Truck className="h-5 w-5 text-green-600" />
-                        <p className="text-sm font-semibold text-green-800">
-                          Add ₹{remaining.toFixed(2)} more for FREE delivery in {formData.city}!
-                        </p>
-                      </div>
-                      <div className="w-full bg-green-200 rounded-full h-2.5">
-                        <div 
-                          className="bg-green-600 h-2.5 rounded-full transition-all duration-300 ease-in-out"
-                          style={{ width: `${Math.min((getCartTotal() / threshold) * 100, 100)}%` }}
-                        ></div>
-                      </div>
-                      <p className="text-xs text-gray-600 mt-2">
-                        ₹{getCartTotal()} / ₹{threshold}
-                      </p>
-                    </div>
-                  );
-                }
-                
-                return null;
-              })()}
-
               {/* Price Breakdown */}
-              <div className="space-y-3 border-t pt-4">
-                <div className="flex justify-between text-gray-600">
-                  <span>Subtotal:</span>
-                  <span className="font-semibold">₹{getCartTotal()}</span>
+              <div className="mt-4 sm:mt-6 space-y-2 sm:space-y-3 pt-4 sm:pt-6 border-t border-gray-200">
+                <div className="flex justify-between text-xs sm:text-sm">
+                  <span className="text-gray-600">Subtotal</span>
+                  <span className="font-medium text-gray-800">₹{cartTotal.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-gray-600">
-                  <span>Delivery Charge:</span>
-                  <span className={`font-semibold ${isFreeDeliveryApplicable() ? 'text-green-600' : ''}`}>
-                    {formData.city === 'Others' ? (
-                      <span className="text-blue-600 text-sm">To be calculated</span>
-                    ) : isFreeDeliveryApplicable() ? (
-                      <span className="flex items-center space-x-1">
-                        <span className="line-through text-gray-400">₹{deliveryCharge}</span>
-                        <span className="text-green-600 font-bold">FREE</span>
-                      </span>
+                <div className="flex justify-between text-xs sm:text-sm">
+                  <span className="text-gray-600">Delivery Charge</span>
+                  <span className="font-medium text-gray-800">
+                    {deliveryCharge === 0 && freeDeliverySettings.enabled && cartTotal >= freeDeliverySettings.threshold ? (
+                      <span className="text-green-600">FREE</span>
                     ) : (
-                      `₹${finalDeliveryCharge}`
+                      `₹${deliveryCharge.toFixed(2)}`
                     )}
                   </span>
                 </div>
-                <div className="flex justify-between text-xl font-bold text-gray-800 border-t pt-3">
-                  <span>Total:</span>
-                  <span className="text-orange-600">
-                    {formData.city === 'Others' ? (
-                      <span className="flex flex-col items-end">
-                        <span>₹{getCartTotal()}</span>
-                        <span className="text-xs font-normal text-gray-500">+ delivery charge (TBD)</span>
-                      </span>
-                    ) : (
-                      `₹${totalAmount}`
-                    )}
-                  </span>
+                {freeDeliverySettings.enabled && cartTotal < freeDeliverySettings.threshold && deliveryCharge > 0 && (
+                  <div className="text-xs text-amber-600 bg-amber-50 p-2 rounded">
+                    Add ₹{(freeDeliverySettings.threshold - cartTotal).toFixed(2)} more for free delivery!
+                  </div>
+                )}
+                <div className="flex justify-between text-sm sm:text-lg font-bold pt-2 sm:pt-3 border-t border-gray-200">
+                  <span className="text-gray-800">Total</span>
+                  <span className="text-orange-600">₹{total.toFixed(2)}</span>
                 </div>
               </div>
+
+              {/* Place Order Button */}
+              <button
+                onClick={handleSubmit}
+                disabled={loading || cart.length === 0}
+                className="w-full mt-4 sm:mt-6 py-2.5 sm:py-3 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-xl font-semibold hover:from-orange-600 hover:to-red-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+              >
+                {loading ? 'Processing...' : 'Place Order & Pay'}
+              </button>
             </div>
 
             {/* Recommendations */}
             {recommendations.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6">
+              <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 mt-4">
                 <div className="flex items-center space-x-2 mb-3 sm:mb-4">
                   <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-orange-500" />
                   <h3 className="text-base sm:text-lg font-bold text-gray-800">You May Also Like</h3>
@@ -1641,20 +1008,16 @@ const Checkout = () => {
                     >
                       <img 
                         src={product.image} 
-                        alt={product.name} 
-                        className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded-lg cursor-pointer flex-shrink-0" 
-                        onClick={() => scrollToProduct(product.id)}
+                        alt={product.name}
+                        className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded-lg flex-shrink-0"
                       />
-                      <div className="flex-1 min-w-0 overflow-hidden">
-                        <h4 
-                          className="font-semibold text-gray-800 text-xs sm:text-sm group-hover:text-orange-600 cursor-pointer truncate"
-                          onClick={() => scrollToProduct(product.id)}
-                        >
-                          {product.name}
-                        </h4>
-                        <p className="text-xs text-gray-600 truncate">{product.category}</p>
-                        <p className="text-xs sm:text-sm font-bold text-orange-600 mt-1">
-                          From ₹{product.prices[0]?.price}
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-gray-800 text-xs sm:text-sm truncate">{product.name}</h4>
+                        <p className="text-xs sm:text-sm text-orange-600 font-semibold">
+                          ₹{product.prices[0]?.price}
+                          <span className="text-gray-500 text-xs ml-1">
+                            {product.prices[0]?.weight}
+                          </span>
                         </p>
                       </div>
                       <button
@@ -1675,23 +1038,8 @@ const Checkout = () => {
           </div>
         </div>
       </div>
-
-      {/* Add City Modal */}
-      <AddCityModal 
-        isOpen={showAddCityModal}
-        onClose={() => setShowAddCityModal(false)}
-        preSelectedState={formData.state || ''}
-      />
-
-      {/* Custom City Modal */}
-      <CustomCityModal
-        isOpen={showCustomCityModal}
-        onClose={() => setShowCustomCityModal(false)}
-        onSubmit={handleCustomCityModalSubmit}
-        selectedState={formData.state}
-      />
     </div>
   );
-};
+}
 
 export default Checkout;
