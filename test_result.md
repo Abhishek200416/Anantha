@@ -2171,6 +2171,94 @@ test_plan:
 
 agent_communication:
   - agent: "main"
+    message: "🚨 THREE CRITICAL PAYMENT & ORDER FLOW BUGS FIXED (Current Session - January 2025):
+    
+    **USER REPORTED ISSUES:**
+    1. Existing cities (Guntur, Hyderabad) being treated as 'city requests' during checkout
+    2. Orders being created BEFORE payment (then showing as cancelled when payment dismissed)
+    3. Cancelled orders appearing in admin panel (should not exist if never paid)
+    
+    **ROOT CAUSES IDENTIFIED:**
+    
+    **ISSUE #1: EMPTY LOCATIONS DATABASE**
+    - Problem: All 431 cities were cleared from database, causing every city to be treated as custom city request
+    - Impact: Even Guntur/Hyderabad orders marked as 'city requests' with ₹0 delivery charge
+    - Detection: Ran database query, found 0 locations in database
+    
+    **ISSUE #2: WRONG PAYMENT FLOW - ORDER BEFORE PAYMENT**
+    - Problem: Order created first → Razorpay modal shown → If cancelled, order marked as cancelled
+    - Impact: Database filled with cancelled orders that were never actually placed
+    - Flow was: Create Order → Show Payment → (Cancel) → Cancel Order
+    
+    **ISSUE #3: CANCELLED ORDERS IN ADMIN**
+    - Problem: Result of Issue #2 - orders created, then cancelled when payment dismissed
+    - Impact: Admin panel showing cancelled orders that shouldn't exist
+    
+    **SOLUTIONS IMPLEMENTED:**
+    
+    **FIX #1: RESEEDED CITIES DATABASE ✅**
+    - Action: Ran seed_cities.py script
+    - Result: Added 431 cities (217 AP + 214 Telangana) back to database
+    - Verification: Confirmed Guntur (₹49) and Hyderabad (₹129) present with correct charges
+    - Files: /app/backend/seed_cities.py (executed)
+    
+    **FIX #2: REVERSED PAYMENT FLOW - PAYMENT BEFORE ORDER ✅**
+    - Action: Completely restructured checkout payment flow in Checkout.js
+    - New Flow: 
+      1. Validate all fields ✅
+      2. Create Razorpay order (temp receipt) ✅
+      3. Show payment modal ✅
+      4. ON SUCCESS: Create order in database + verify payment ✅
+      5. ON CANCEL: Nothing happens, no order created ✅
+    - Benefits:
+      a) No order created if payment cancelled
+      b) No cancelled orders in database
+      c) Clean order history
+      d) Order only exists if payment successful
+    - Files: /app/frontend/src/pages/Checkout.js (lines 464-626)
+    
+    **FIX #3: CANCELLED ORDERS ELIMINATED ✅**
+    - Result: By fixing flow (Fix #2), no cancelled orders will be created going forward
+    - Impact: Admin panel will only show real orders (pending/confirmed/delivered)
+    - Note: Existing cancelled orders remain for audit trail
+    
+    **TECHNICAL CHANGES:**
+    
+    **Frontend (Checkout.js):**
+    - Line 505-530: Order data prepared but NOT submitted yet
+    - Line 540-549: Razorpay order created with temp receipt
+    - Line 559-584: Payment handler creates order ONLY after payment success
+    - Line 586-593: Payment dismiss handler simplified (no order to cancel)
+    - Removed: Payment-cancel API call (no longer needed)
+    
+    **Backend:**
+    - No changes needed in server.py (order creation logic remains same)
+    - Locations database reseeded with 431 cities
+    
+    **TESTING RESULTS:**
+    - ✅ Services restarted successfully (backend, frontend, mongodb)
+    - ✅ Frontend compiled without errors
+    - ✅ Backend running with seeded cities database
+    
+    **EXPECTED BEHAVIOR:**
+    1. Select Guntur/Hyderabad → Recognized as existing city with correct delivery charge
+    2. Fill form → Click 'Place Order & Pay' → Razorpay modal appears
+    3. Enter payment details → Pay → Order created with confirmed status
+    4. Dismiss payment modal → No order created, no entry in database
+    5. Admin panel → Only shows orders that were actually paid for
+    
+    **FILES MODIFIED:**
+    - /app/frontend/src/pages/Checkout.js (payment flow restructured)
+    - /app/backend/locations collection (431 cities reseeded)
+    
+    **NEEDS USER TESTING:**
+    1. Place order for Guntur → Should NOT show as city request
+    2. Place order for Hyderabad → Should NOT show as city request
+    3. Fill form and dismiss payment → Check admin panel should show NO cancelled order
+    4. Complete payment → Order should appear as confirmed in admin panel
+    
+    Ready for comprehensive testing!"
+  - agent: "main"
     message: "✅ IMPLEMENTED BUG REPORTING & ADMIN PROFILE FEATURES:
     
     USER REQUIREMENTS:
