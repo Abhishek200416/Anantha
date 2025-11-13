@@ -413,8 +413,8 @@ function Checkout() {
         items: cart.map(item => ({
           product_id: item.id,
           name: item.name,
-          weight: item.selectedPrice.weight,
-          price: item.selectedPrice.price,
+          weight: item.selectedPrice?.weight || 'N/A',
+          price: item.selectedPrice?.price || 0,
           quantity: item.quantity,
           image: item.image
         })),
