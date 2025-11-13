@@ -139,6 +139,11 @@ function Checkout() {
       groupedByState["Andhra Pradesh"].sort((a, b) => a.name.localeCompare(b.name));
       groupedByState["Telangana"].sort((a, b) => a.name.localeCompare(b.name));
 
+      console.log('🗺️ Grouped locations:', {
+        'Andhra Pradesh': groupedByState["Andhra Pradesh"].length,
+        'Telangana': groupedByState["Telangana"].length
+      });
+
       setLocationsByState(groupedByState);
     } catch (error) {
       console.error('Failed to fetch locations:', error);
