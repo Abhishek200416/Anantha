@@ -41,8 +41,8 @@ const Home = () => {
     }, 5000);
   };
 
-  // Improved location detection function with custom notifications
-  const detectLocation = async () => {
+  // Improved location detection function with custom notifications (memoized)
+  const detectLocation = useCallback(async () => {
     if (!('geolocation' in navigator)) {
       showLocationNotification('Geolocation is not supported by your browser', 'error');
       return;
