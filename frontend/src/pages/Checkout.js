@@ -580,7 +580,7 @@ function Checkout() {
     addToCartFn(product, selectedPrice);
   };
 
-  const total = cartTotal + deliveryCharge;
+  const total = (cartTotal || 0) + (deliveryCharge || 0);
 
   return (
     <div className="min-w-screen bg-gradient-to-br from-orange-50 via-white to-red-50 py-4 sm:py-8 px-2 sm:px-4 overflow-x-hidden">
