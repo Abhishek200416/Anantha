@@ -895,8 +895,8 @@ function Checkout() {
                       disabled={!state}
                     >
                       <option value="">Select City</option>
-                      {state && locationsByState[state]?.map((location) => (
-                        <option key={location.name} value={location.name}>
+                      {state && locationsByState[state]?.map((location, index) => (
+                        <option key={`${location.name}-${location.state || state}-${index}`} value={location.name}>
                           {location.name} (₹{location.charge})
                         </option>
                       ))}
