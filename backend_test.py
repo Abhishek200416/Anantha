@@ -547,7 +547,7 @@ def test_city_suggestions_api(admin_token):
     return False
 
 def test_products_verification():
-    """Test GET /api/products API and verify exactly 56 products across 7 categories as per review request"""
+    """Test GET /api/products API and verify exactly 58 products as per review request"""
     print("\n" + "="*80)
     print("📦 PRODUCTS VERIFICATION (HIGH PRIORITY)")
     print("="*80)
@@ -555,18 +555,18 @@ def test_products_verification():
     success, response_data = test_api_endpoint(
         "GET",
         "/products",
-        description="Verify exactly 56 products are returned with correct category distribution"
+        description="Verify exactly 58 products are returned with correct structure"
     )
     
     if success and isinstance(response_data, list):
         total_products = len(response_data)
         print(f"✅ SUCCESS: Products API returns {total_products} products")
         
-        # CRITICAL: Verify we have exactly 56 products as specified in review request
-        if total_products == 56:
-            print(f"✅ CRITICAL SUCCESS: Exactly 56 products found as required")
+        # CRITICAL: Verify we have exactly 58 products as specified in review request
+        if total_products == 58:
+            print(f"✅ CRITICAL SUCCESS: Exactly 58 products found as required")
         else:
-            print(f"❌ CRITICAL FAILURE: Expected exactly 56 products, got {total_products}")
+            print(f"❌ CRITICAL FAILURE: Expected exactly 58 products, got {total_products}")
             return False
         
         # Count products by category as specified in review request
