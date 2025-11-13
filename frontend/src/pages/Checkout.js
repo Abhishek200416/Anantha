@@ -501,7 +501,7 @@ function Checkout() {
     setLoading(true);
 
     try {
-      // Create order with pending payment status
+      // Prepare order data (but don't create order yet)
       const orderData = {
         customer_name: customerName,
         email: customerEmail,
@@ -526,27 +526,22 @@ function Checkout() {
         total: (cartTotal || 0) + (deliveryCharge || 0),
         payment_method: paymentMethod,
         payment_sub_method: paymentSubMethod,
-        payment_status: 'pending',
-        order_status: 'pending'
+        payment_status: 'completed',  // Will be completed after payment
+        order_status: 'confirmed'     // Will be confirmed after payment
       };
-
-      console.log('📦 Creating order with data:', orderData);
-      const orderResponse = await axios.post(`${API}/orders`, orderData);
-      const { order_id, tracking_code } = orderResponse.data;
-
-      console.log('✅ Order created:', order_id);
 
       // Store phone for next time
       localStorage.setItem('lastOrderPhone', customerPhone);
 
-      // Create Razorpay order
+      // Create Razorpay order FIRST (without creating our order)
       const razorpayOrderResponse = await axios.post(`${API}/payment/create-razorpay-order`, {
         amount: cartTotal + deliveryCharge,
         currency: 'INR',
-        receipt: order_id
+        receipt: `temp_${Date.now()}`  // Temporary receipt
       });
 
       const { razorpay_order_id, key_id } = razorpayOrderResponse.data;
+      console.log('💳 Razorpay order created, showing payment modal...');
 
       // Initialize Razorpay
       const options = {
@@ -558,7 +553,15 @@ function Checkout() {
         order_id: razorpay_order_id,
         handler: async function (response) {
           try {
-            // Verify payment
+            console.log('✅ Payment successful! Creating order now...');
+            
+            // NOW create the order after successful payment
+            const orderResponse = await axios.post(`${API}/orders`, orderData);
+            const { order_id, tracking_code } = orderResponse.data;
+
+            console.log('✅ Order created:', order_id);
+
+            // Verify and link payment to order
             await axios.post(`${API}/payment/verify-razorpay-payment`, {
               order_id: order_id,
               razorpay_order_id: response.razorpay_order_id,
@@ -574,30 +577,24 @@ function Checkout() {
             });
             navigate(`/track-order?code=${tracking_code}`);
           } catch (error) {
-            console.error('Payment verification failed:', error);
+            console.error('❌ Order creation failed after payment:', error);
             toast({
-              title: "Payment Verification Failed",
-              description: "Please contact support with your order ID: " + order_id,
+              title: "Order Creation Failed",
+              description: "Payment was successful but order creation failed. Please contact support with your payment details.",
               variant: "destructive"
             });
           }
         },
         modal: {
-          ondismiss: async function() {
-            // Cancel order if payment modal is dismissed
-            try {
-              await axios.post(`${API}/orders/${order_id}/payment-cancel`);
-              toast({
-                title: "Order Cancelled",
-                description: "Payment was cancelled. Your order has been cancelled and will not be processed.",
-                variant: "destructive"
-              });
-              setTimeout(() => {
-                navigate('/');
-              }, 2000);
-            } catch (error) {
-              console.error('Failed to cancel order:', error);
-            }
+          ondismiss: function() {
+            // Payment cancelled - no order created, nothing to clean up
+            console.log('⚠️ Payment cancelled by user');
+            toast({
+              title: "Payment Cancelled",
+              description: "No order was created. You can try again when ready.",
+              variant: "default"
+            });
+            setLoading(false);
           }
         },
         prefill: {
@@ -612,15 +609,15 @@ function Checkout() {
 
       const rzp = new window.Razorpay(options);
       rzp.open();
+      setLoading(false);  // Reset loading after modal opens
 
     } catch (error) {
-      console.error('❌ Order creation failed:', error);
+      console.error('❌ Payment initialization failed:', error);
       toast({
-        title: "Order Failed",
-        description: error.response?.data?.detail || "Failed to create order. Please try again.",
+        title: "Payment Failed",
+        description: error.response?.data?.detail || "Failed to initialize payment. Please try again.",
         variant: "destructive"
       });
-    } finally {
       setLoading(false);
     }
   };
