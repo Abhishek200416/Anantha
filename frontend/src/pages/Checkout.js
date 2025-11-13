@@ -143,8 +143,11 @@ function Checkout() {
         'Andhra Pradesh': groupedByState["Andhra Pradesh"].length,
         'Telangana': groupedByState["Telangana"].length
       });
+      console.log('📍 Sample AP cities:', groupedByState["Andhra Pradesh"].slice(0, 5).map(l => l.name));
+      console.log('📍 Sample Telangana cities:', groupedByState["Telangana"].slice(0, 5).map(l => l.name));
 
       setLocationsByState(groupedByState);
+      console.log('✅ locationsByState updated');
     } catch (error) {
       console.error('Failed to fetch locations:', error);
     }
