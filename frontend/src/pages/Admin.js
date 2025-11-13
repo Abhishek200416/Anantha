@@ -1465,12 +1465,12 @@ const Admin = () => {
         })
       });
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to change password');
-      }
-      
+      // Parse response once
       const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.detail || 'Failed to change password');
+      }
       
       toast({
         title: "Success",
