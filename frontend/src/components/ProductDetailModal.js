@@ -108,7 +108,7 @@ const ProductDetailModal = ({ product, onClose }) => {
               {/* Description */}
               <div className="mb-6">
                 <h3 className="font-semibold text-gray-800 mb-2">Description</h3>
-                <p className="text-gray-600 leading-relaxed">{product.description}</p>
+                <p className="text-gray-600 leading-relaxed">{productDescription}</p>
               </div>
 
               {/* Price Options */}
