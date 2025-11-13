@@ -912,7 +912,7 @@ function Checkout() {
                     </div>
                     <div className="text-right flex-shrink-0">
                       <p className="font-semibold text-gray-800 text-xs sm:text-sm">
-                        ₹{(item.selectedPrice.price * item.quantity).toFixed(2)}
+                        ₹{((item.selectedPrice?.price || 0) * item.quantity).toFixed(2)}
                       </p>
                     </div>
                   </div>
