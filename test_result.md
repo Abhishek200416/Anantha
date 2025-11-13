@@ -1035,7 +1035,51 @@ agent_communication:
   - agent: "main"
     message: "Successfully imported food-web application from GitHub. All backend dependencies installed, frontend dependencies installed. Services started and running. Application ready for initial setup and testing."
   - agent: "main"
-    message: "✅ LANGUAGE OPTIONS & CHECKOUT UI IMPROVEMENTS IMPLEMENTED (Current Session):
+    message: "✅ CRITICAL FIXES APPLIED - Checkout Error & Image Loading (Current Session):
+    
+    **USER REPORTED ISSUES:**
+    1. Hindi language still showing - user wants to keep it in language selector
+    2. Runtime error in checkout: 'Cannot read properties of undefined (reading weight)'
+    3. Website showing lagging/loading images - want instant loading
+    
+    **FIXES IMPLEMENTED:**
+    
+    **1. LANGUAGE SELECTOR - RESTORED HINDI:**
+    ✅ Restored Hindi (HI) button in language selector
+    ✅ All three languages now available: EN, TE, HI
+    ✅ Admin product forms still only show English & Telugu fields (as requested)
+    
+    **2. CHECKOUT ERROR FIX - Safety Checks Added:**
+    ✅ Added null safety checks for item.prices array: `item.prices && Array.isArray(item.prices)`
+    ✅ Added optional chaining for selectedPrice: `item.selectedPrice?.weight`
+    ✅ Fallback values: weight defaults to 'N/A', price defaults to 0
+    ✅ Fixed three critical locations in Checkout.js:
+       - Line 853: Price dropdown mapping
+       - Line 875: Weight display
+       - Line 416: Order submission weight field
+       - Line 912: Price calculation display
+    
+    **3. IMAGE LOADING OPTIMIZATION:**
+    ✅ Added image preloading in Home.js fetchProducts function
+    ✅ Images are preloaded using `new Image()` before display
+    ✅ Prevents lagging when products load
+    ✅ Added `loading='lazy'` attribute to ProductCard images
+    ✅ Optimized image loading for better performance
+    
+    **FILES MODIFIED:**
+    - /app/frontend/src/pages/Home.js (restored Hindi, added image preloading)
+    - /app/frontend/src/pages/Checkout.js (added safety checks for cart items)
+    - /app/frontend/src/components/ProductCard.js (added lazy loading)
+    
+    **TESTING REQUIRED:**
+    - Verify checkout page loads without errors
+    - Test adding products to cart and checking out
+    - Confirm images load smoothly without lag
+    - Check all three languages work in selector
+    
+    All services restarted successfully!"
+  - agent: "main"
+    message: "✅ LANGUAGE OPTIONS & CHECKOUT UI IMPROVEMENTS IMPLEMENTED (Previous):
     
     **USER REQUIREMENTS:**
     1. Language Options: Telugu and English only (remove Hindi)
