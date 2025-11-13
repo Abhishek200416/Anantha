@@ -373,7 +373,7 @@ function Checkout() {
               pincode: detectedPincode,
               street: detectedStreet,
               building: detectedBuilding,
-              deliveryCharge: matchedLocation?.delivery_charge
+              deliveryCharge: matchedLocation?.charge
             });
             
             // Update form fields with detected values
