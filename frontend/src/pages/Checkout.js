@@ -50,6 +50,21 @@ function Checkout() {
   const [customCityState, setCustomCityState] = useState('');
   const [customCityDeliveryCharge, setCustomCityDeliveryCharge] = useState(199);
 
+  // Enrich cart items with full product data
+  const enrichedCart = React.useMemo(() => {
+    return cart.map(item => {
+      const product = allProducts.find(p => p.id === item.id);
+      if (product) {
+        return {
+          ...item,
+          prices: product.prices, // Add available price options from product
+          description: product.description
+        };
+      }
+      return item;
+    });
+  }, [cart, allProducts]);
+
   useEffect(() => {
     if (cart.length === 0) {
       navigate('/');
