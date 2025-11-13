@@ -3531,8 +3531,8 @@ const Admin = () => {
                       location.name.toLowerCase().includes(citySearchEdit.toLowerCase()) ||
                       location.state.toLowerCase().includes(citySearchEdit.toLowerCase())
                     )
-                    .map((location) => (
-                    <label key={location.name} className="flex items-center space-x-2 cursor-pointer mb-1 p-2 hover:bg-white rounded">
+                    .map((location, index) => (
+                    <label key={`${location.state}-${location.name}-${index}`} className="flex items-center space-x-2 cursor-pointer mb-1 p-2 hover:bg-white rounded">
                       <input
                         type="checkbox"
                         checked={editingProduct.available_cities && editingProduct.available_cities.includes(location.name)}
