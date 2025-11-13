@@ -544,10 +544,13 @@ function Checkout() {
   };
 
   const handleSaveWeight = (index) => {
-    const item = cart[index];
+    const item = enrichedCart[index];
     const newPrice = item.prices.find(p => p.weight === selectedWeight);
     if (newPrice) {
-      updateCartItem(index, { selectedPrice: newPrice });
+      updateCartItem(index, { 
+        weight: newPrice.weight,
+        price: newPrice.price
+      });
       toast({
         title: "Weight Updated",
         description: `Changed to ${newPrice.weight}`,
