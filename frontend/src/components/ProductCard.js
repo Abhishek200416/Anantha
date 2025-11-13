@@ -78,7 +78,7 @@ const ProductCard = ({ product }) => {
       <div className="relative overflow-hidden bg-gradient-to-br from-orange-50 to-red-50">
         <img
           src={product.image}
-          alt={product.name}
+          alt={productName}
           loading="lazy"
           className="w-full h-56 object-cover group-hover:scale-110 transition-transform duration-500"
         />
@@ -87,8 +87,8 @@ const ProductCard = ({ product }) => {
 
       {/* Product Info */}
       <div className="p-5">
-        <h3 className="text-xl font-bold text-gray-800 mb-2 line-clamp-1">{product.name}</h3>
-        <p className="text-gray-600 text-sm mb-3 line-clamp-2">{product.description}</p>
+        <h3 className="text-xl font-bold text-gray-800 mb-2 line-clamp-1">{productName}</h3>
+        <p className="text-gray-600 text-sm mb-3 line-clamp-2">{productDescription}</p>
 
         {/* Tag */}
         <div className="flex items-center space-x-2 mb-4">
