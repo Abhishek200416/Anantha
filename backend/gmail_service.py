@@ -298,6 +298,117 @@ async def send_city_approval_email(to_email: str, city_data: dict):
         logger.error(f"Failed to send city approval email via Gmail: {str(e)}")
         return False
 
+
+async def send_order_cancellation_email(to_email: str, order_data: dict, cancel_reason: str = "Payment cancelled by customer"):
+    """Send email notification when order is cancelled
+    
+    Args:
+        to_email: Customer's email address
+        order_data: Dictionary containing order details
+        cancel_reason: Reason for cancellation
+    """
+    try:
+        GMAIL_EMAIL, GMAIL_APP_PASSWORD = get_gmail_credentials()
+        
+        if not GMAIL_EMAIL or not GMAIL_APP_PASSWORD:
+            logger.warning("Gmail credentials not configured. Email not sent.")
+            return False
+            
+        # Create message
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = f'Order Cancelled - #{order_data.get("order_id", "N/A")}'
+        msg['From'] = f'Anantha Home Foods <{GMAIL_EMAIL}>'
+        msg['To'] = to_email
+        
+        # Format items HTML
+        items_html = ""
+        for item in order_data.get("items", []):
+            items_html += f'''
+            <div style="padding: 10px; border-bottom: 1px solid #e5e7eb;">
+                <p><strong>{item["name"]}</strong> ({item["weight"]})</p>
+                <p>Quantity: {item["quantity"]} × Rs.{item["price"]} = Rs.{item["quantity"] * item["price"]}</p>
+            </div>
+            '''
+        
+        # Format address
+        if order_data.get("doorNo"):
+            address_html = f'''
+            {order_data.get("doorNo", "")}, {order_data.get("building", "")}<br>
+            {order_data.get("street", "")}<br>
+            {order_data.get("city", "")}, {order_data.get("state", "")} - {order_data.get("pincode", "")}
+            '''
+        else:
+            address_html = f'{order_data.get("address", "")}'
+        
+        html_content = f'''
+        <html>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+                <h2 style="color: #dc2626; text-align: center;">❌ Order Cancelled</h2>
+                <p>Dear {order_data.get("customer_name", "Customer")},</p>
+                <p>Your order has been cancelled. {cancel_reason}</p>
+                
+                <div style="background-color: #fef2f2; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #dc2626;">
+                    <h3 style="color: #dc2626; margin-top: 0;">Cancelled Order Details</h3>
+                    <p><strong>Order ID:</strong> {order_data.get("order_id", "N/A")}</p>
+                    <p><strong>Tracking Code:</strong> {order_data.get("tracking_code", "N/A")}</p>
+                    <p><strong>Cancelled At:</strong> {datetime.now().strftime("%B %d, %Y %I:%M %p")}</p>
+                    <p><strong>Total Amount:</strong> Rs.{order_data.get("total", 0)}</p>
+                </div>
+                
+                <div style="background-color: #fff7ed; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                    <h3 style="color: #ea580c; margin-top: 0;">Delivery Address</h3>
+                    <p>{address_html}<br>
+                    {order_data.get("location", "")}</p>
+                    <p><strong>Phone:</strong> {order_data.get("phone", "")}</p>
+                </div>
+                
+                <div style="margin: 20px 0;">
+                    <h3 style="color: #1e40af;">Items in Cancelled Order</h3>
+                    {items_html}
+                </div>
+                
+                <div style="background-color: #eff6ff; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                    <h4 style="margin-top: 0; color: #1e40af;">💙 We'd Love to Serve You!</h4>
+                    <p>We're sorry your order was cancelled. We'd love to serve you in the future!</p>
+                    <p>Visit our website anytime to browse our delicious traditional foods:</p>
+                    <ul style="margin: 10px 0;">
+                        <li>Traditional Laddus & Chikkis</li>
+                        <li>Authentic Sweets</li>
+                        <li>Hot Snacks & Items</li>
+                        <li>Homemade Pickles</li>
+                        <li>Fresh Powders & Spices</li>
+                    </ul>
+                </div>
+                
+                <p style="margin-top: 30px;">If you have any questions or need assistance, feel free to contact us at <strong>9985116385</strong></p>
+                
+                <p style="text-align: center; color: #666; margin-top: 30px; font-size: 12px;">
+                    Thank you for choosing Anantha Home Foods!<br>
+                    Handcrafted with love and tradition 💚
+                </p>
+            </div>
+        </body>
+        </html>
+        '''
+        
+        # Attach HTML content
+        html_part = MIMEText(html_content, 'html')
+        msg.attach(html_part)
+        
+        # Send email using Gmail SMTP
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+            server.login(GMAIL_EMAIL, GMAIL_APP_PASSWORD)
+            server.send_message(msg)
+        
+        logger.info(f"Order cancellation email sent successfully to {to_email} via Gmail")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Failed to send order cancellation email via Gmail: {str(e)}")
+        return False
+
+
 async def send_city_rejection_email(to_email: str, city_data: dict, has_payment: bool = False):
     """Send email notification when a city suggestion is rejected
     
