@@ -193,6 +193,7 @@ class State(BaseModel):
     enabled: bool = True
 
 class AdminLogin(BaseModel):
+    email: str
     password: str
 
 class SavedUserDetails(BaseModel):
