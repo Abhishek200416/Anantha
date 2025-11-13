@@ -850,7 +850,7 @@ function Checkout() {
                             onChange={(e) => setSelectedWeight(e.target.value)}
                             className="text-xs p-1 border border-gray-300 rounded"
                           >
-                            {item.prices.map((price) => (
+                            {item.prices && Array.isArray(item.prices) && item.prices.map((price) => (
                               <option key={price.weight} value={price.weight}>
                                 {price.weight} - ₹{price.price}
                               </option>
@@ -872,7 +872,7 @@ function Checkout() {
                       ) : (
                         <div className="flex items-center gap-2 mt-1">
                           <p className="text-xs sm:text-sm text-gray-600">
-                            {item.selectedPrice.weight}
+                            {item.selectedPrice?.weight || 'N/A'}
                           </p>
                           <button
                             onClick={() => handleEditWeight(index)}
