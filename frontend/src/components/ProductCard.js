@@ -188,4 +188,5 @@ const ProductCard = ({ product }) => {
   );
 };
 
-export default ProductCard;
+// Wrap with React.memo to prevent unnecessary re-renders
+export default React.memo(ProductCard);
