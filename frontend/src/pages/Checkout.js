@@ -12,7 +12,7 @@ const API = `${BACKEND_URL}/api`;
 
 function Checkout() {
   const navigate = useNavigate();
-  const { cart, clearCart, updateCartItem, removeFromCart, cartTotal } = useCart();
+  const { cart, clearCart, updateCartItem, removeFromCart, cartTotal, addToCart } = useCart();
   const { user } = useAuth();
   const { toast } = useToast();
 
