@@ -238,11 +238,17 @@ const Home = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const filteredProducts = selectedCategory === 'all'
-    ? products
-    : products.filter(p => p.category === selectedCategory);
+  // Memoize filtered products to prevent unnecessary re-renders
+  const filteredProducts = useMemo(() => {
+    return selectedCategory === 'all'
+      ? products
+      : products.filter(p => p.category === selectedCategory);
+  }, [products, selectedCategory]);
 
-  const bestSellers = products.filter(p => p.isBestSeller).slice(0, 3);
+  // Memoize best sellers to prevent unnecessary filtering
+  const bestSellers = useMemo(() => {
+    return products.filter(p => p.isBestSeller).slice(0, 3);
+  }, [products]);
 
   const handleViewProduct = (product) => {
     setShowFestivalPopup(false);
