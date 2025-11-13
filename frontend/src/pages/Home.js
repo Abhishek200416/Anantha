@@ -325,7 +325,7 @@ const Home = () => {
                     : 'text-gray-600'
                 }`}
               >
-                English
+                EN
               </button>
               <button
                 onClick={() => changeLanguage('te')}
@@ -335,7 +335,17 @@ const Home = () => {
                     : 'text-gray-600'
                 }`}
               >
-                తెలుగు
+                TE
+              </button>
+              <button
+                onClick={() => changeLanguage('hi')}
+                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                  language === 'hi' 
+                    ? 'bg-orange-500 text-white shadow-md' 
+                    : 'text-gray-600'
+                }`}
+              >
+                HI
               </button>
             </div>
           </div>
