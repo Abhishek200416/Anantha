@@ -923,26 +923,26 @@ function Checkout() {
               <div className="mt-4 sm:mt-6 space-y-2 sm:space-y-3 pt-4 sm:pt-6 border-t border-gray-200">
                 <div className="flex justify-between text-xs sm:text-sm">
                   <span className="text-gray-600">Subtotal</span>
-                  <span className="font-medium text-gray-800">₹{cartTotal.toFixed(2)}</span>
+                  <span className="font-medium text-gray-800">₹{(cartTotal || 0).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-xs sm:text-sm">
                   <span className="text-gray-600">Delivery Charge</span>
                   <span className="font-medium text-gray-800">
-                    {deliveryCharge === 0 && freeDeliverySettings.enabled && cartTotal >= freeDeliverySettings.threshold ? (
+                    {deliveryCharge === 0 && freeDeliverySettings.enabled && (cartTotal || 0) >= freeDeliverySettings.threshold ? (
                       <span className="text-green-600">FREE</span>
                     ) : (
-                      `₹${deliveryCharge.toFixed(2)}`
+                      `₹${(deliveryCharge || 0).toFixed(2)}`
                     )}
                   </span>
                 </div>
-                {freeDeliverySettings.enabled && cartTotal < freeDeliverySettings.threshold && deliveryCharge > 0 && (
+                {freeDeliverySettings.enabled && (cartTotal || 0) < freeDeliverySettings.threshold && deliveryCharge > 0 && (
                   <div className="text-xs text-amber-600 bg-amber-50 p-2 rounded">
-                    Add ₹{(freeDeliverySettings.threshold - cartTotal).toFixed(2)} more for free delivery!
+                    Add ₹{(freeDeliverySettings.threshold - (cartTotal || 0)).toFixed(2)} more for free delivery!
                   </div>
                 )}
                 <div className="flex justify-between text-sm sm:text-lg font-bold pt-2 sm:pt-3 border-t border-gray-200">
                   <span className="text-gray-800">Total</span>
-                  <span className="text-orange-600">₹{total.toFixed(2)}</span>
+                  <span className="text-orange-600">₹{(total || 0).toFixed(2)}</span>
                 </div>
               </div>
 
