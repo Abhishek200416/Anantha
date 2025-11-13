@@ -849,7 +849,7 @@ function Checkout() {
 
               {/* Cart Items */}
               <div className="space-y-3 max-h-96 overflow-y-auto">
-                {cart.map((item, index) => (
+                {enrichedCart.map((item, index) => (
                   <div key={index} className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 border border-gray-200 rounded-lg">
                     <img 
                       src={item.image} 
