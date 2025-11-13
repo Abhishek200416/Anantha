@@ -525,7 +525,7 @@ function Checkout() {
   const handleEditWeight = (index) => {
     const item = cart[index];
     setEditingItemIndex(index);
-    setSelectedWeight(item.selectedPrice.weight);
+    setSelectedWeight(item.weight);
   };
 
   const handleSaveWeight = (index) => {
