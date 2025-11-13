@@ -836,6 +836,202 @@ def test_razorpay_payment_integration():
     
     return test_results
 
+def test_locations_api():
+    """Test GET /api/locations API and verify 431 cities as per review request"""
+    print("\n" + "="*80)
+    print("🏙️ LOCATIONS API VERIFICATION (HIGH PRIORITY)")
+    print("="*80)
+    
+    success, response_data = test_api_endpoint(
+        "GET",
+        "/locations",
+        description="Verify exactly 431 cities are returned with correct structure"
+    )
+    
+    if success and isinstance(response_data, list):
+        total_locations = len(response_data)
+        print(f"✅ SUCCESS: Locations API returns {total_locations} cities")
+        
+        # CRITICAL: Verify we have exactly 431 cities as specified in review request
+        if total_locations == 431:
+            print(f"✅ CRITICAL SUCCESS: Exactly 431 cities found as required")
+        else:
+            print(f"❌ CRITICAL FAILURE: Expected exactly 431 cities, got {total_locations}")
+            return False
+        
+        # Verify location structure as specified in review request
+        print(f"\n🔍 LOCATION STRUCTURE VERIFICATION:")
+        if response_data:
+            sample_locations = response_data[:3]  # Check first 3 locations
+            
+            required_fields = ["name", "state", "charge", "free_delivery_threshold", "enabled"]
+            
+            for i, location in enumerate(sample_locations, 1):
+                print(f"\n   Sample Location {i}: {location.get('name', 'Unknown')}")
+                
+                # Check all required fields from review request
+                for field in required_fields:
+                    if field in location:
+                        value = location.get(field)
+                        print(f"     ✅ {field}: {value}")
+                    else:
+                        print(f"     ❌ {field}: Missing")
+        
+        return True
+    
+    print(f"❌ CRITICAL FAILURE: Locations API failed or returned invalid data")
+    return False
+
+def test_free_delivery_settings_api():
+    """Test GET /api/settings/free-delivery API as per review request"""
+    print("\n" + "="*80)
+    print("⚙️ FREE DELIVERY SETTINGS API VERIFICATION (HIGH PRIORITY)")
+    print("="*80)
+    
+    success, response_data = test_api_endpoint(
+        "GET",
+        "/settings/free-delivery",
+        description="Verify free delivery settings return enabled: true, threshold: 1000"
+    )
+    
+    if success and isinstance(response_data, dict):
+        print(f"✅ SUCCESS: Free delivery settings API returns proper structure")
+        
+        # Verify expected values from review request
+        enabled = response_data.get("enabled")
+        threshold = response_data.get("threshold")
+        
+        print(f"\n🔍 FREE DELIVERY SETTINGS VERIFICATION:")
+        print(f"   - enabled: {enabled}")
+        print(f"   - threshold: {threshold}")
+        
+        # Check if values match review request expectations
+        if enabled == True and threshold == 1000:
+            print(f"✅ CRITICAL SUCCESS: Free delivery settings match expected values")
+            print(f"   - enabled: true ✓")
+            print(f"   - threshold: 1000 ✓")
+            return True
+        else:
+            print(f"❌ CRITICAL FAILURE: Free delivery settings don't match expected values")
+            print(f"   - Expected: enabled=true, threshold=1000")
+            print(f"   - Got: enabled={enabled}, threshold={threshold}")
+            return False
+    
+    print(f"❌ CRITICAL FAILURE: Free delivery settings API failed or returned invalid data")
+    return False
+
+def test_create_order_guntur():
+    """Test POST /api/orders with Guntur as delivery city as per review request"""
+    print("\n" + "="*80)
+    print("📦 CREATE TEST ORDER WITH GUNTUR DELIVERY (CRITICAL)")
+    print("="*80)
+    
+    # First get a product from the products list
+    print("\n--- Step 1: Get Product from Products List ---")
+    success, products_data = test_api_endpoint(
+        "GET",
+        "/products",
+        description="Get products list to use in order"
+    )
+    
+    if not success or not isinstance(products_data, list) or len(products_data) == 0:
+        print("❌ CRITICAL FAILURE: Cannot get products for order creation")
+        return False
+    
+    # Use first product
+    product = products_data[0]
+    product_id = product.get("id")
+    product_name = product.get("name", "Test Product")
+    product_image = product.get("image", "")
+    
+    # Get price from prices array
+    prices = product.get("prices", [])
+    if not prices:
+        print("❌ CRITICAL FAILURE: Product has no prices")
+        return False
+    
+    price_item = prices[0]  # Use first price tier
+    weight = price_item.get("weight", "1 kg")
+    price = price_item.get("price", 100.0)
+    
+    print(f"✅ Using product: {product_name} ({weight} = ₹{price})")
+    
+    # Step 2: Create order with Guntur as delivery city
+    print("\n--- Step 2: Create Order with Guntur Delivery ---")
+    order_data = {
+        "customer_name": "Rajesh Kumar",
+        "email": "rajesh.test@example.com",
+        "phone": "9876543210",
+        "doorNo": "12-34",
+        "building": "Sai Residency",
+        "street": "MG Road",
+        "city": "Guntur",
+        "state": "Andhra Pradesh",
+        "pincode": "522001",
+        "items": [
+            {
+                "product_id": product_id,
+                "name": product_name,
+                "image": product_image,
+                "weight": weight,
+                "price": price,
+                "quantity": 1,
+                "description": product.get("description", "")
+            }
+        ],
+        "subtotal": price,
+        "delivery_charge": 49.0,  # Expected Guntur delivery charge
+        "total": price + 49.0,
+        "payment_method": "razorpay",
+        "payment_sub_method": "upi"
+    }
+    
+    success, order_response = test_api_endpoint(
+        "POST",
+        "/orders",
+        data=order_data,
+        description="Create order with Guntur as delivery city"
+    )
+    
+    if success and order_response:
+        order_id = order_response.get("order_id")
+        tracking_code = order_response.get("tracking_code")
+        delivery_charge = order_response.get("delivery_charge")
+        total = order_response.get("total")
+        
+        print(f"✅ SUCCESS: Order created successfully")
+        print(f"   - Order ID: {order_id}")
+        print(f"   - Tracking Code: {tracking_code}")
+        print(f"   - Delivery Charge: ₹{delivery_charge}")
+        print(f"   - Total: ₹{total}")
+        
+        # Verify delivery charge calculation for Guntur
+        print(f"\n🔍 DELIVERY CHARGE VERIFICATION:")
+        if delivery_charge == 49.0:
+            print(f"✅ CRITICAL SUCCESS: Guntur delivery charge correct (₹49)")
+        else:
+            print(f"❌ CRITICAL FAILURE: Expected Guntur delivery charge ₹49, got ₹{delivery_charge}")
+            return False
+        
+        # Verify order was created with proper structure
+        if "order" in order_response:
+            order_details = order_response["order"]
+            payment_status = order_details.get("payment_status")
+            order_status = order_details.get("order_status")
+            
+            print(f"   - Payment Status: {payment_status}")
+            print(f"   - Order Status: {order_status}")
+            
+            if payment_status == "pending" and order_status == "pending":
+                print(f"✅ SUCCESS: Order created with correct pending status")
+            else:
+                print(f"⚠️ WARNING: Unexpected order status")
+        
+        return True
+    else:
+        print(f"❌ CRITICAL FAILURE: Could not create order with Guntur delivery")
+        return False
+
 def test_payment_system_configuration():
     """Test Razorpay payment system configuration"""
     print("\n" + "="*80)
