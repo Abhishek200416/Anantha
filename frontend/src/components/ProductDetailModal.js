@@ -1,12 +1,18 @@
 import React, { useState } from 'react';
 import { X, ShoppingCart, Star, Sparkles, TrendingUp, Percent } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { toast } from '../hooks/use-toast';
 
 const ProductDetailModal = ({ product, onClose }) => {
   const [selectedPrice, setSelectedPrice] = useState(product.prices[0]);
   const [selectedPriceIndex, setSelectedPriceIndex] = useState(0);
   const { addToCart } = useCart();
+  const { language } = useLanguage();
+  
+  // Get product name and description based on language
+  const productName = language === 'te' && product.name_telugu ? product.name_telugu : product.name;
+  const productDescription = language === 'te' && product.description_telugu ? product.description_telugu : product.description;
 
   // Get discounted price if available
   const getDiscountedPrice = (priceIndex) => {
