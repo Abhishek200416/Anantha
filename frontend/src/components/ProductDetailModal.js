@@ -26,7 +26,7 @@ const ProductDetailModal = ({ product, onClose }) => {
     addToCart(product, selectedPrice);
     toast({
       title: "Added to cart!",
-      description: `${product.name} (${selectedPrice.weight}) added successfully.`,
+      description: `${productName} (${selectedPrice.weight}) added successfully.`,
     });
   };
 
