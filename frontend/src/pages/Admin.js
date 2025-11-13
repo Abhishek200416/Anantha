@@ -3243,13 +3243,62 @@ const Admin = () => {
               </button>
             </div>
             <div className="space-y-4">
-              <input
-                type="text"
-                placeholder="Product Name"
-                value={editingProduct.name}
-                onChange={(e) => setEditingProduct({...editingProduct, name: e.target.value})}
-                className="w-full px-4 py-2 border rounded-lg"
-              />
+              {/* Language Options Section */}
+              <div className="bg-gradient-to-r from-orange-50 to-amber-50 border-2 border-orange-200 rounded-xl p-4">
+                <h4 className="font-semibold text-gray-800 mb-3 flex items-center">
+                  <span className="text-orange-600 mr-2">🌐</span>
+                  Multilingual Product Details (English & Telugu)
+                </h4>
+                
+                {/* English Fields */}
+                <div className="space-y-3 mb-4 p-3 bg-white rounded-lg border border-gray-200">
+                  <label className="block text-sm font-medium text-gray-700">
+                    <span className="inline-flex items-center">
+                      <span className="mr-2">🇬🇧</span>
+                      English Details
+                    </span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Product Name (English)"
+                    value={editingProduct.name}
+                    onChange={(e) => setEditingProduct({...editingProduct, name: e.target.value})}
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                  <textarea
+                    placeholder="Description (English)"
+                    value={editingProduct.description}
+                    onChange={(e) => setEditingProduct({...editingProduct, description: e.target.value})}
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    rows="3"
+                  />
+                </div>
+
+                {/* Telugu Fields */}
+                <div className="space-y-3 p-3 bg-white rounded-lg border border-gray-200">
+                  <label className="block text-sm font-medium text-gray-700">
+                    <span className="inline-flex items-center">
+                      <span className="mr-2">🇮🇳</span>
+                      Telugu Details (తెలుగు వివరాలు)
+                    </span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Product Name (Telugu) - ఉత్పత్తి పేరు"
+                    value={editingProduct.name_telugu || ''}
+                    onChange={(e) => setEditingProduct({...editingProduct, name_telugu: e.target.value})}
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500"
+                  />
+                  <textarea
+                    placeholder="Description (Telugu) - వివరణ"
+                    value={editingProduct.description_telugu || ''}
+                    onChange={(e) => setEditingProduct({...editingProduct, description_telugu: e.target.value})}
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500"
+                    rows="3"
+                  />
+                </div>
+              </div>
+
               <select
                 value={editingProduct.category}
                 onChange={(e) => setEditingProduct({...editingProduct, category: e.target.value})}
@@ -3259,13 +3308,6 @@ const Admin = () => {
                   <option key={cat.id} value={cat.id}>{cat.name}</option>
                 ))}
               </select>
-              <textarea
-                placeholder="Description"
-                value={editingProduct.description}
-                onChange={(e) => setEditingProduct({...editingProduct, description: e.target.value})}
-                className="w-full px-4 py-2 border rounded-lg"
-                rows="3"
-              />
               
               {/* Image Upload */}
               <div>
