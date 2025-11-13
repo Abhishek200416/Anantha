@@ -7,7 +7,8 @@ import { useToast } from '../hooks/use-toast';
 import { ShoppingBag, MapPin, Phone, Mail, CreditCard, Wallet, User, Home, Building, MapPinned, Navigation, Sparkles, Trash2, Edit, Check } from 'lucide-react';
 import imagePreloader from '../utils/imagePreloader';
 
-const API = process.env.REACT_APP_BACKEND_URL;
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const API = `${BACKEND_URL}/api`;
 
 function Checkout() {
   const navigate = useNavigate();
