@@ -872,7 +872,7 @@ function Checkout() {
                       ) : (
                         <div className="flex items-center gap-2 mt-1">
                           <p className="text-xs sm:text-sm text-gray-600">
-                            {item.selectedPrice?.weight || 'N/A'}
+                            {item.weight || 'N/A'}
                           </p>
                           <button
                             onClick={() => handleEditWeight(index)}
