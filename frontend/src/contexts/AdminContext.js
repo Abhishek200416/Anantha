@@ -84,10 +84,11 @@ export const AdminProvider = ({ children }) => {
     localStorage.setItem('anantha-orders', JSON.stringify(orders));
   }, [orders]);
 
-  const login = async (password) => {
+  const login = async (email, password) => {
     try {
       // Call backend admin login API
       const response = await axios.post(`${API}/auth/admin-login`, {
+        email: email,
         password: password
       });
       
