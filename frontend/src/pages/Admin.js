@@ -1533,14 +1533,23 @@ const Admin = () => {
           <div className="text-center mb-6">
             <LogIn className="h-12 w-12 text-orange-600 mx-auto mb-4" />
             <h1 className="text-3xl font-bold text-gray-800">Admin Login</h1>
-            <p className="text-gray-600 mt-2">Enter password to access admin panel</p>
+            <p className="text-gray-600 mt-2">Enter your credentials to access admin panel</p>
           </div>
           <form onSubmit={handleLogin}>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter admin email"
+              required
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 mb-4"
+            />
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter admin password"
+              required
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 mb-4"
             />
             <button
@@ -1550,7 +1559,7 @@ const Admin = () => {
               Login
             </button>
           </form>
-          <p className="text-sm text-gray-500 mt-4 text-center">Demo password: admin123</p>
+          <p className="text-sm text-gray-500 mt-4 text-center">Default: admin@ananthalakshmi.com / admin123</p>
         </div>
       </div>
     );
