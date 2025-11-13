@@ -188,15 +188,23 @@ const Home = () => {
         const response = await axios.get(url);
         const productsData = response.data || [];
         
-        // Preload product images to prevent lagging
-        productsData.forEach(product => {
-          if (product.image) {
-            const img = new Image();
-            img.src = product.image;
-          }
-        });
-        
         setAllProducts(productsData);
+        
+        // Preload product images with priority (first 6 immediately, rest in background)
+        if (productsData.length > 0) {
+          const imageUrls = productsData
+            .filter(p => p.image)
+            .map(p => p.image);
+          
+          // Preload with priority - first 6 images load immediately, rest in batches
+          imagePreloader.preloadWithPriority(imageUrls, 6)
+            .then(() => {
+              console.log('✅ Product images preloaded:', imagePreloader.getCacheSize());
+            })
+            .catch(err => {
+              console.error('Image preload error:', err);
+            });
+        }
       } catch (error) {
         console.error('Error fetching products:', error);
         setAllProducts(contextProducts);
