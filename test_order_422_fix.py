@@ -10,7 +10,7 @@ import sys
 from datetime import datetime
 
 # Backend URL from environment
-BACKEND_URL = "https://cancel-order-logic.preview.emergentagent.com/api"
+BACKEND_URL = "https://checkout-fix-6.preview.emergentagent.com/api"
 
 def print_section(title):
     """Print a formatted section header"""

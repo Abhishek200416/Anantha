@@ -16,7 +16,7 @@ import time
 import random
 
 # Backend URL from environment
-BACKEND_URL = "https://cancel-order-logic.preview.emergentagent.com/api"
+BACKEND_URL = "https://checkout-fix-6.preview.emergentagent.com/api"
 ADMIN_PASSWORD = "admin123"
 
 def test_api_endpoint(method, endpoint, headers=None, data=None, description="", expected_status=None):
