@@ -143,15 +143,15 @@ code {
     animation: bounce-slow 2s ease-in-out infinite;
 }
 
-/* Custom text size utility */
+/* Custom text size utility - Increased line-height for Telugu script */
 .text-4xl {
     font-size: 2.25rem;
-    line-height: 3.5rem;
+    line-height: 4rem;
 }
 
 @media (min-width: 1024px) {
     .lg\:text-6xl {
         font-size: 3.75rem;
-        line-height: 2;
+        line-height: 1.4;
     }
 }
