@@ -418,9 +418,9 @@ function Checkout() {
           quantity: item.quantity,
           image: item.image
         })),
-        subtotal: cartTotal,
-        delivery_charge: deliveryCharge,
-        total: cartTotal + deliveryCharge,
+        subtotal: cartTotal || 0,
+        delivery_charge: deliveryCharge || 0,
+        total: (cartTotal || 0) + (deliveryCharge || 0),
         payment_method: paymentMethod,
         payment_sub_method: paymentSubMethod,
         payment_status: 'pending',
