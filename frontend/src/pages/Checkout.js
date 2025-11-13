@@ -822,43 +822,6 @@ function Checkout() {
               </div>
             </div>
 
-            {/* Payment Method - Razorpay Info */}
-            <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6">
-              <div className="flex items-center space-x-2 mb-3 sm:mb-4">
-                <Wallet className="h-4 w-4 sm:h-5 sm:w-5 text-orange-500" />
-                <h3 className="text-base sm:text-lg font-bold text-gray-800">Payment Method</h3>
-              </div>
-
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-indigo-200 rounded-xl p-4">
-                <div className="flex items-start space-x-3">
-                  <CreditCard className="h-6 w-6 text-indigo-600 flex-shrink-0 mt-1" />
-                  <div>
-                    <h4 className="font-semibold text-indigo-900 mb-2">Secure Payment via Razorpay</h4>
-                    <p className="text-sm text-indigo-700 mb-3">
-                      After placing your order, you'll be redirected to Razorpay's secure payment gateway where you can choose from multiple payment options:
-                    </p>
-                    <ul className="space-y-1 text-sm text-indigo-700">
-                      <li className="flex items-center space-x-2">
-                        <span className="text-indigo-500">•</span>
-                        <span><strong>UPI:</strong> PhonePe, Google Pay, Paytm, BHIM</span>
-                      </li>
-                      <li className="flex items-center space-x-2">
-                        <span className="text-indigo-500">•</span>
-                        <span><strong>Cards:</strong> Credit & Debit Cards (Visa, Mastercard, RuPay)</span>
-                      </li>
-                      <li className="flex items-center space-x-2">
-                        <span className="text-indigo-500">•</span>
-                        <span><strong>Net Banking:</strong> All major banks supported</span>
-                      </li>
-                      <li className="flex items-center space-x-2">
-                        <span className="text-indigo-500">•</span>
-                        <span><strong>Wallets:</strong> Paytm, Mobikwik, Freecharge, etc.</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Right Column - Order Summary */}
