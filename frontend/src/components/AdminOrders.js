@@ -210,12 +210,15 @@ const AdminOrders = () => {
                 <div>
                   <p className="text-sm text-green-600 font-medium mb-1">Total Sales</p>
                   <p className="text-3xl font-bold text-green-700">
-                    ₹{sortedOrders.reduce((sum, order) => sum + (order.total || 0), 0).toLocaleString()}
+                    ₹{sortedOrders
+                      .filter(order => !order.cancelled && order.order_status !== 'cancelled')
+                      .reduce((sum, order) => sum + (order.total || 0), 0)
+                      .toLocaleString()}
                   </p>
                 </div>
                 <TrendingUp className="h-10 w-10 text-green-400 opacity-50" />
               </div>
-              <p className="text-xs text-green-600 mt-2">From filtered orders</p>
+              <p className="text-xs text-green-600 mt-2">Excluding cancelled orders</p>
             </div>
 
             {/* Count by Status */}
