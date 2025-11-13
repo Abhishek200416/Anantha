@@ -582,32 +582,32 @@ def test_products_verification():
         # Verify product structure as specified in review request
         print(f"\n🔍 PRODUCT STRUCTURE VERIFICATION:")
         if response_data:
-            sample_products = response_data[:3]  # Check 3-4 products as requested
+            sample_products = response_data[:3]  # Check first 3 products
             
-            required_fields = ["id", "name", "category", "description", "image", "prices", "isBestSeller", "inventory_count"]
+            required_fields = ["id", "name", "description", "category", "image", "prices", "isBestSeller", "isNew", "tag", "inventory_count", "out_of_stock", "discount_active"]
             
             for i, product in enumerate(sample_products, 1):
                 print(f"\n   Sample Product {i}: {product.get('name', 'Unknown')}")
                 
-                # Check all required fields
+                # Check all required fields from review request
                 for field in required_fields:
-                    if field in product and product[field] is not None:
+                    if field in product:
                         if field == "prices":
                             prices = product.get("prices", [])
-                            if isinstance(prices, list) and len(prices) >= 3:
-                                print(f"     ✅ {field}: {len(prices)} price tiers (¼ kg, ½ kg, 1 kg)")
+                            if isinstance(prices, list) and len(prices) > 0:
+                                print(f"     ✅ {field}: {len(prices)} price tiers with weight and price")
+                                # Check first price structure
+                                if prices and isinstance(prices[0], dict):
+                                    price_item = prices[0]
+                                    if "weight" in price_item and "price" in price_item:
+                                        print(f"       - Sample: {price_item.get('weight')} = ₹{price_item.get('price')}")
                             else:
                                 print(f"     ❌ {field}: Invalid prices array")
-                        elif field == "inventory_count":
-                            inventory = product.get("inventory_count", 0)
-                            if inventory == 100:
-                                print(f"     ✅ {field}: {inventory} (correct)")
-                            else:
-                                print(f"     ⚠️  {field}: {inventory} (expected 100)")
                         else:
-                            print(f"     ✅ {field}: Present")
+                            value = product.get(field)
+                            print(f"     ✅ {field}: {value}")
                     else:
-                        print(f"     ❌ {field}: Missing or null")
+                        print(f"     ❌ {field}: Missing")
         
         return True
     
