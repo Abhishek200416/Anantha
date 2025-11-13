@@ -250,82 +250,136 @@ function Checkout() {
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
+        console.log('📍 Coordinates:', latitude, longitude);
         
         try {
-          // Use OpenStreetMap Nominatim API for reverse geocoding
+          // Use OpenStreetMap Nominatim API for reverse geocoding with zoom=10 for better city detection
           const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10&addressdetails=1`,
+            {
+              headers: {
+                'Accept-Language': 'en'
+              }
+            }
           );
           const data = await response.json();
+          console.log('🗺️ Location data:', data);
           
           if (data.address) {
+            const addr = data.address;
+            
             // Build a detailed street address from multiple components
             const streetParts = [];
-            if (data.address.road) streetParts.push(data.address.road);
-            if (data.address.neighbourhood) streetParts.push(data.address.neighbourhood);
-            if (data.address.suburb) streetParts.push(data.address.suburb);
-            if (data.address.hamlet) streetParts.push(data.address.hamlet);
+            if (addr.road) streetParts.push(addr.road);
+            if (addr.neighbourhood) streetParts.push(addr.neighbourhood);
+            if (addr.suburb) streetParts.push(addr.suburb);
+            if (addr.hamlet) streetParts.push(addr.hamlet);
             const detectedStreet = streetParts.join(', ');
             
             // Try to use neighbourhood or suburb for building
-            const detectedBuilding = data.address.neighbourhood || data.address.suburb || '';
+            const detectedBuilding = addr.neighbourhood || addr.suburb || '';
             
-            const detectedPincode = data.address.postcode || '';
-            const detectedState = data.address.state || '';
+            const detectedPincode = addr.postcode || '';
+            const detectedState = addr.state || '';
             
-            // Smart city detection - try to match against known delivery cities
+            // Smart city detection - IMPROVED ALGORITHM (same as homepage)
+            // Try to match with our delivery locations - prioritize exact matches
+            const possibleCities = [
+              addr.city,
+              addr.town,
+              addr.municipality,
+              addr.county,
+              addr.district,
+              addr.city_district,
+              addr.village
+            ].filter(Boolean);
+            
+            console.log('🏙️ Possible cities from API:', possibleCities);
+            console.log('📍 Our delivery cities:', deliveryLocations.map(l => l.name));
+            
             let detectedCity = '';
-            const apiCity = data.address.city || data.address.town || data.address.village || '';
+            let matchedLocation = null;
             
-            // First try exact match from delivery locations
-            const exactMatch = deliveryLocations.find(
-              loc => loc.name.toLowerCase() === apiCity.toLowerCase() && 
-                     loc.state.toLowerCase() === detectedState.toLowerCase()
-            );
-            
-            if (exactMatch) {
-              detectedCity = exactMatch.name;
-            } else {
-              // Try partial match
-              const partialMatch = deliveryLocations.find(
-                loc => loc.name.toLowerCase().includes(apiCity.toLowerCase()) ||
-                       apiCity.toLowerCase().includes(loc.name.toLowerCase())
+            // First try exact match
+            for (const possibleCity of possibleCities) {
+              const exactMatch = deliveryLocations.find(
+                loc => loc.name.toLowerCase() === possibleCity.toLowerCase()
               );
               
-              if (partialMatch) {
-                detectedCity = partialMatch.name;
-              } else {
-                // Use API city as fallback
-                detectedCity = apiCity;
+              if (exactMatch) {
+                detectedCity = exactMatch.name;
+                matchedLocation = exactMatch;
+                console.log('✅ Exact match found:', detectedCity);
+                break;
               }
             }
             
-            console.log('🌍 Location detected:', {
+            // If no exact match, try partial match
+            if (!detectedCity) {
+              for (const possibleCity of possibleCities) {
+                const partialMatch = deliveryLocations.find(
+                  loc => 
+                    loc.name.toLowerCase().includes(possibleCity.toLowerCase()) ||
+                    possibleCity.toLowerCase().includes(loc.name.toLowerCase())
+                );
+                
+                if (partialMatch) {
+                  detectedCity = partialMatch.name;
+                  matchedLocation = partialMatch;
+                  console.log('✅ Partial match found:', detectedCity);
+                  break;
+                }
+              }
+            }
+            
+            // If still no match, don't fill city (let user select from dropdown)
+            if (!detectedCity) {
+              console.log('⚠️ No matching delivery city found');
+              const nearestCity = possibleCities[0] || 'your location';
+              toast({
+                title: "📍 Location Detected",
+                description: `Detected ${nearestCity}, but we don't deliver there yet. Please select your city from the dropdown.`,
+                variant: "default",
+                duration: 6000,
+              });
+              // Still fill other fields
+              if (detectedStreet) setStreet(detectedStreet);
+              if (detectedBuilding) setBuilding(detectedBuilding);
+              if (detectedState) setState(detectedState);
+              if (detectedPincode) setPincode(detectedPincode);
+              setDetectingLocation(false);
+              return;
+            }
+            
+            console.log('🌍 Final location data:', {
               city: detectedCity,
-              state: detectedState,
+              state: matchedLocation?.state || detectedState,
               pincode: detectedPincode,
               street: detectedStreet,
               building: detectedBuilding,
-              raw: data.address
+              deliveryCharge: matchedLocation?.delivery_charge
             });
             
-            // Update form fields with detected values (ALWAYS overwrite)
+            // Update form fields with detected values
             if (detectedStreet) setStreet(detectedStreet);
             if (detectedBuilding) setBuilding(detectedBuilding);
-            if (detectedCity) setCity(detectedCity);
-            if (detectedState) setState(detectedState);
+            if (detectedCity) {
+              setCity(detectedCity);
+              // Also set the correct state from matched location
+              if (matchedLocation?.state) {
+                setState(matchedLocation.state);
+              }
+            }
             if (detectedPincode) setPincode(detectedPincode);
             
-            // Show detailed notification
+            // Show success notification with delivery info
             toast({
-              title: "📍 Location Detected",
+              title: "✅ Location Detected Successfully!",
               description: (
                 <div className="space-y-1 text-sm">
+                  <div className="font-semibold text-green-600">📍 {detectedCity}, {matchedLocation?.state}</div>
                   {detectedStreet && <div>Street: {detectedStreet}</div>}
-                  {detectedBuilding && <div>Building: {detectedBuilding}</div>}
-                  {detectedCity && <div>City: {detectedCity}</div>}
-                  {detectedState && <div>State: {detectedState}</div>}
-                  {detectedPincode && <div>Pincode: {detectedPincode}</div>}
+                  {matchedLocation && <div>Delivery Charge: ₹{matchedLocation.delivery_charge}</div>}
                   <div className="mt-2 text-amber-600">Please verify and adjust if needed</div>
                 </div>
               ),
@@ -336,7 +390,7 @@ function Checkout() {
           console.error('Reverse geocoding error:', error);
           toast({
             title: "Location Error",
-            description: "Failed to get address details",
+            description: "Failed to get address details. Please enter manually.",
             variant: "destructive"
           });
         } finally {
