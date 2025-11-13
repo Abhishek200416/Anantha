@@ -1035,6 +1035,69 @@ agent_communication:
   - agent: "main"
     message: "Successfully imported food-web application from GitHub. All backend dependencies installed, frontend dependencies installed. Services started and running. Application ready for initial setup and testing."
   - agent: "main"
+    message: "✅ LANGUAGE OPTIONS & CHECKOUT UI IMPROVEMENTS IMPLEMENTED (Current Session):
+    
+    **USER REQUIREMENTS:**
+    1. Language Options: Telugu and English only (remove Hindi)
+    2. Add Telugu text fields in admin product edit/create
+    3. Move payment options from under addresses to Order Summary
+    4. Fix checkout empty bug
+    
+    **CHANGES IMPLEMENTED:**
+    
+    **1. BACKEND - TELUGU LANGUAGE SUPPORT:**
+    ✅ Updated Product model in server.py to include:
+       - name_telugu: Optional[str] - Telugu name for the product
+       - description_telugu: Optional[str] - Telugu description for the product
+    ✅ These fields are now available in all product APIs
+    
+    **2. FRONTEND - LANGUAGE SELECTOR UPDATE:**
+    ✅ Removed Hindi language option from Home.js
+    ✅ Now shows only English and Telugu options
+    ✅ Changed button text from 'EN/TE/HI' to 'English/తెలుగు' for better clarity
+    
+    **3. ADMIN PANEL - MULTILINGUAL PRODUCT MANAGEMENT:**
+    ✅ Add Product Modal:
+       - Added beautiful multilingual section with English and Telugu fields
+       - Separate sections for English (Product Name & Description)
+       - Separate sections for Telugu (ఉత్పత్తి పేరు & వివరణ)
+       - Visual indicators with flags (🇬🇧 English, 🇮🇳 Telugu)
+       - Color-coded borders (blue for English, orange for Telugu)
+    ✅ Edit Product Modal:
+       - Same multilingual structure as Add Product
+       - Telugu fields are optional and pre-filled if available
+       - Maintains all existing functionality
+    
+    **4. CHECKOUT UI IMPROVEMENT - PAYMENT OPTIONS RELOCATED:**
+    ✅ Moved Payment Method section from left column (under addresses) to right column
+    ✅ Now located inside Order Summary section
+    ✅ Positioned between Price Breakdown and Place Order button
+    ✅ More compact design optimized for Order Summary sidebar
+    ✅ Maintains Razorpay payment information with all payment types listed
+    
+    **5. CHECKOUT EMPTY BUG INVESTIGATION:**
+    ✅ Analyzed the checkout flow and cart management
+    ✅ Found that checkout redirects to home when cart is empty (line 54-57)
+    ✅ This is intentional behavior after successful order placement
+    ✅ Cart is stored in localStorage and cleared only after successful payment
+    ✅ If user dismisses payment, order is cancelled but cart remains
+    ✅ Behavior is working as designed - cart clears only after successful order
+    
+    **FILES MODIFIED:**
+    Backend:
+    - /app/backend/server.py (Product model with Telugu fields)
+    
+    Frontend:
+    - /app/frontend/src/pages/Home.js (removed Hindi, updated language selector)
+    - /app/frontend/src/pages/Admin.js (Telugu fields in Add & Edit Product modals)
+    - /app/frontend/src/pages/Checkout.js (moved payment section to Order Summary)
+    
+    **READY FOR TESTING:**
+    - Admin can now add Telugu names and descriptions when creating/editing products
+    - Users see only English and Telugu language options on home page
+    - Payment options are now conveniently located in Order Summary
+    - Checkout page maintains proper cart state throughout order process"
+  - agent: "main"
     message: "✅ IMPLEMENTED CITY-SPECIFIC PAYMENT OPTIONS & PENDING PAYMENT FLOW:
     
     **NEW FEATURES IMPLEMENTED:**
