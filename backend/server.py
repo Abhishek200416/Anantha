@@ -1108,8 +1108,17 @@ async def create_order(order_data: OrderCreate, current_user: dict = Depends(get
             "items": items_list
         }
         
-        # Note: Confirmation email will be sent after payment is verified via Razorpay
-        # This ensures customers only receive confirmation after successful payment
+        # Send order confirmation email immediately when order is created
+        # Customer will receive confirmation that order has been placed
+        if order_data.email:
+            try:
+                email_sent = await send_order_confirmation_email_gmail(order_data.email, {**email_data, "order_status": order_status, "payment_status": payment_status})
+                if email_sent:
+                    logger.info(f"✅ Order confirmation email sent successfully to {order_data.email} for order {order_id}")
+                else:
+                    logger.warning(f"⚠️ Order confirmation email failed for {order_data.email}")
+            except Exception as email_error:
+                logger.error(f"❌ Failed to send order confirmation email: {str(email_error)}")
         
         # Remove MongoDB _id field before returning
         order.pop("_id", None)
