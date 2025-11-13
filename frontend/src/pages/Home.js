@@ -8,6 +8,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { getTranslation } from '../translations/translations';
 import { Sparkles, X, ArrowRight, MapPin, Plus, Globe } from 'lucide-react';
 import axios from 'axios';
+import imagePreloader from '../utils/imagePreloader';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
