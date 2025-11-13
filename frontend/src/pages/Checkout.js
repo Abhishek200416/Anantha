@@ -82,6 +82,15 @@ function Checkout() {
     calculateDeliveryCharge();
   }, [city, deliveryLocations, freeDeliverySettings, cartTotal]);
 
+  // Debug locationsByState changes
+  useEffect(() => {
+    console.log('🔍 locationsByState changed:', {
+      hasAndhraPradesh: locationsByState["Andhra Pradesh"]?.length || 0,
+      hasTelangana: locationsByState["Telangana"]?.length || 0,
+      currentState: state
+    });
+  }, [locationsByState, state]);
+
   const fetchAllProducts = async () => {
     try {
       const response = await axios.get(`${API}/products`);
