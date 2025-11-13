@@ -7,7 +7,7 @@ import requests
 import json
 from datetime import datetime, timezone, timedelta
 
-BACKEND_URL = "https://api-connector-22.preview.emergentagent.com/api"
+BACKEND_URL = "https://checkout-bugfix-2.preview.emergentagent.com/api"
 
 def debug_dismissal():
     # Login
