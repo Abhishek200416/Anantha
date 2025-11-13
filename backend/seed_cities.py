@@ -2,11 +2,17 @@ import asyncio
 import os
 from motor.motor_asyncio import AsyncIOMotorClient
 from cities_data import ANDHRA_PRADESH_CITIES, TELANGANA_CITIES, DEFAULT_DELIVERY_CHARGES, DEFAULT_OTHER_CITY_CHARGE
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # MongoDB connection
 MONGO_URL = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
+DB_NAME = os.environ.get('DB_NAME', 'anantha_lakshmi_db')
 client = AsyncIOMotorClient(MONGO_URL)
-db = client['anantha_lakshmi_db']
+db = client[DB_NAME]
+print(f"📦 Using database: {DB_NAME}")
 
 async def seed_cities():
     """Seed database with all cities from Andhra Pradesh and Telangana"""
