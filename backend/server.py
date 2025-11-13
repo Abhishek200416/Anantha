@@ -472,16 +472,31 @@ async def phone_auth(auth_data: PhoneAuth):
 @api_router.post("/auth/admin-login")
 async def admin_login(login_data: AdminLogin):
     """Admin login with password - returns JWT token"""
-    # Check admin password (stored in environment or hardcoded for now)
-    ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'admin123')
     
-    if login_data.password != ADMIN_PASSWORD:
+    # First, check if admin profile exists in database with custom credentials
+    admin_profile = await db.admin_profile.find_one({"id": "admin_profile"}, {"_id": 0})
+    
+    password_valid = False
+    admin_email = "admin@ananthalakshmi.com"  # Default email
+    
+    # If admin profile exists with custom password, verify against that
+    if admin_profile and admin_profile.get("password_hash"):
+        password_valid = verify_password(login_data.password, admin_profile["password_hash"])
+        # Use custom email if available
+        if admin_profile.get("email"):
+            admin_email = admin_profile["email"]
+    else:
+        # Fall back to default password from environment
+        ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'admin123')
+        password_valid = login_data.password == ADMIN_PASSWORD
+    
+    if not password_valid:
         raise HTTPException(status_code=401, detail="Invalid admin password")
     
     # Create admin user object
     admin_user = {
         "id": "admin",
-        "email": "admin@ananthalakshmi.com",
+        "email": admin_email,
         "name": "Admin",
         "is_admin": True
     }
