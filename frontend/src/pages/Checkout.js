@@ -395,7 +395,7 @@ function Checkout() {
                 <div className="space-y-1 text-sm">
                   <div className="font-semibold text-green-600">📍 {detectedCity}, {matchedLocation?.state}</div>
                   {detectedStreet && <div>Street: {detectedStreet}</div>}
-                  {matchedLocation && <div>Delivery Charge: ₹{matchedLocation.delivery_charge}</div>}
+                  {matchedLocation && <div>Delivery Charge: ₹{matchedLocation.charge}</div>}
                   <div className="mt-2 text-amber-600">Please verify and adjust if needed</div>
                 </div>
               ),
