@@ -2649,8 +2649,8 @@ const Admin = () => {
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200">
-                              {stateCities.map((location) => (
-                                <tr key={location.name} className="hover:bg-gray-50">
+                              {stateCities.map((location, index) => (
+                                <tr key={`${location.state || selectedStateTab}-${location.name}-${index}`} className="hover:bg-gray-50">
                                   <td className="px-4 py-3 text-gray-800 font-medium">{location.name}</td>
                                   <td className="px-4 py-3 text-right">
                                     {editingLocation === location.name ? (
