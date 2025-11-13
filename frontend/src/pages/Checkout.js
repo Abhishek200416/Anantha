@@ -538,7 +538,7 @@ function Checkout() {
   };
 
   const handleEditWeight = (index) => {
-    const item = cart[index];
+    const item = enrichedCart[index];
     setEditingItemIndex(index);
     setSelectedWeight(item.weight);
   };
