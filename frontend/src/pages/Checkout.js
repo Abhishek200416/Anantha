@@ -681,11 +681,6 @@ function Checkout() {
     }
   };
 
-  const addToCart = (product, selectedPrice) => {
-    const { addToCart: addToCartFn } = useCart();
-    addToCartFn(product, selectedPrice);
-  };
-
   const total = (cartTotal || 0) + (deliveryCharge || 0);
 
   return (
