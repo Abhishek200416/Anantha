@@ -185,7 +185,17 @@ const Home = () => {
         }
         
         const response = await axios.get(url);
-        setAllProducts(response.data || []);
+        const productsData = response.data || [];
+        
+        // Preload product images to prevent lagging
+        productsData.forEach(product => {
+          if (product.image) {
+            const img = new Image();
+            img.src = product.image;
+          }
+        });
+        
+        setAllProducts(productsData);
       } catch (error) {
         console.error('Error fetching products:', error);
         setAllProducts(contextProducts);
