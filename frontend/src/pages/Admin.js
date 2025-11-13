@@ -777,18 +777,19 @@ const Admin = () => {
     e.preventDefault();
     
     // Use the context login function which now calls the backend API
-    const success = await login(password);
+    const success = await login(email, password);
     
     if (success) {
       toast({
         title: "Login Successful",
         description: "Welcome to admin panel",
       });
+      setEmail('');
       setPassword('');
     } else {
       toast({
         title: "Login Failed",
-        description: "Incorrect password",
+        description: "Incorrect email or password",
         variant: "destructive"
       });
     }
