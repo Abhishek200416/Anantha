@@ -152,6 +152,6 @@ code {
 @media (min-width: 1024px) {
     .lg\:text-6xl {
         font-size: 3.75rem;
-        line-height: 1.4;
+        line-height: 1.3;
     }
 }
