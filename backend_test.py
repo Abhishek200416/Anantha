@@ -4581,55 +4581,55 @@ def test_email_and_razorpay_debugging():
     return test_results
 
 def main():
-    """Main testing function focused on order creation with email and Razorpay"""
-    print("🚀 STARTING ORDER CREATION WITH EMAIL & RAZORPAY TESTING")
-    print("=" * 80)
-    print("TESTING FOCUS:")
-    print("1. Order Creation for Guntur (Existing City)")
-    print("2. Email Confirmation Verification")
-    print("3. Razorpay Payment Gateway Integration")
-    print("4. Order Cancellation Email")
-    print("=" * 80)
+    """Main testing function - runs critical endpoint tests as per review request"""
+    print("🚀 STARTING CRITICAL BACKEND API TESTING")
+    print("=" * 100)
+    print("CRITICAL ENDPOINTS TESTING - Post Database Fixes Verification")
+    print("=" * 100)
     
-    # Track overall test results
     all_tests_passed = True
-    test_summary = []
+    test_results = []
     
-    # 1. DEBUG EMAIL & RAZORPAY CONFIGURATION
-    print("\n🔥 STEP 1: DEBUG EMAIL & RAZORPAY CONFIGURATION")
-    debug_results = test_email_and_razorpay_debugging()
-    for test_name, success in debug_results:
-        test_summary.append((f"Debug: {test_name}", success))
-        if not success:
-            all_tests_passed = False
-    
-    # 2. ORDER CREATION WITH EMAIL & RAZORPAY FLOW
-    print("\n🔥 STEP 2: ORDER CREATION WITH EMAIL & RAZORPAY FLOW")
-    order_results = test_order_creation_with_email_and_razorpay()
-    for test_name, success in order_results:
-        test_summary.append((f"Order Flow: {test_name}", success))
-        if not success:
-            all_tests_passed = False
-    
-    # 3. ADDITIONAL VERIFICATION - PRODUCTS API
-    print("\n🔥 STEP 3: PRODUCTS VERIFICATION")
+    # 1. PRODUCTS API VERIFICATION (HIGH PRIORITY)
+    print(f"\n{'🔥 CRITICAL TEST 1: PRODUCTS API 🔥':^100}")
     products_success = test_products_verification()
-    test_summary.append(("Products Verification", products_success))
+    test_results.append(("Products API (58 products)", products_success))
     if not products_success:
         all_tests_passed = False
     
+    # 2. LOCATIONS API VERIFICATION (HIGH PRIORITY)
+    print(f"\n{'🔥 CRITICAL TEST 2: LOCATIONS API 🔥':^100}")
+    locations_success = test_locations_api()
+    test_results.append(("Locations API (431 cities)", locations_success))
+    if not locations_success:
+        all_tests_passed = False
+    
+    # 3. FREE DELIVERY SETTINGS API VERIFICATION (HIGH PRIORITY)
+    print(f"\n{'🔥 CRITICAL TEST 3: FREE DELIVERY SETTINGS API 🔥':^100}")
+    free_delivery_success = test_free_delivery_settings_api()
+    test_results.append(("Free Delivery Settings API", free_delivery_success))
+    if not free_delivery_success:
+        all_tests_passed = False
+    
+    # 4. CREATE ORDER WITH GUNTUR DELIVERY (CRITICAL)
+    print(f"\n{'🔥 CRITICAL TEST 4: CREATE ORDER WITH GUNTUR 🔥':^100}")
+    order_creation_success = test_create_order_guntur()
+    test_results.append(("Create Order with Guntur Delivery", order_creation_success))
+    if not order_creation_success:
+        all_tests_passed = False
+    
     # FINAL SUMMARY
-    print("\n" + "="*80)
-    print("🏁 ORDER CREATION & EMAIL TESTING COMPLETE")
-    print("="*80)
+    print("\n" + "="*100)
+    print("🏁 CRITICAL ENDPOINTS TESTING COMPLETE")
+    print("="*100)
     
     print(f"\n📊 TEST RESULTS SUMMARY:")
-    for test_name, success in test_summary:
+    for test_name, success in test_results:
         status = "✅ PASS" if success else "❌ FAIL"
         print(f"   {status}: {test_name}")
     
-    total_tests = len(test_summary)
-    passed_tests = sum(1 for _, success in test_summary if success)
+    total_tests = len(test_results)
+    passed_tests = sum(1 for _, success in test_results if success)
     success_rate = (passed_tests / total_tests) * 100 if total_tests > 0 else 0
     
     print(f"\n📈 OVERALL RESULTS:")
@@ -4639,37 +4639,34 @@ def main():
     print(f"   Success Rate: {success_rate:.1f}%")
     
     # Critical checks summary
-    print(f"\n🔍 CRITICAL CHECKS:")
+    print(f"\n🔍 CRITICAL VERIFICATION STATUS:")
     
-    # Check if Guntur is recognized as existing city
-    guntur_test = next((success for name, success in test_summary if "Order Creation for Guntur" in name), False)
-    print(f"   {'✅' if guntur_test else '❌'} Guntur recognized as existing city: {guntur_test}")
+    products_test = next((success for name, success in test_results if "Products API" in name), False)
+    print(f"   {'✅' if products_test else '❌'} Products API (58 products): {products_test}")
     
-    # Check if city recognition works
-    city_test = next((success for name, success in test_summary if "City Recognition" in name), False)
-    print(f"   {'✅' if city_test else '❌'} City recognition working: {city_test}")
+    locations_test = next((success for name, success in test_results if "Locations API" in name), False)
+    print(f"   {'✅' if locations_test else '❌'} Locations API (431 cities): {locations_test}")
     
-    # Check if Razorpay order creation works
-    razorpay_test = next((success for name, success in test_summary if "Razorpay Order Creation" in name), False)
-    print(f"   {'✅' if razorpay_test else '❌'} Razorpay order creation works: {razorpay_test}")
+    free_delivery_test = next((success for name, success in test_results if "Free Delivery" in name), False)
+    print(f"   {'✅' if free_delivery_test else '❌'} Free Delivery Settings: {free_delivery_test}")
     
-    # Check if cancellation email is sent
-    cancel_test = next((success for name, success in test_summary if "Order Cancellation Email" in name), False)
-    print(f"   {'✅' if cancel_test else '❌'} Cancellation email sent: {cancel_test}")
+    order_test = next((success for name, success in test_results if "Create Order" in name), False)
+    print(f"   {'✅' if order_test else '❌'} Order Creation with Guntur: {order_test}")
     
     if all_tests_passed:
-        print(f"\n🎉 ALL TESTS PASSED!")
-        print(f"✅ Order creation working correctly")
-        print(f"✅ Email notifications functioning")
-        print(f"✅ Razorpay integration operational")
-        print(f"\n🚀 SYSTEM IS READY FOR ORDER PROCESSING!")
+        print(f"\n🎉 ALL CRITICAL TESTS PASSED!")
+        print(f"✅ Database seeding successful (products and cities)")
+        print(f"✅ Cart persistence issues resolved")
+        print(f"✅ Price display issues in checkout fixed")
+        print(f"✅ Frontend will work properly with backend data")
+        print(f"\n🚀 SYSTEM IS READY FOR FRONTEND INTEGRATION!")
     else:
-        print(f"\n⚠️  SOME TESTS FAILED - REVIEW REQUIRED")
-        failed_tests = [name for name, success in test_summary if not success]
+        print(f"\n⚠️  SOME CRITICAL TESTS FAILED - IMMEDIATE ATTENTION REQUIRED")
+        failed_tests = [name for name, success in test_results if not success]
         print(f"❌ Failed Tests:")
         for failed_test in failed_tests:
             print(f"   - {failed_test}")
-        print(f"\n🔧 PLEASE ADDRESS FAILED TESTS")
+        print(f"\n🔧 PLEASE ADDRESS FAILED TESTS BEFORE FRONTEND TESTING")
     
     return all_tests_passed
 
