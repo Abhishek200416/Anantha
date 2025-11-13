@@ -96,6 +96,21 @@ function Checkout() {
       const randomRecommendations = shuffled.slice(0, 4);
       
       setRecommendations(randomRecommendations);
+      
+      // Preload cart item images and recommendation images
+      const cartImages = cart.map(item => item.image).filter(Boolean);
+      const recommendationImages = randomRecommendations.map(p => p.image).filter(Boolean);
+      const allImages = [...cartImages, ...recommendationImages];
+      
+      if (allImages.length > 0) {
+        imagePreloader.preloadImages(allImages)
+          .then(() => {
+            console.log('✅ Checkout images preloaded');
+          })
+          .catch(err => {
+            console.error('Checkout image preload error:', err);
+          });
+      }
     } catch (error) {
       console.error('Failed to fetch products:', error);
     }
