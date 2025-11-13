@@ -157,7 +157,7 @@ const Home = () => {
         enableHighAccuracy: true 
       }
     );
-  };
+  }, [deliveryLocations, showLocationNotification]);
 
   // Auto-detect location on page load (only once)
   useEffect(() => {
