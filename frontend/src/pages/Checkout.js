@@ -946,6 +946,40 @@ function Checkout() {
                 </div>
               </div>
 
+              {/* Payment Method - Razorpay Info */}
+              <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-200">
+                <div className="flex items-center space-x-2 mb-3">
+                  <Wallet className="h-4 w-4 sm:h-5 sm:w-5 text-orange-500" />
+                  <h4 className="text-sm sm:text-base font-bold text-gray-800">Payment Method</h4>
+                </div>
+
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-indigo-200 rounded-xl p-3 sm:p-4">
+                  <div className="flex items-start space-x-2 sm:space-x-3">
+                    <CreditCard className="h-5 w-5 sm:h-6 sm:w-6 text-indigo-600 flex-shrink-0 mt-1" />
+                    <div>
+                      <h5 className="font-semibold text-indigo-900 mb-1 sm:mb-2 text-xs sm:text-sm">Secure Payment via Razorpay</h5>
+                      <p className="text-xs text-indigo-700 mb-2">
+                        After placing your order, you'll be redirected to Razorpay's secure payment gateway:
+                      </p>
+                      <ul className="space-y-1 text-xs text-indigo-700">
+                        <li className="flex items-center space-x-1">
+                          <span className="text-indigo-500">•</span>
+                          <span><strong>UPI:</strong> PhonePe, Google Pay, Paytm, BHIM</span>
+                        </li>
+                        <li className="flex items-center space-x-1">
+                          <span className="text-indigo-500">•</span>
+                          <span><strong>Cards:</strong> Credit & Debit Cards</span>
+                        </li>
+                        <li className="flex items-center space-x-1">
+                          <span className="text-indigo-500">•</span>
+                          <span><strong>Net Banking & Wallets</strong></span>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* Place Order Button */}
               <button
                 onClick={handleSubmit}
