@@ -13,7 +13,7 @@ import time
 import random
 
 # Backend URL from environment
-BACKEND_URL = "https://api-error-fix-10.preview.emergentagent.com/api"
+BACKEND_URL = "https://local-storage-cart.preview.emergentagent.com/api"
 
 def test_api_endpoint(method, endpoint, headers=None, data=None, description="", expected_status=None):
     """Test a single API endpoint"""

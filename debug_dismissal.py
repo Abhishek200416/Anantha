@@ -7,7 +7,7 @@ import requests
 import json
 from datetime import datetime, timezone, timedelta
 
-BACKEND_URL = "https://api-error-fix-10.preview.emergentagent.com/api"
+BACKEND_URL = "https://local-storage-cart.preview.emergentagent.com/api"
 
 def debug_dismissal():
     # Login
