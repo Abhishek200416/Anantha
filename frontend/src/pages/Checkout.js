@@ -876,7 +876,7 @@ function Checkout() {
                       <option value="">Select City</option>
                       {state && locationsByState[state]?.map((location) => (
                         <option key={location.name} value={location.name}>
-                          {location.name} (₹{location.delivery_charge})
+                          {location.name} (₹{location.charge})
                         </option>
                       ))}
                     </select>
