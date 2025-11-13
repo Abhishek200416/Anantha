@@ -80,7 +80,7 @@ const ProductDetailModal = ({ product, onClose }) => {
 
             <img
               src={product.image}
-              alt={product.name}
+              alt={productName}
               className="w-full h-96 object-cover rounded-2xl"
             />
           </div>
@@ -88,7 +88,7 @@ const ProductDetailModal = ({ product, onClose }) => {
           {/* Right Side - Details */}
           <div className="flex flex-col">
             <div className="flex-1">
-              <h2 className="text-3xl font-bold text-gray-800 mb-3">{product.name}</h2>
+              <h2 className="text-3xl font-bold text-gray-800 mb-3">{productName}</h2>
               
               {/* Tag */}
               <div className="flex items-center space-x-2 mb-4">
