@@ -31,15 +31,15 @@ const Home = () => {
 
   const t = (key) => getTranslation(language, key);
 
-  // Show custom location notification
-  const showLocationNotification = (message, type = 'success', city = null) => {
+  // Show custom location notification (memoized)
+  const showLocationNotification = useCallback((message, type = 'success', city = null) => {
     setLocationNotification({ message, type, city });
     
     // Auto-dismiss after 5 seconds
     setTimeout(() => {
       setLocationNotification(null);
     }, 5000);
-  };
+  }, []);
 
   // Improved location detection function with custom notifications (memoized)
   const detectLocation = useCallback(async () => {
