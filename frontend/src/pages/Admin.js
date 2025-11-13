@@ -3718,26 +3718,85 @@ const Admin = () => {
                 </div>
               </div>
 
-              {/* Discount Field */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Discount (%)</label>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="number"
-                    min="0"
-                    max="100"
-                    placeholder="0"
-                    value={newProduct.discount || 0}
-                    onChange={(e) => setNewProduct({...newProduct, discount: parseInt(e.target.value) || 0})}
-                    className="flex-1 px-4 py-2 border rounded-lg"
-                  />
-                  <Percent className="h-5 w-5 text-gray-400" />
+              {/* Discount Management Section */}
+              <div className="border-t border-b py-4 space-y-3">
+                <h4 className="font-semibold text-gray-800 flex items-center space-x-2">
+                  <Percent className="h-5 w-5 text-orange-600" />
+                  <span>Discount Settings</span>
+                </h4>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Discount % (Max 70%)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="70"
+                      value={newProduct.discount_percentage || 0}
+                      onChange={(e) => setNewProduct({...newProduct, discount_percentage: parseFloat(e.target.value) || 0})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      placeholder="0-70"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Expiry Date
+                    </label>
+                    <input
+                      type="date"
+                      min={new Date().toISOString().split('T')[0]}
+                      value={newProduct.discount_expiry_date ? newProduct.discount_expiry_date.split('T')[0] : ''}
+                      onChange={(e) => setNewProduct({...newProduct, discount_expiry_date: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    />
+                  </div>
                 </div>
-                {newProduct.discount > 0 && (
-                  <p className="text-sm text-green-600 mt-1">
-                    Discounted Price: ₹{calculateDiscountedPrice(newProduct.prices[0].price, newProduct.discount)}
+                {newProduct.discount_percentage > 0 && newProduct.prices && newProduct.prices[0] && (
+                  <p className="text-sm text-green-600">
+                    Discounted Price: ₹{Math.round(newProduct.prices[0].price * (1 - newProduct.discount_percentage / 100))}
                   </p>
                 )}
+              </div>
+
+              {/* Inventory Management Section */}
+              <div className="border-b pb-4 space-y-3">
+                <h4 className="font-semibold text-gray-800 flex items-center space-x-2">
+                  <Archive className="h-5 w-5 text-orange-600" />
+                  <span>Inventory Settings</span>
+                </h4>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Inventory Count
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={newProduct.inventory_count ?? ''}
+                      onChange={(e) => setNewProduct({...newProduct, inventory_count: e.target.value === '' ? null : parseInt(e.target.value)})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      placeholder="Leave empty for unlimited"
+                    />
+                    <span className="text-xs text-gray-500 mt-1 block">
+                      {newProduct.inventory_count !== null && newProduct.inventory_count !== undefined && newProduct.inventory_count !== '' ? `${newProduct.inventory_count} units available` : 'Unlimited stock'}
+                    </span>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Stock Status
+                    </label>
+                    <label className="flex items-center space-x-2 cursor-pointer mt-2">
+                      <input
+                        type="checkbox"
+                        checked={newProduct.out_of_stock || false}
+                        onChange={(e) => setNewProduct({...newProduct, out_of_stock: e.target.checked})}
+                        className="rounded w-5 h-5 text-red-500"
+                      />
+                      <span className="text-sm font-medium">Mark as Out of Stock</span>
+                    </label>
+                  </div>
+                </div>
               </div>
               
               {/* Price Options */}
