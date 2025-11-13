@@ -1471,7 +1471,7 @@ async def complete_payment(order_id: str, data: dict):
 
 
 @api_router.post("/orders/{order_id}/payment-cancel")
-async def cancel_order_payment(order_id: str, data: dict):
+async def cancel_order_payment(order_id: str, data: dict = {}):
     """Cancel order immediately when payment is cancelled (no auth required)"""
     try:
         # Get the order
@@ -1491,6 +1491,7 @@ async def cancel_order_payment(order_id: str, data: dict):
             {"$set": {
                 "cancelled": True,
                 "cancel_reason": cancel_reason,
+                "cancelled_at": datetime.now(timezone.utc).isoformat(),
                 "order_status": "cancelled",
                 "payment_status": "cancelled"
             }}
@@ -1499,7 +1500,19 @@ async def cancel_order_payment(order_id: str, data: dict):
         if result.matched_count == 0:
             raise HTTPException(status_code=404, detail="Order not found")
         
-        print(f"🚫 ORDER CANCELLED: {order_id} - Reason: {cancel_reason}")
+        logger.info(f"🚫 ORDER CANCELLED: {order_id} - Reason: {cancel_reason}")
+        
+        # Send cancellation email
+        if order.get("email"):
+            try:
+                from gmail_service import send_order_cancellation_email
+                email_sent = await send_order_cancellation_email(order.get("email"), order, cancel_reason)
+                if email_sent:
+                    logger.info(f"✅ Cancellation email sent successfully to {order.get('email')} for order {order_id}")
+                else:
+                    logger.warning(f"⚠️ Cancellation email failed for {order.get('email')}")
+            except Exception as email_error:
+                logger.error(f"❌ Failed to send cancellation email: {str(email_error)}")
         
         return {"message": "Order cancelled successfully"}
     except HTTPException:
