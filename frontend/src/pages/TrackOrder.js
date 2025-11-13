@@ -215,19 +215,21 @@ const TrackOrder = () => {
     // Add all items from the order back to cart
     if (order.items && order.items.length > 0) {
       order.items.forEach(item => {
-        // Prepare item for cart
-        const cartItem = {
+        // Prepare product and price objects for addToCart
+        const product = {
           id: item.product_id || item.id,
           name: item.name,
           image: item.image,
-          description: item.description || '',
-          selectedWeight: item.weight || item.size,
-          selectedPrice: item.price,
-          quantity: item.quantity,
-          weight: item.weight || item.size,
-          price: item.price
+          description: item.description || ''
         };
-        addToCart(cartItem);
+        
+        const selectedPrice = {
+          weight: item.weight || item.size || 'N/A',
+          price: item.price || 0
+        };
+        
+        // Add item to cart using proper addToCart signature
+        addToCart(product, selectedPrice);
       });
 
       toast({
