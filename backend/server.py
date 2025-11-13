@@ -2590,7 +2590,14 @@ async def verify_otp_and_change_password(
         # Check if OTP is expired
         expires_at = otp_record.get("expires_at")
         if isinstance(expires_at, datetime):
-            if expires_at < datetime.now(timezone.utc):
+            # Ensure both datetimes have timezone info for comparison
+            if expires_at.tzinfo is None:
+                # If expires_at is naive, assume it's UTC
+                expires_at = expires_at.replace(tzinfo=timezone.utc)
+            
+            current_time = datetime.now(timezone.utc)
+            
+            if expires_at < current_time:
                 # Delete expired OTP
                 await db.otp_verifications.delete_one({"email": verify_request.email, "otp": verify_request.otp})
                 raise HTTPException(status_code=400, detail="OTP has expired")
