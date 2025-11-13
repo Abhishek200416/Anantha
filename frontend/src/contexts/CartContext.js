@@ -78,6 +78,26 @@ export const CartProvider = ({ children }) => {
     return cart.reduce((count, item) => count + item.quantity, 0);
   };
 
+  const updateCartItem = (index, updates) => {
+    setCart(cart.map((item, i) => {
+      if (i === index) {
+        // If updating selectedPrice, flatten it to weight and price
+        if (updates.selectedPrice) {
+          return {
+            ...item,
+            weight: updates.selectedPrice.weight,
+            price: updates.selectedPrice.price,
+            ...updates
+          };
+        }
+        return { ...item, ...updates };
+      }
+      return item;
+    }));
+  };
+
+  const cartTotal = getCartTotal();
+
   return (
     <CartContext.Provider value={{
       cart,
@@ -88,7 +108,9 @@ export const CartProvider = ({ children }) => {
       updateQuantity,
       clearCart,
       getCartTotal,
-      getCartCount
+      getCartCount,
+      updateCartItem,
+      cartTotal
     }}>
       {children}
     </CartContext.Provider>
