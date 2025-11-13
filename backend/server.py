@@ -2608,17 +2608,22 @@ async def verify_otp_and_change_password(
         )
         
         # Also update .env file for persistence
-        env_path = ROOT_DIR / '.env'
-        if env_path.exists():
-            with open(env_path, 'r') as f:
-                lines = f.readlines()
-            
-            with open(env_path, 'w') as f:
-                for line in lines:
-                    if line.startswith('ADMIN_PASSWORD='):
-                        f.write(f'ADMIN_PASSWORD="{verify_request.new_password}"\n')
-                    else:
-                        f.write(line)
+        try:
+            env_path = ROOT_DIR / '.env'
+            if env_path.exists():
+                with open(env_path, 'r') as f:
+                    lines = f.readlines()
+                
+                with open(env_path, 'w') as f:
+                    for line in lines:
+                        if line.startswith('ADMIN_PASSWORD='):
+                            f.write(f'ADMIN_PASSWORD="{verify_request.new_password}"\n')
+                        else:
+                            f.write(line)
+                logger.info("Successfully updated .env file with new password")
+        except Exception as env_error:
+            # Log but don't fail if .env update fails
+            logger.warning(f"Failed to update .env file: {str(env_error)}")
         
         # Delete used OTP
         await db.otp_verifications.delete_one({"email": verify_request.email, "otp": verify_request.otp})
