@@ -248,7 +248,7 @@ function Checkout() {
     }
 
     // Use the delivery charge from the location
-    setDeliveryCharge(location.delivery_charge || 0);
+    setDeliveryCharge(location.charge || 0);
   };
 
   const detectCurrentLocation = async () => {
