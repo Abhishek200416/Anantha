@@ -1334,15 +1334,53 @@ const Admin = () => {
         }
       });
       
+      // Get logged-in user email from localStorage
+      let loggedInEmail = 'admin@ananthalakshmi.com'; // default
+      try {
+        const user = localStorage.getItem('user');
+        if (user) {
+          const userData = JSON.parse(user);
+          if (userData.email) {
+            loggedInEmail = userData.email;
+          }
+        }
+      } catch (e) {
+        console.error('Error parsing user data:', e);
+      }
+      
       if (response.ok) {
         const data = await response.json();
+        // Use logged-in email if no email in profile
+        const profileEmail = data.email || loggedInEmail;
         setAdminProfile({
           mobile: data.mobile || '',
-          email: data.email || ''
+          email: profileEmail
         });
+        // Pre-fill OTP email with profile email
+        setOtpEmail(profileEmail);
+      } else {
+        // If profile doesn't exist, use logged-in email
+        setAdminProfile({
+          mobile: '',
+          email: loggedInEmail
+        });
+        setOtpEmail(loggedInEmail);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
+      // Fallback to logged-in email on error
+      let loggedInEmail = 'admin@ananthalakshmi.com';
+      try {
+        const user = localStorage.getItem('user');
+        if (user) {
+          const userData = JSON.parse(user);
+          if (userData.email) {
+            loggedInEmail = userData.email;
+          }
+        }
+      } catch (e) {}
+      setAdminProfile({ mobile: '', email: loggedInEmail });
+      setOtpEmail(loggedInEmail);
     } finally {
       setProfileLoading(false);
     }
