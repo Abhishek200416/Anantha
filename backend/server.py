@@ -2572,6 +2572,8 @@ async def verify_otp_and_change_password(
 ):
     """Verify OTP and change admin password"""
     try:
+        logger.info(f"Password change request received for email: {verify_request.email}")
+        
         if not current_user.get("is_admin"):
             raise HTTPException(status_code=403, detail="Admin access required")
         
@@ -2582,6 +2584,7 @@ async def verify_otp_and_change_password(
         )
         
         if not otp_record:
+            logger.warning(f"Invalid OTP attempt for email: {verify_request.email}")
             raise HTTPException(status_code=400, detail="Invalid OTP")
         
         # Check if OTP is expired
