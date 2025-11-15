@@ -97,13 +97,23 @@ function Checkout() {
       const response = await axios.get(`${API}/products`);
       setAllProducts(response.data);
       
-      // Get random recommendations (excluding items in cart)
+      // Get smart recommendations (excluding items in cart)
       const cartProductIds = cart.map(item => item.id);
       const availableProducts = response.data.filter(p => !cartProductIds.includes(p.id));
       
-      // Shuffle and get random 4 products
-      const shuffled = [...availableProducts].sort(() => Math.random() - 0.5);
-      const randomRecommendations = shuffled.slice(0, 4);
+      // Prioritize: Festival products first, then Best Sellers, then random
+      const festivalProducts = availableProducts.filter(p => p.isFestival);
+      const bestSellers = availableProducts.filter(p => p.isBestSeller && !p.isFestival);
+      const regularProducts = availableProducts.filter(p => !p.isBestSeller && !p.isFestival);
+      
+      // Shuffle each category
+      const shuffledFestival = [...festivalProducts].sort(() => Math.random() - 0.5);
+      const shuffledBestSellers = [...bestSellers].sort(() => Math.random() - 0.5);
+      const shuffledRegular = [...regularProducts].sort(() => Math.random() - 0.5);
+      
+      // Combine and take 4 products
+      const combinedRecommendations = [...shuffledFestival, ...shuffledBestSellers, ...shuffledRegular];
+      const randomRecommendations = combinedRecommendations.slice(0, 4);
       
       setRecommendations(randomRecommendations);
       
