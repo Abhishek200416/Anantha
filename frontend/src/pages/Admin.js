@@ -2039,7 +2039,12 @@ const Admin = () => {
           {activeTab === 'festival' && (
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-800">Festival Special Products</h2>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-800">Festival Special Products</h2>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Total Festival Products: <span className="font-bold text-yellow-600">{products.filter(p => p.isFestival).length}</span>
+                  </p>
+                </div>
                 <button
                   type="button"
                   onClick={handleSaveFestivalProducts}
@@ -2050,10 +2055,17 @@ const Admin = () => {
                 </button>
               </div>
               
-              <p className="text-gray-600 mb-4">Select products to mark as festival special products</p>
+              <p className="text-gray-600 mb-4">Manage festival special products - only showing products marked as festival</p>
               
-              <div className="grid gap-4">
-                {products.map(product => (
+              {products.filter(p => p.isFestival).length === 0 ? (
+                <div className="text-center py-16 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                  <Sparkles className="h-16 w-16 mx-auto mb-4 text-gray-400" />
+                  <h3 className="text-xl font-semibold text-gray-700 mb-2">No Festival Products Yet</h3>
+                  <p className="text-gray-500 mb-4">Mark products as festival using the star icon in the Products tab</p>
+                </div>
+              ) : (
+                <div className="grid gap-4">
+                  {products.filter(p => p.isFestival).map(product => (
                   <div 
                     key={product.id} 
                     className={`rounded-lg p-4 flex items-center space-x-4 border-2 transition-all cursor-pointer ${
