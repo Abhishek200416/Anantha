@@ -2526,7 +2526,7 @@ const Admin = () => {
                     </p>
                   </div>
                 </div>
-                <CitySuggestionsSection />
+                <CitySuggestionsSection fetchDeliveryLocations={fetchDeliveryLocations} />
               </div>
             </div>
           )}
