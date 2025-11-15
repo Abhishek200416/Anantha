@@ -1131,6 +1131,44 @@ const Admin = () => {
     }
   };
 
+  // Festival Products Management Functions
+  const handleToggleFestivalProduct = (productId) => {
+    setSelectedFestivalProducts(prev => {
+      if (prev.includes(productId)) {
+        return prev.filter(id => id !== productId);
+      } else {
+        return [...prev, productId];
+      }
+    });
+  };
+
+  const handleSaveFestivalProducts = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(
+        `${BACKEND_URL}/api/admin/festival-products`,
+        { product_ids: selectedFestivalProducts },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      toast({
+        title: "Success",
+        description: "Festival products updated successfully",
+      });
+
+      // Reload products
+      window.location.reload();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.detail || "Failed to update festival products",
+        variant: "destructive"
+      });
+    }
+  };
+
   // States Management Functions
   const handleAddState = async () => {
     if (!newState.name.trim()) {
