@@ -1999,11 +1999,15 @@ const Admin = () => {
                     <div className="grid grid-cols-3 gap-2 mt-auto">
                       <button
                         type="button"
-                        onClick={() => setAsFestivalProduct(product)}
-                        className="flex flex-col items-center justify-center p-2 bg-yellow-50 text-yellow-700 rounded-lg hover:bg-yellow-100 transition-colors border border-yellow-200"
-                        title="Set as festival product"
+                        onClick={() => toggleProductFestival(product)}
+                        className={`flex flex-col items-center justify-center p-2 rounded-lg transition-colors border ${
+                          product.isFestival
+                            ? 'bg-gradient-to-br from-yellow-100 to-orange-100 text-yellow-700 border-yellow-400 hover:from-yellow-200 hover:to-orange-200'
+                            : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'
+                        }`}
+                        title={product.isFestival ? "Remove from festival" : "Mark as festival"}
                       >
-                        <Star className="h-4 w-4 mb-1" />
+                        <Star className={`h-4 w-4 mb-1 ${product.isFestival ? 'fill-yellow-500 text-yellow-600' : ''}`} />
                         <span className="text-xs">Festival</span>
                       </button>
                       <button
