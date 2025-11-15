@@ -88,8 +88,9 @@ def admin_login():
     print("🔐 ADMIN AUTHENTICATION")
     print("="*80)
     
-    # Admin login with password
+    # Admin login with email and password
     login_data = {
+        "email": "admin@ananthalakshmi.com",
         "password": "admin123"
     }
     
@@ -97,7 +98,7 @@ def admin_login():
         "POST",
         "/auth/admin-login",
         data=login_data,
-        description="Admin login with password 'admin123'"
+        description="Admin login with email and password 'admin123'"
     )
     
     if success and response_data and "token" in response_data:
