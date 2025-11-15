@@ -42,7 +42,7 @@ const formatErrorMessage = (error) => {
 };
 
 // City Suggestions Component (from homepage "Suggest a City" form)
-const CitySuggestionsSection = () => {
+const CitySuggestionsSection = ({ fetchDeliveryLocations }) => {
   const [citySuggestions, setCitySuggestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(null);
