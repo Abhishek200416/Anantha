@@ -680,6 +680,7 @@ const Admin = () => {
   const [productCategoryFilter, setProductCategoryFilter] = useState('all');
   const [productStateFilter, setProductStateFilter] = useState('all');
   const [productCityFilter, setProductCityFilter] = useState('all');
+  const [productSearch, setProductSearch] = useState('');
   
   // Reports tab state
   const [bugReports, setBugReports] = useState([]);
