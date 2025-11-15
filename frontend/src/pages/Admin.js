@@ -1854,7 +1854,9 @@ const Admin = () => {
                     {/* Badges */}
                     <div className="flex flex-wrap gap-1 mb-3">
                       {product.isBestSeller && (
-                        <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded">Best Seller</span>
+                        <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded flex items-center gap-1">
+                          <span className="text-yellow-500">⭐</span> Best Seller
+                        </span>
                       )}
                       {product.isNew && (
                         <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">New</span>
