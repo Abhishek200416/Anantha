@@ -1860,6 +1860,11 @@ const Admin = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {realProducts
                   .filter(product => {
+                    // Search filter
+                    if (productSearch && !product.name.toLowerCase().includes(productSearch.toLowerCase())) {
+                      return false;
+                    }
+                    
                     // Category filter
                     if (productCategoryFilter !== 'all' && product.category !== productCategoryFilter) {
                       return false;
