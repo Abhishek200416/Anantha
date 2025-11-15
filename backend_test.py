@@ -4580,95 +4580,280 @@ def test_email_and_razorpay_debugging():
     
     return test_results
 
+def test_festival_products_verification(admin_token):
+    """Test festival products API and verify exactly 5 festival products as requested"""
+    print("\n" + "="*80)
+    print("🎉 FESTIVAL PRODUCTS VERIFICATION (REVIEW REQUEST)")
+    print("="*80)
+    
+    auth_headers = {
+        "Authorization": f"Bearer {admin_token}",
+        "Content-Type": "application/json"
+    }
+    
+    success, response_data = test_api_endpoint(
+        "GET",
+        "/admin/festival-products",
+        headers=auth_headers,
+        description="Get festival products with admin token - verify 5 festival products"
+    )
+    
+    if success and isinstance(response_data, list):
+        festival_count = len(response_data)
+        print(f"✅ SUCCESS: Festival products API returns {festival_count} products")
+        
+        # CRITICAL: Verify we have exactly 5 festival products as specified in review request
+        if festival_count == 5:
+            print(f"✅ CRITICAL SUCCESS: Exactly 5 festival products found as required")
+        else:
+            print(f"❌ CRITICAL FAILURE: Expected exactly 5 festival products, got {festival_count}")
+            return False
+        
+        # Show festival product details
+        print(f"\n🎉 FESTIVAL PRODUCTS DETAILS:")
+        for i, product in enumerate(response_data, 1):
+            name = product.get("name", "Unknown")
+            is_festival = product.get("isFestival", False)
+            is_best_seller = product.get("isBestSeller", False)
+            category = product.get("category", "Unknown")
+            print(f"   {i}. {name}")
+            print(f"      - Category: {category}")
+            print(f"      - isFestival: {is_festival}")
+            print(f"      - isBestSeller: {is_best_seller}")
+        
+        return True
+    
+    print(f"❌ CRITICAL FAILURE: Festival products API failed or returned invalid data")
+    return False
+
+def test_products_order_verification():
+    """Test products API and show first 10 products with their flags as requested"""
+    print("\n" + "="*80)
+    print("📦 PRODUCTS ORDER VERIFICATION (REVIEW REQUEST)")
+    print("="*80)
+    
+    success, response_data = test_api_endpoint(
+        "GET",
+        "/products",
+        description="Get products and show first 10 with isBestSeller and isFestival flags"
+    )
+    
+    if success and isinstance(response_data, list):
+        total_products = len(response_data)
+        print(f"✅ SUCCESS: Products API returns {total_products} products")
+        
+        # Show first 10 products with their flags
+        print(f"\n📋 FIRST 10 PRODUCTS WITH FLAGS:")
+        products_to_show = response_data[:10]
+        
+        best_seller_count = 0
+        festival_count = 0
+        both_flags_count = 0
+        
+        for i, product in enumerate(products_to_show, 1):
+            name = product.get("name", "Unknown")
+            is_best_seller = product.get("isBestSeller", False)
+            is_festival = product.get("isFestival", False)
+            category = product.get("category", "Unknown")
+            
+            # Count flags
+            if is_best_seller:
+                best_seller_count += 1
+            if is_festival:
+                festival_count += 1
+            if is_best_seller and is_festival:
+                both_flags_count += 1
+            
+            print(f"   {i}. {name}")
+            print(f"      - Category: {category}")
+            print(f"      - isBestSeller: {is_best_seller}")
+            print(f"      - isFestival: {is_festival}")
+            if is_best_seller and is_festival:
+                print(f"      - ⭐ BOTH FLAGS SET ⭐")
+        
+        # Summary of flags in first 10 products
+        print(f"\n📊 FLAGS SUMMARY (First 10 Products):")
+        print(f"   - Best Sellers: {best_seller_count}")
+        print(f"   - Festival Products: {festival_count}")
+        print(f"   - Both Flags: {both_flags_count}")
+        
+        # Check if we have products with both flags
+        if both_flags_count > 0:
+            print(f"✅ SUCCESS: Found {both_flags_count} products with both isBestSeller and isFestival flags")
+        else:
+            print(f"⚠️  WARNING: No products found with both flags in first 10")
+        
+        return True
+    
+    print(f"❌ CRITICAL FAILURE: Products API failed or returned invalid data")
+    return False
+
+def test_all_products_flags_verification():
+    """Test all products and count those with isBestSeller and isFestival flags"""
+    print("\n" + "="*80)
+    print("🔍 ALL PRODUCTS FLAGS VERIFICATION (REVIEW REQUEST)")
+    print("="*80)
+    
+    success, response_data = test_api_endpoint(
+        "GET",
+        "/products",
+        description="Get all products and verify isBestSeller and isFestival flags distribution"
+    )
+    
+    if success and isinstance(response_data, list):
+        total_products = len(response_data)
+        print(f"✅ SUCCESS: Products API returns {total_products} products")
+        
+        # Count products with flags
+        best_seller_count = 0
+        festival_count = 0
+        both_flags_count = 0
+        best_seller_products = []
+        festival_products = []
+        both_flags_products = []
+        
+        for product in response_data:
+            name = product.get("name", "Unknown")
+            is_best_seller = product.get("isBestSeller", False)
+            is_festival = product.get("isFestival", False)
+            
+            if is_best_seller:
+                best_seller_count += 1
+                best_seller_products.append(name)
+            if is_festival:
+                festival_count += 1
+                festival_products.append(name)
+            if is_best_seller and is_festival:
+                both_flags_count += 1
+                both_flags_products.append(name)
+        
+        # Summary of all flags
+        print(f"\n📊 COMPLETE FLAGS SUMMARY (All {total_products} Products):")
+        print(f"   - Total Best Sellers: {best_seller_count}")
+        print(f"   - Total Festival Products: {festival_count}")
+        print(f"   - Products with Both Flags: {both_flags_count}")
+        
+        # Show best seller products
+        if best_seller_products:
+            print(f"\n⭐ BEST SELLER PRODUCTS ({best_seller_count}):")
+            for i, name in enumerate(best_seller_products, 1):
+                print(f"   {i}. {name}")
+        
+        # Show festival products
+        if festival_products:
+            print(f"\n🎉 FESTIVAL PRODUCTS ({festival_count}):")
+            for i, name in enumerate(festival_products, 1):
+                print(f"   {i}. {name}")
+        
+        # Show products with both flags
+        if both_flags_products:
+            print(f"\n⭐🎉 PRODUCTS WITH BOTH FLAGS ({both_flags_count}):")
+            for i, name in enumerate(both_flags_products, 1):
+                print(f"   {i}. {name}")
+        
+        # Verify we have the expected counts
+        if festival_count >= 5:
+            print(f"✅ SUCCESS: Found {festival_count} festival products (expected at least 5)")
+        else:
+            print(f"❌ FAILURE: Only found {festival_count} festival products (expected at least 5)")
+            return False
+        
+        if best_seller_count > 0:
+            print(f"✅ SUCCESS: Found {best_seller_count} best seller products")
+        else:
+            print(f"⚠️  WARNING: No best seller products found")
+        
+        return True
+    
+    print(f"❌ CRITICAL FAILURE: Products API failed or returned invalid data")
+    return False
+
 def main():
-    """Main testing function - runs critical endpoint tests as per review request"""
-    print("🚀 STARTING CRITICAL BACKEND API TESTING")
-    print("=" * 100)
-    print("CRITICAL ENDPOINTS TESTING - Post Database Fixes Verification")
-    print("=" * 100)
+    """Main testing function - Updated for Review Request"""
+    print("🚀 STARTING BACKEND API TESTING - FESTIVAL PRODUCTS VERIFICATION")
+    print("=" * 80)
+    print("REVIEW REQUEST TESTING:")
+    print("1. Products API - Order Verification with isBestSeller and isFestival flags")
+    print("2. Festival Products Count - Verify 5 festival products")
+    print("3. Product Details - Show first 10 products with their flags")
+    print("=" * 80)
     
+    # Track all test results
     all_tests_passed = True
-    test_results = []
+    test_summary = []
     
-    # 1. PRODUCTS API VERIFICATION (HIGH PRIORITY)
-    print(f"\n{'🔥 CRITICAL TEST 1: PRODUCTS API 🔥':^100}")
-    products_success = test_products_verification()
-    test_results.append(("Products API (58 products)", products_success))
-    if not products_success:
+    # 1. Admin Authentication (Required for admin endpoints)
+    print("\n🔐 PHASE 1: ADMIN AUTHENTICATION")
+    admin_success, admin_token = test_admin_authentication()
+    test_summary.append(("Admin Authentication", admin_success))
+    
+    if not admin_success:
+        print("❌ CRITICAL: Admin authentication failed - cannot test admin endpoints")
+        all_tests_passed = False
+        admin_token = None
+        return False
+    
+    # 2. Products Order Verification (REVIEW REQUEST)
+    print("\n📦 PHASE 2: PRODUCTS ORDER VERIFICATION (REVIEW REQUEST)")
+    products_order_success = test_products_order_verification()
+    test_summary.append(("Products Order Verification", products_order_success))
+    
+    if not products_order_success:
         all_tests_passed = False
     
-    # 2. LOCATIONS API VERIFICATION (HIGH PRIORITY)
-    print(f"\n{'🔥 CRITICAL TEST 2: LOCATIONS API 🔥':^100}")
-    locations_success = test_locations_api()
-    test_results.append(("Locations API (431 cities)", locations_success))
-    if not locations_success:
+    # 3. All Products Flags Verification (REVIEW REQUEST)
+    print("\n🔍 PHASE 3: ALL PRODUCTS FLAGS VERIFICATION (REVIEW REQUEST)")
+    all_products_success = test_all_products_flags_verification()
+    test_summary.append(("All Products Flags Verification", all_products_success))
+    
+    if not all_products_success:
         all_tests_passed = False
     
-    # 3. FREE DELIVERY SETTINGS API VERIFICATION (HIGH PRIORITY)
-    print(f"\n{'🔥 CRITICAL TEST 3: FREE DELIVERY SETTINGS API 🔥':^100}")
-    free_delivery_success = test_free_delivery_settings_api()
-    test_results.append(("Free Delivery Settings API", free_delivery_success))
-    if not free_delivery_success:
+    # 4. Festival Products Count Verification (REVIEW REQUEST)
+    if admin_token:
+        print("\n🎉 PHASE 4: FESTIVAL PRODUCTS COUNT VERIFICATION (REVIEW REQUEST)")
+        festival_success = test_festival_products_verification(admin_token)
+        test_summary.append(("Festival Products Count (5 products)", festival_success))
+        
+        if not festival_success:
+            all_tests_passed = False
+    else:
+        print("\n❌ SKIPPING FESTIVAL PRODUCTS TEST: No admin token")
+        test_summary.append(("Festival Products Count (5 products)", False))
         all_tests_passed = False
     
-    # 4. CREATE ORDER WITH GUNTUR DELIVERY (CRITICAL)
-    print(f"\n{'🔥 CRITICAL TEST 4: CREATE ORDER WITH GUNTUR 🔥':^100}")
-    order_creation_success = test_create_order_guntur()
-    test_results.append(("Create Order with Guntur Delivery", order_creation_success))
-    if not order_creation_success:
-        all_tests_passed = False
-    
-    # FINAL SUMMARY
-    print("\n" + "="*100)
-    print("🏁 CRITICAL ENDPOINTS TESTING COMPLETE")
-    print("="*100)
+    # Final Summary
+    print("\n" + "=" * 80)
+    print("🏁 REVIEW REQUEST TESTING COMPLETE")
+    print("=" * 80)
     
     print(f"\n📊 TEST RESULTS SUMMARY:")
-    for test_name, success in test_results:
+    passed_count = 0
+    total_count = len(test_summary)
+    
+    for test_name, success in test_summary:
         status = "✅ PASS" if success else "❌ FAIL"
         print(f"   {status}: {test_name}")
+        if success:
+            passed_count += 1
     
-    total_tests = len(test_results)
-    passed_tests = sum(1 for _, success in test_results if success)
-    success_rate = (passed_tests / total_tests) * 100 if total_tests > 0 else 0
+    success_rate = (passed_count / total_count) * 100 if total_count > 0 else 0
     
     print(f"\n📈 OVERALL RESULTS:")
-    print(f"   Total Tests: {total_tests}")
-    print(f"   Passed: {passed_tests}")
-    print(f"   Failed: {total_tests - passed_tests}")
-    print(f"   Success Rate: {success_rate:.1f}%")
-    
-    # Critical checks summary
-    print(f"\n🔍 CRITICAL VERIFICATION STATUS:")
-    
-    products_test = next((success for name, success in test_results if "Products API" in name), False)
-    print(f"   {'✅' if products_test else '❌'} Products API (58 products): {products_test}")
-    
-    locations_test = next((success for name, success in test_results if "Locations API" in name), False)
-    print(f"   {'✅' if locations_test else '❌'} Locations API (431 cities): {locations_test}")
-    
-    free_delivery_test = next((success for name, success in test_results if "Free Delivery" in name), False)
-    print(f"   {'✅' if free_delivery_test else '❌'} Free Delivery Settings: {free_delivery_test}")
-    
-    order_test = next((success for name, success in test_results if "Create Order" in name), False)
-    print(f"   {'✅' if order_test else '❌'} Order Creation with Guntur: {order_test}")
+    print(f"   - Tests Passed: {passed_count}/{total_count}")
+    print(f"   - Success Rate: {success_rate:.1f}%")
     
     if all_tests_passed:
-        print(f"\n🎉 ALL CRITICAL TESTS PASSED!")
-        print(f"✅ Database seeding successful (products and cities)")
-        print(f"✅ Cart persistence issues resolved")
-        print(f"✅ Price display issues in checkout fixed")
-        print(f"✅ Frontend will work properly with backend data")
-        print(f"\n🚀 SYSTEM IS READY FOR FRONTEND INTEGRATION!")
+        print(f"\n🎉 ALL REVIEW REQUEST TESTS PASSED!")
+        print(f"✅ Products API: Working with isBestSeller and isFestival flags")
+        print(f"✅ Festival Products: Verified count and details")
+        print(f"✅ Product Details: First 10 products shown with flags")
+        print(f"✅ Admin Authentication: Working correctly")
+        return True
     else:
-        print(f"\n⚠️  SOME CRITICAL TESTS FAILED - IMMEDIATE ATTENTION REQUIRED")
-        failed_tests = [name for name, success in test_results if not success]
-        print(f"❌ Failed Tests:")
-        for failed_test in failed_tests:
-            print(f"   - {failed_test}")
-        print(f"\n🔧 PLEASE ADDRESS FAILED TESTS BEFORE FRONTEND TESTING")
-    
-    return all_tests_passed
+        print(f"\n❌ SOME TESTS FAILED! Please check the issues above.")
+        print(f"🔍 Focus on fixing the failed tests for proper festival products functionality.")
+        return False
 
 if __name__ == "__main__":
     exit_code = main()
