@@ -671,6 +671,8 @@ function Checkout() {
       title: "Item Removed",
       description: "Item has been removed from cart",
     });
+    // Refresh recommendations to show different products
+    setTimeout(() => fetchAllProducts(), 100);
   };
 
   const handleAddRecommendation = (product) => {
