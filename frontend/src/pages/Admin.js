@@ -667,6 +667,7 @@ const Admin = () => {
   const [discountData, setDiscountData] = useState({});
   const [editingDiscount, setEditingDiscount] = useState(null);
   const [selectedBestSellers, setSelectedBestSellers] = useState([]);
+  const [selectedFestivalProducts, setSelectedFestivalProducts] = useState([]);
   const [showAddState, setShowAddState] = useState(false);
   const [newState, setNewState] = useState({ name: '', enabled: true });
   const [deleteLocationDialog, setDeleteLocationDialog] = useState({ isOpen: false, cityName: '' });
