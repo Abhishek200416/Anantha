@@ -164,6 +164,10 @@ const CitySuggestionsSection = ({ fetchDeliveryLocations }) => {
       setStatusFilter('all');
       // Explicitly fetch with 'all' filter to avoid stale closure issue
       await fetchCitySuggestions('all');
+      // Also refresh the delivery locations list to show the newly approved city
+      if (fetchDeliveryLocations) {
+        await fetchDeliveryLocations();
+      }
     } catch (error) {
       console.error('Failed to approve city suggestion:', error);
       toast({
