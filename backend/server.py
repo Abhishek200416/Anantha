@@ -850,6 +850,21 @@ async def get_festival_products(current_user: dict = Depends(get_current_user)):
     products = await db.products.find({"isFestival": True}, {"_id": 0}).to_list(1000)
     return products
 
+@api_router.put("/admin/products/{product_id}/festival")
+async def toggle_product_festival(product_id: str, data: dict, current_user: dict = Depends(get_current_user)):
+    """Toggle festival status for a single product (Admin only)"""
+    is_festival = data.get("isFestival", False)
+    
+    result = await db.products.update_one(
+        {"id": product_id},
+        {"$set": {"isFestival": is_festival}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    return {"message": f"Product festival status updated to {is_festival}"}
+
 # ============= FREE DELIVERY SETTINGS API =============
 
 @api_router.post("/admin/settings/free-delivery")
