@@ -770,8 +770,8 @@ const Admin = () => {
 
   // Helper function to check if a product is a real backend product (not mock)
   const isRealProduct = (product) => {
-    // Real products have IDs like "product_1731050000000", mock products have numeric IDs like 1, 2, 3
-    return typeof product.id === 'string' && product.id.startsWith('product_');
+    // Real products have IDs like "product_1731050000000" or "prod_kandi_podi", mock products have numeric IDs like 1, 2, 3
+    return typeof product.id === 'string' && (product.id.startsWith('product_') || product.id.startsWith('prod_'));
   };
 
   // Filter to get only real products (not mock data)
