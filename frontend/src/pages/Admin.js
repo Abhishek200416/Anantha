@@ -1965,6 +1965,7 @@ const Admin = () => {
                     <img src={product.image} alt={product.name} className="w-20 h-20 object-cover rounded-lg" />
                     <div className="flex-1">
                       <div className="flex items-center space-x-2 mb-1">
+                        <span className="text-yellow-500 text-xl">⭐</span>
                         <Sparkles className="h-4 w-4 text-orange-600" />
                         <h3 className="font-bold text-gray-800">{product.name}</h3>
                       </div>
