@@ -928,12 +928,31 @@ const Admin = () => {
     });
   };
 
-  const setAsFestivalProduct = (product) => {
-    setFestivalProduct(product);
-    toast({
-      title: "Success",
-      description: "Festival product set successfully",
-    });
+  const toggleProductFestival = async (product) => {
+    try {
+      const token = localStorage.getItem('token');
+      const newFestivalStatus = !product.isFestival;
+      
+      await axios.put(
+        `${BACKEND_URL}/api/admin/products/${product.id}/festival`,
+        { isFestival: newFestivalStatus },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      toast({
+        title: "Success",
+        description: newFestivalStatus ? "Product marked as festival!" : "Removed from festival products",
+      });
+      
+      // Reload products
+      window.location.reload();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.detail || "Failed to update festival status",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleAddLocation = async () => {
