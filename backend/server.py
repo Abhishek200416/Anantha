@@ -825,6 +825,31 @@ async def get_festival_product():
     
     return product
 
+# ============= FESTIVAL PRODUCTS (BULK SELECTION LIKE BEST SELLERS) =============
+
+@api_router.post("/admin/festival-products")
+async def update_festival_products(data: dict, current_user: dict = Depends(get_current_user)):
+    """Bulk update festival products (Admin only) - Similar to best sellers"""
+    product_ids = data.get("product_ids", [])
+    
+    # Remove festival flag from all products
+    await db.products.update_many({}, {"$set": {"isFestival": False}})
+    
+    # Set festival flag for selected products
+    if product_ids:
+        await db.products.update_many(
+            {"id": {"$in": product_ids}},
+            {"$set": {"isFestival": True}}
+        )
+    
+    return {"message": "Festival products updated successfully"}
+
+@api_router.get("/admin/festival-products")
+async def get_festival_products(current_user: dict = Depends(get_current_user)):
+    """Get all festival products (Admin only)"""
+    products = await db.products.find({"isFestival": True}, {"_id": 0}).to_list(1000)
+    return products
+
 # ============= FREE DELIVERY SETTINGS API =============
 
 @api_router.post("/admin/settings/free-delivery")
