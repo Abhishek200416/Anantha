@@ -238,11 +238,22 @@ const Home = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  // Memoize filtered products to prevent unnecessary re-renders
+  // Memoize filtered products with smart ordering
   const filteredProducts = useMemo(() => {
-    return selectedCategory === 'all'
+    let categoryFiltered = selectedCategory === 'all'
       ? products
       : products.filter(p => p.category === selectedCategory);
+    
+    // Sort products: Best Sellers first, then Festival, then others (random)
+    const bestSellers = categoryFiltered.filter(p => p.isBestSeller && !p.isFestival);
+    const festivalProducts = categoryFiltered.filter(p => p.isFestival);
+    const regularProducts = categoryFiltered.filter(p => !p.isBestSeller && !p.isFestival);
+    
+    // Shuffle regular products randomly
+    const shuffledRegular = [...regularProducts].sort(() => Math.random() - 0.5);
+    
+    // Combine: Best Sellers → Festival → Random Regular
+    return [...bestSellers, ...festivalProducts, ...shuffledRegular];
   }, [products, selectedCategory]);
 
   // Memoize best sellers to prevent unnecessary filtering
