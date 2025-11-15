@@ -1231,6 +1231,12 @@ const Admin = () => {
     setSelectedBestSellers(bestSellerIds);
   }, [products]);
 
+  // Load selected festival products on mount
+  React.useEffect(() => {
+    const festivalIds = products.filter(p => p.isFestival).map(p => p.id);
+    setSelectedFestivalProducts(festivalIds);
+  }, [products]);
+
   // Fetch bug reports
   const fetchBugReports = async () => {
     setReportsLoading(true);
