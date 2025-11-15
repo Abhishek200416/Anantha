@@ -446,18 +446,21 @@ def test_admin_password_change_otp():
     return True
 
 def test_admin_authentication():
-    """Test admin authentication with password 'admin123'"""
+    """Test admin authentication with email and password"""
     print("\n" + "="*80)
     print("🔐 TESTING ADMIN AUTHENTICATION")
     print("="*80)
     
-    login_data = {"password": ADMIN_PASSWORD}
+    login_data = {
+        "email": "admin@ananthalakshmi.com",
+        "password": ADMIN_PASSWORD
+    }
     
     success, response_data = test_api_endpoint(
         "POST",
         "/auth/admin-login",
         data=login_data,
-        description="Admin login with password 'admin123'"
+        description="Admin login with email and password 'admin123'"
     )
     
     if success and response_data:
