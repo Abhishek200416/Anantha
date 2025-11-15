@@ -1786,6 +1786,20 @@ const Admin = () => {
                 </button>
               </div>
 
+              {/* Search Bar */}
+              <div className="mb-4">
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={productSearch}
+                    onChange={(e) => setProductSearch(e.target.value)}
+                    placeholder="Search products by name..."
+                    className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
+                  />
+                  <Search className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
+                </div>
+              </div>
+
               {/* Product Filters */}
               <div className="mb-6 bg-gray-50 rounded-lg p-4 border border-gray-200">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
