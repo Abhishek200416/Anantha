@@ -1993,57 +1993,56 @@ const Admin = () => {
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-800">Festival Special Products</h2>
                 <button
-                  onClick={() => {
-                    setNewProduct({...newProduct, tag: 'Festival Special'});
-                    setShowAddProduct(true);
-                  }}
+                  type="button"
+                  onClick={handleSaveFestivalProducts}
                   className="flex items-center space-x-2 bg-gradient-to-r from-yellow-600 to-orange-600 text-white px-4 py-2 rounded-lg hover:from-yellow-700 hover:to-orange-700 transition-all"
                 >
-                  <PlusCircle className="h-5 w-5" />
-                  <span>Add Festival Product</span>
+                  <Save className="h-5 w-5" />
+                  <span>Save Changes</span>
                 </button>
               </div>
               
+              <p className="text-gray-600 mb-4">Select products to mark as festival special products</p>
+              
               <div className="grid gap-4">
-                {products.filter(p => p.tag === 'Festival Special').map(product => (
-                  <div key={product.id} className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-lg p-4 flex items-center space-x-4 border-2 border-orange-200">
+                {products.map(product => (
+                  <div 
+                    key={product.id} 
+                    className={`rounded-lg p-4 flex items-center space-x-4 border-2 transition-all cursor-pointer ${
+                      selectedFestivalProducts.includes(product.id)
+                        ? 'bg-gradient-to-br from-orange-50 to-yellow-50 border-orange-400'
+                        : 'bg-white border-gray-200 hover:border-gray-300'
+                    }`}
+                    onClick={() => handleToggleFestivalProduct(product.id)}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedFestivalProducts.includes(product.id)}
+                      onChange={() => handleToggleFestivalProduct(product.id)}
+                      className="h-5 w-5 text-orange-600 rounded focus:ring-orange-500 cursor-pointer"
+                      onClick={(e) => e.stopPropagation()}
+                    />
                     <img src={product.image} alt={product.name} className="w-20 h-20 object-cover rounded-lg" />
                     <div className="flex-1">
                       <div className="flex items-center space-x-2 mb-1">
-                        <span className="text-yellow-500 text-xl">⭐</span>
-                        <Sparkles className="h-4 w-4 text-orange-600" />
+                        {selectedFestivalProducts.includes(product.id) && (
+                          <span className="text-yellow-500 text-xl">⭐</span>
+                        )}
+                        <Sparkles className={`h-4 w-4 ${selectedFestivalProducts.includes(product.id) ? 'text-orange-600' : 'text-gray-400'}`} />
                         <h3 className="font-bold text-gray-800">{product.name}</h3>
                       </div>
-                      <p className="text-sm text-gray-600">{product.description}</p>
-                      <p className="text-sm font-bold text-orange-600 mt-1">₹{product.prices[0].price}</p>
+                      <p className="text-sm text-gray-600 line-clamp-1">{product.description}</p>
+                      <p className="text-sm font-bold text-orange-600 mt-1">
+                        {product.prices && product.prices.length > 0 ? `₹${product.prices[0].price}` : 'Price not set'}
+                      </p>
                     </div>
-                    <div className="flex space-x-2">
-                      <button
-                        type="button"
-                        onClick={() => setEditingProduct({...product})}
-                        className="p-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
-                        title="Edit"
-                      >
-                        <Edit className="h-5 w-5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteProduct(product.id, product.name)}
-                        className="p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
-                        title="Delete"
-                      >
-                        <Trash2 className="h-5 w-5" />
-                      </button>
-                    </div>
+                    {selectedFestivalProducts.includes(product.id) && (
+                      <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-3 py-1 rounded-full text-xs font-bold">
+                        FESTIVAL
+                      </div>
+                    )}
                   </div>
                 ))}
-                {products.filter(p => p.tag === 'Festival Special').length === 0 && (
-                  <div className="text-center py-12 text-gray-500">
-                    <Sparkles className="h-12 w-12 mx-auto mb-3 text-gray-400" />
-                    <p>No festival special products yet</p>
-                    <p className="text-sm mt-1">Click "Add Festival Product" to create one</p>
-                  </div>
-                )}
               </div>
             </div>
           )}
