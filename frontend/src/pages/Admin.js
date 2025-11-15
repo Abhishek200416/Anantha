@@ -1903,6 +1903,11 @@ const Admin = () => {
                           <span className="text-yellow-500">⭐</span> Best Seller
                         </span>
                       )}
+                      {product.isFestival && (
+                        <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded flex items-center gap-1">
+                          <span className="text-yellow-500">⭐</span> Festival
+                        </span>
+                      )}
                       {product.isNew && (
                         <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">New</span>
                       )}
